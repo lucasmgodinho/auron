@@ -10,7 +10,7 @@ Minimal technical foundation for a modular B2B SaaS platform. The FastAPI backen
 
 This foundation was validated with Python 3.14.7, Node.js 24.19.0, npm 11.17.0, Docker 29.6.2, and Docker Compose 5.3.1.
 
-Copy `.env.example` to `.env` if you want to change the local defaults. The checked-in defaults are intended only for local development.
+Copy `.env.example` to `.env` if you want to change the local defaults. `POSTGRES_*` variables configure the Docker PostgreSQL container, while `DATABASE_URL` configures the backend; keep them consistent when changing database settings. The checked-in defaults are intended only for local development.
 
 ## Backend setup
 
