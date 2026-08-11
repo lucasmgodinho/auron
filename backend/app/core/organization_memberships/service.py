@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from psycopg.errors import UniqueViolation
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -15,6 +16,14 @@ class MembershipNotFoundError(Exception):
 
 class MembershipConflictError(Exception):
     pass
+
+
+def _is_membership_unique_violation(error: IntegrityError) -> bool:
+    return (
+        isinstance(error.orig, UniqueViolation)
+        and error.orig.diag.constraint_name
+        == "uq_organization_memberships_user_organization"
+    )
 
 
 def create_membership(
@@ -36,7 +45,9 @@ def create_membership(
         )
     except IntegrityError as error:
         session.rollback()
-        raise MembershipConflictError from error
+        if _is_membership_unique_violation(error):
+            raise MembershipConflictError from error
+        raise
 
 
 def list_organization_memberships(

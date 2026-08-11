@@ -1,6 +1,14 @@
 from uuid import uuid4
 
+import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from app.core.organization_memberships import service as membership_service
+from app.core.organizations import service as organization_service
+from app.core.users import service as user_service
+from app.core.users.model import User
 
 
 def create_user(
@@ -82,6 +90,15 @@ def test_create_user_rejects_duplicate_email(client: TestClient) -> None:
     )
 
     assert response.status_code == 409
+
+
+def test_user_service_reraises_non_unique_integrity_error(db_session: Session) -> None:
+    db_session.add(User(email="invalid@example.com", name=None))
+
+    with pytest.raises(IntegrityError) as error:
+        user_service.create_user(db_session, email="lucas@example.com", name="Lucas")
+
+    assert error.value.orig.sqlstate == "23502"
 
 
 def test_get_user(client: TestClient) -> None:
@@ -201,6 +218,23 @@ def test_create_membership_rejects_duplicate(client: TestClient) -> None:
     )
 
     assert response.status_code == 409
+
+
+def test_membership_service_reraises_non_unique_integrity_error(
+    db_session: Session,
+) -> None:
+    user = user_service.create_user(db_session, email="lucas@example.com", name="Lucas")
+    organization = organization_service.create_organization(db_session, "Acme")
+
+    with pytest.raises(IntegrityError) as error:
+        membership_service.create_membership(
+            db_session,
+            organization_id=organization.id,
+            user_id=user.id,
+            role="invalid",
+        )
+
+    assert error.value.orig.sqlstate == "23514"
 
 
 def test_list_organization_memberships(client: TestClient) -> None:

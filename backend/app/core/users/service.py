@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from psycopg.errors import UniqueViolation
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -13,6 +14,13 @@ class UserNotFoundError(Exception):
 
 class UserEmailConflictError(Exception):
     pass
+
+
+def _is_user_email_unique_violation(error: IntegrityError) -> bool:
+    return (
+        isinstance(error.orig, UniqueViolation)
+        and error.orig.diag.constraint_name == "uq_users_email"
+    )
 
 
 def _normalize_name(name: str) -> str:
@@ -35,7 +43,9 @@ def create_user(session: Session, email: str, name: str) -> User:
         )
     except IntegrityError as error:
         session.rollback()
-        raise UserEmailConflictError from error
+        if _is_user_email_unique_violation(error):
+            raise UserEmailConflictError from error
+        raise
 
 
 def get_user(session: Session, user_id: UUID) -> User:
@@ -69,4 +79,6 @@ def update_user(
         )
     except IntegrityError as error:
         session.rollback()
-        raise UserEmailConflictError from error
+        if _is_user_email_unique_violation(error):
+            raise UserEmailConflictError from error
+        raise
