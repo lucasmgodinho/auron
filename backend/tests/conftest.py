@@ -7,6 +7,7 @@ from sqlalchemy.engine import Engine, make_url
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
+from app.core.auth.model import AuthIdentity, AuthSession
 from app.core.organization_memberships.model import OrganizationMembership
 from app.core.organizations.model import Organization
 from app.core.users.model import User
@@ -50,6 +51,8 @@ def db_session(test_engine: Engine) -> Iterator[Session]:
     session = Session(bind=connection, join_transaction_mode="create_savepoint")
 
     try:
+        session.execute(delete(AuthSession))
+        session.execute(delete(AuthIdentity))
         session.execute(delete(OrganizationMembership))
         session.execute(delete(User))
         session.execute(delete(Organization))

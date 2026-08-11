@@ -23,3 +23,7 @@
 - User is a global platform identity and must not contain `organization_id`.
 - OrganizationMembership connects Users to Organizations; organization-specific roles belong there.
 - Keep authentication identities and provider-specific fields separate from User.
+- Key external identities by provider and stable provider subject, never by email.
+- Never persist or log raw session tokens; server-side sessions store only token hashes.
+- Authentication resolves User only; tenant selection is a separate concern.
+- Keep provider-specific authentication code out of User and OrganizationMembership.

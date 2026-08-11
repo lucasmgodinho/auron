@@ -4,6 +4,7 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from app.config import get_settings
+from app.core.auth import model as auth_model  # noqa: F401
 from app.core.organization_memberships import model as membership_model  # noqa: F401
 from app.core.organizations import model as organization_model  # noqa: F401
 from app.core.users import model as user_model  # noqa: F401

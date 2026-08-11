@@ -66,6 +66,10 @@ Run backend checks from `backend/`:
 
 Integration tests refuse to run if `TEST_DATABASE_URL` is missing or points to the same database as `DATABASE_URL`.
 
+Authentication uses opaque server-side sessions stored in PostgreSQL. Session cookies are
+HttpOnly and SameSite=Lax. Set `AUTH_SESSION_COOKIE_SECURE=true` in HTTPS production
+environments; `AUTH_SESSION_TTL_HOURS` controls the session lifetime and defaults to seven days.
+
 ## Frontend setup
 
 From a second terminal:
