@@ -20,3 +20,6 @@
 - Never trust an `organization_id` supplied by a client as authorization context.
 - Include `organization_id` in tenant-specific uniqueness constraints when appropriate.
 - Cover cross-tenant isolation with automated tests.
+- User is a global platform identity and must not contain `organization_id`.
+- OrganizationMembership connects Users to Organizations; organization-specific roles belong there.
+- Keep authentication identities and provider-specific fields separate from User.

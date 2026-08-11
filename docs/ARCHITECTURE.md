@@ -6,7 +6,9 @@ The FastAPI backend owns application logic and persistence. The React frontend i
 
 ## SaaS Core and business modules
 
-Required platform capabilities live under `app/core`, including organizations and, when implemented, users, authentication, tenancy, and module management. Organization is the tenant root.
+Required platform capabilities live under `app/core`, including organizations, users, organization memberships and, when implemented, authentication, tenancy, and module management. Organization is the tenant root, while User is a global platform identity. OrganizationMembership links Users to Organizations and stores the organization-specific role.
+
+Future authentication identities remain separate from User (`User -> AuthIdentity`). Tenant membership follows `User -> OrganizationMembership -> Organization`; User does not contain `organization_id`.
 
 Optional business capabilities such as fleet, clinic, documents, workflows, and analytics live under `app/modules`. Tenant-owned entities remain inside their business module, reference `organization_id`, and scope data access to that organization.
 
