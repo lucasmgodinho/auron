@@ -20,15 +20,19 @@ class GoogleAuthenticationError(Exception):
 
 
 settings = get_settings()
-oauth = OAuth()
-oauth.register(
-    name=GOOGLE_PROVIDER,
-    client_id=settings.google_client_id,
-    client_secret=settings.google_client_secret.get_secret_value(),
-    server_metadata_url=GOOGLE_DISCOVERY_URL,
-    client_kwargs={"scope": "openid email profile"},
-)
-google_oauth_client = oauth.create_client(GOOGLE_PROVIDER)
+google_oauth_client = None
+if settings.google_authentication_configured:
+    assert settings.google_client_id is not None
+    assert settings.google_client_secret is not None
+    oauth = OAuth()
+    oauth.register(
+        name=GOOGLE_PROVIDER,
+        client_id=settings.google_client_id,
+        client_secret=settings.google_client_secret.get_secret_value(),
+        server_metadata_url=GOOGLE_DISCOVERY_URL,
+        client_kwargs={"scope": "openid email profile"},
+    )
+    google_oauth_client = oauth.create_client(GOOGLE_PROVIDER)
 
 
 def _is_expected_first_login_conflict(error: IntegrityError) -> bool:

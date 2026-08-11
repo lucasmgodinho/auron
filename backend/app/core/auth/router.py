@@ -21,13 +21,26 @@ from app.core.users.schemas import UserResponse
 from app.database import get_session
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
+GOOGLE_NOT_CONFIGURED_DETAIL = "Google authentication is not configured."
+
+
+def _get_google_oauth_client():
+    if google.google_oauth_client is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=GOOGLE_NOT_CONFIGURED_DETAIL,
+        )
+    return google.google_oauth_client
 
 
 @router.get("/google/login")
 async def google_login(request: Request) -> Response:
-    return await google.google_oauth_client.authorize_redirect(
+    google_oauth_client = _get_google_oauth_client()
+    redirect_uri = get_settings().google_redirect_uri
+    assert redirect_uri is not None
+    return await google_oauth_client.authorize_redirect(
         request,
-        str(get_settings().google_redirect_uri),
+        str(redirect_uri),
     )
 
 
@@ -36,8 +49,9 @@ async def google_callback(
     request: Request,
     session: Annotated[Session, Depends(get_session)],
 ) -> Response:
+    google_oauth_client = _get_google_oauth_client()
     try:
-        token = await google.google_oauth_client.authorize_access_token(request)
+        token = await google_oauth_client.authorize_access_token(request)
     except (HTTPError, JoseError, OAuthError, ValueError) as error:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -60,8 +74,10 @@ async def google_callback(
         ) from error
 
     _, raw_session_token = service.create_auth_session(session, user.id)
+    success_redirect_url = get_settings().auth_login_success_redirect_url
+    assert success_redirect_url is not None
     response = RedirectResponse(
-        str(get_settings().auth_login_success_redirect_url),
+        str(success_redirect_url),
         status_code=status.HTTP_302_FOUND,
     )
     set_auth_session_cookie(response, raw_session_token)

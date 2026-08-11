@@ -9,15 +9,17 @@ from app.core.users.router import router as users_router
 
 settings = get_settings()
 app = FastAPI(title="Business Platform")
-app.add_middleware(
-    SessionMiddleware,
-    secret_key=settings.oauth_state_secret.get_secret_value(),
-    session_cookie="oauth_state",
-    max_age=600,
-    path="/auth/google",
-    same_site="lax",
-    https_only=settings.auth_session_cookie_secure,
-)
+if settings.google_authentication_configured:
+    assert settings.oauth_state_secret is not None
+    app.add_middleware(
+        SessionMiddleware,
+        secret_key=settings.oauth_state_secret.get_secret_value(),
+        session_cookie="oauth_state",
+        max_age=600,
+        path="/auth/google",
+        same_site="lax",
+        https_only=settings.auth_session_cookie_secure,
+    )
 app.include_router(auth_router)
 app.include_router(organizations_router)
 app.include_router(users_router)

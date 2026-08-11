@@ -73,10 +73,11 @@ Authentication uses opaque server-side sessions stored in PostgreSQL. Session co
 HttpOnly and SameSite=Lax. Set `AUTH_SESSION_COOKIE_SECURE=true` in HTTPS production
 environments; `AUTH_SESSION_TTL_HOURS` controls the session lifetime and defaults to seven days.
 
-Google sign-in uses OpenID Connect. Configure the OAuth consent screen, create a Google OAuth web
-client, and register `http://127.0.0.1:8000/auth/google/callback` as its exact local authorized
-redirect URI. Then replace `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and
-`OAUTH_STATE_SECRET` in `.env`.
+Google authentication is optional for local core development. Without its configuration, the core
+API starts normally and the Google login endpoints return 503. To enable Google sign-in, configure
+the OAuth consent screen, create a Google OAuth web client, and register
+`http://127.0.0.1:8000/auth/google/callback` as its exact local authorized redirect URI. Then
+uncomment and configure all five Google OIDC values in `.env`.
 `GOOGLE_REDIRECT_URI` is the backend callback registered with Google, while
 `AUTH_LOGIN_SUCCESS_REDIRECT_URL` is the trusted frontend destination after a successful login.
 In production, use HTTPS URLs, a strong independently generated `OAUTH_STATE_SECRET`, and
