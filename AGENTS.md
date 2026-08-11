@@ -31,3 +31,6 @@
   depend on business modules.
 - OAuth/OIDC redirect targets must come from trusted configuration. Never persist, log, or expose
   authorization codes, provider tokens, or platform session tokens in URLs.
+- Frontend authentication state must be resolved through `/auth/me`; never store authentication or
+  provider tokens in browser storage.
+- Frontend tenant or authorization assumptions must never replace backend enforcement.

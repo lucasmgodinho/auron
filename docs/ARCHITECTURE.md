@@ -10,6 +10,9 @@ Required platform capabilities live under `app/core`, including organizations, u
 
 AuthIdentity stores an external provider's stable subject and links it to User; provider email is not an identity key. AuthSession is an opaque authenticated platform session that stores only a token hash. Authentication resolves User only and does not select an Organization.
 
+The frontend never handles authentication tokens. It derives browser authentication state from
+`GET /auth/me`, while the backend-owned HttpOnly cookie remains the session mechanism.
+
 Google login follows `Google OIDC -> AuthIdentity(provider="google", provider_subject=sub) -> User -> AuthSession`. Organization access remains separate through `User -> OrganizationMembership -> Organization`. Google login does not select a tenant; Current Organization resolution remains a separate future concern.
 
 Optional business capabilities such as fleet, clinic, documents, workflows, and analytics live under `app/modules`. Tenant-owned entities remain inside their business module, reference `organization_id`, and scope data access to that organization.
