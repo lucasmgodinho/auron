@@ -5,6 +5,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg://platform:platform@localhost:5432/platform"
+    test_database_url: str | None = None
 
     model_config = SettingsConfigDict(env_file=("../.env", ".env"), extra="ignore")
 
@@ -12,4 +13,3 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
-
