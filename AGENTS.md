@@ -9,7 +9,14 @@
 - Every feature needs appropriate tests.
 - Apply all database schema changes through Alembic migrations.
 - Use `Decimal`, never `float`, for future monetary values.
-- Future tenant-owned data must be scoped to an organization; multi-tenancy is not part of the current foundation.
 - Do not modify unrelated parts of the project.
 - Run relevant validation commands before declaring work complete.
 
+## SaaS boundaries and multi-tenancy
+
+- `app/core` contains required SaaS platform capabilities; `app/modules` contains optional business modules.
+- Organization is the tenant root. Classify data as global/platform data or tenant-owned data.
+- Tenant-owned entities must include `organization_id`, and their queries must always be scoped by it.
+- Never trust an `organization_id` supplied by a client as authorization context.
+- Include `organization_id` in tenant-specific uniqueness constraints when appropriate.
+- Cover cross-tenant isolation with automated tests.
