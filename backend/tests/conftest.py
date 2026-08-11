@@ -1,3 +1,4 @@
+import os
 from collections.abc import Iterator
 
 import pytest
@@ -5,6 +6,12 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, delete
 from sqlalchemy.engine import Engine, make_url
 from sqlalchemy.orm import Session
+
+os.environ.setdefault("GOOGLE_CLIENT_ID", "test-google-client-id")
+os.environ.setdefault("GOOGLE_CLIENT_SECRET", "test-google-client-secret")
+os.environ.setdefault("GOOGLE_REDIRECT_URI", "http://testserver/auth/google/callback")
+os.environ.setdefault("OAUTH_STATE_SECRET", "test-only-oauth-state-secret-with-32-characters")
+os.environ.setdefault("AUTH_LOGIN_SUCCESS_REDIRECT_URL", "http://frontend.test/app")
 
 from app.config import get_settings
 from app.core.auth.model import AuthIdentity, AuthSession

@@ -22,6 +22,33 @@ def find_user_by_identity(
     return session.scalar(statement)
 
 
+def find_user_by_email(session: Session, email: str) -> User | None:
+    return session.scalar(select(User).where(User.email == email))
+
+
+def create_user_with_identity(
+    session: Session,
+    *,
+    email: str,
+    name: str,
+    provider: str,
+    provider_subject: str,
+) -> User:
+    user = User(email=email, name=name)
+    session.add(user)
+    session.flush()
+    session.add(
+        AuthIdentity(
+            user_id=user.id,
+            provider=provider,
+            provider_subject=provider_subject,
+        )
+    )
+    session.commit()
+    session.refresh(user)
+    return user
+
+
 def create_identity(
     session: Session,
     *,

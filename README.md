@@ -70,6 +70,20 @@ Authentication uses opaque server-side sessions stored in PostgreSQL. Session co
 HttpOnly and SameSite=Lax. Set `AUTH_SESSION_COOKIE_SECURE=true` in HTTPS production
 environments; `AUTH_SESSION_TTL_HOURS` controls the session lifetime and defaults to seven days.
 
+Google sign-in uses OpenID Connect. Configure the OAuth consent screen, create a Google OAuth web
+client, and register `http://localhost:8000/auth/google/callback` as its exact local authorized
+redirect URI. Then replace `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and
+`OAUTH_STATE_SECRET` in `.env`.
+`GOOGLE_REDIRECT_URI` is the backend callback registered with Google, while
+`AUTH_LOGIN_SUCCESS_REDIRECT_URL` is the trusted frontend destination after a successful login.
+In production, use HTTPS URLs, a strong independently generated `OAUTH_STATE_SECRET`, and
+`AUTH_SESSION_COOKIE_SECURE=true`.
+
+Start sign-in at `GET /auth/google/login`. The callback is handled only at
+`GET /auth/google/callback`; on success it sets the existing `platform_session` cookie and
+redirects to `AUTH_LOGIN_SUCCESS_REDIRECT_URL`. The flow requests only `openid`, `email`, and
+`profile`; Google access and ID tokens are not stored.
+
 ## Frontend setup
 
 From a second terminal:

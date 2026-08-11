@@ -27,3 +27,7 @@
 - Never persist or log raw session tokens; server-side sessions store only token hashes.
 - Authentication resolves User only; tenant selection is a separate concern.
 - Keep provider-specific authentication code out of User and OrganizationMembership.
+- External OIDC providers authenticate User only; provider code must not resolve Organizations or
+  depend on business modules.
+- OAuth/OIDC redirect targets must come from trusted configuration. Never persist, log, or expose
+  authorization codes, provider tokens, or platform session tokens in URLs.
