@@ -1,6 +1,5 @@
 from uuid import UUID
 
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.users.model import User
@@ -16,11 +15,6 @@ def create_user(session: Session, email: str, name: str) -> User:
 
 def get_user(session: Session, user_id: UUID) -> User | None:
     return session.get(User, user_id)
-
-
-def list_users(session: Session, limit: int, offset: int) -> list[User]:
-    statement = select(User).order_by(User.created_at, User.id).limit(limit).offset(offset)
-    return list(session.scalars(statement))
 
 
 def update_user(

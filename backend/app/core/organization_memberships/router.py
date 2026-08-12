@@ -4,6 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.core.auth.dependencies import get_current_user
 from app.core.organization_memberships import service
 from app.core.organization_memberships.model import OrganizationMembership
 from app.core.organization_memberships.schemas import (
@@ -13,6 +14,7 @@ from app.core.organization_memberships.schemas import (
 )
 from app.core.organizations import service as organization_service
 from app.core.users import service as user_service
+from app.core.users.model import User
 from app.database import get_session
 
 router = APIRouter(tags=["organization memberships"])
@@ -27,6 +29,7 @@ def create_membership(
     organization_id: UUID,
     payload: OrganizationMembershipCreate,
     session: Annotated[Session, Depends(get_session)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> OrganizationMembership:
     try:
         return service.create_membership(
@@ -34,6 +37,7 @@ def create_membership(
             organization_id=organization_id,
             user_id=payload.user_id,
             role=payload.role,
+            current_user_id=current_user.id,
         )
     except organization_service.OrganizationNotFoundError as error:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND) from error
@@ -44,6 +48,8 @@ def create_membership(
             status_code=status.HTTP_409_CONFLICT,
             detail="This user is already a member of the organization",
         ) from error
+    except service.MembershipAccessDeniedError as error:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN) from error
 
 
 @router.get(
@@ -53,11 +59,16 @@ def create_membership(
 def list_organization_memberships(
     organization_id: UUID,
     session: Annotated[Session, Depends(get_session)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> list[OrganizationMembership]:
     try:
-        return service.list_organization_memberships(session, organization_id)
+        return service.list_organization_memberships(
+            session, organization_id, current_user.id
+        )
     except organization_service.OrganizationNotFoundError as error:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND) from error
+    except service.MembershipAccessDeniedError as error:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN) from error
 
 
 @router.get(
@@ -67,11 +78,14 @@ def list_organization_memberships(
 def list_user_memberships(
     user_id: UUID,
     session: Annotated[Session, Depends(get_session)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> list[OrganizationMembership]:
     try:
-        return service.list_user_memberships(session, user_id)
+        return service.list_user_memberships(session, user_id, current_user.id)
     except user_service.UserNotFoundError as error:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND) from error
+    except service.MembershipAccessDeniedError as error:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN) from error
 
 
 @router.patch(
@@ -83,6 +97,7 @@ def update_membership(
     membership_id: UUID,
     payload: OrganizationMembershipUpdate,
     session: Annotated[Session, Depends(get_session)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> OrganizationMembership:
     try:
         return service.update_membership_role(
@@ -90,8 +105,16 @@ def update_membership(
             organization_id=organization_id,
             membership_id=membership_id,
             role=payload.role,
+            current_user_id=current_user.id,
         )
     except organization_service.OrganizationNotFoundError as error:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND) from error
     except service.MembershipNotFoundError as error:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND) from error
+    except service.MembershipAccessDeniedError as error:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN) from error
+    except service.LastOwnerError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="An organization must have at least one owner",
+        ) from error

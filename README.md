@@ -63,7 +63,7 @@ Create a migration after changing SQLAlchemy metadata with:
 Run backend checks from `backend/`:
 
 ```powershell
-.\.venv\Scripts\pytest.exe
+.\.venv\Scripts\python.exe -m pytest
 .\.venv\Scripts\ruff.exe check .
 ```
 

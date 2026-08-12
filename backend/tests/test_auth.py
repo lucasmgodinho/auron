@@ -4,6 +4,7 @@ from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
+from httpx import Response
 from psycopg.errors import UniqueViolation
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -333,3 +334,59 @@ def test_logout_revokes_session_clears_cookie_and_prevents_reuse(
     set_session_cookie(client, raw_token)
     reuse_response = client.get("/auth/me")
     assert reuse_response.status_code == 401
+
+
+def assert_logout_cookie_is_cleared(response: Response) -> None:
+    set_cookie = response.headers["set-cookie"].lower()
+    assert response.status_code == 204
+    assert "platform_session=" in set_cookie
+    assert "max-age=0" in set_cookie
+    assert "path=/" in set_cookie
+    assert "httponly" in set_cookie
+    assert "samesite=lax" in set_cookie
+
+
+def test_logout_with_expired_session_is_idempotent(
+    client: TestClient, db_session: Session
+) -> None:
+    _, auth_session, raw_token = create_session(db_session)
+    auth_session.expires_at = datetime.now(UTC) - timedelta(seconds=1)
+    db_session.commit()
+    set_session_cookie(client, raw_token)
+
+    response = client.post("/auth/logout")
+
+    assert_logout_cookie_is_cleared(response)
+    assert client.get("/auth/me").status_code == 401
+
+
+def test_logout_with_revoked_session_is_idempotent(
+    client: TestClient, db_session: Session
+) -> None:
+    _, auth_session, raw_token = create_session(db_session)
+    revoked_at = datetime.now(UTC)
+    auth_session.revoked_at = revoked_at
+    db_session.commit()
+    set_session_cookie(client, raw_token)
+
+    response = client.post("/auth/logout")
+
+    assert_logout_cookie_is_cleared(response)
+    db_session.refresh(auth_session)
+    assert auth_session.revoked_at == revoked_at
+    assert client.get("/auth/me").status_code == 401
+
+
+def test_logout_with_unknown_token_is_idempotent(client: TestClient) -> None:
+    set_session_cookie(client, "unknown-token")
+
+    response = client.post("/auth/logout")
+
+    assert_logout_cookie_is_cleared(response)
+    assert client.get("/auth/me").status_code == 401
+
+
+def test_logout_without_cookie_is_idempotent(client: TestClient) -> None:
+    response = client.post("/auth/logout")
+
+    assert_logout_cookie_is_cleared(response)

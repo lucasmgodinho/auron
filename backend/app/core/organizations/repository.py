@@ -3,12 +3,21 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.organization_memberships.model import OrganizationMembership
 from app.core.organizations.model import Organization
 
 
-def create_organization(session: Session, name: str) -> Organization:
+def create_organization(session: Session, name: str, owner_user_id: UUID) -> Organization:
     organization = Organization(name=name)
     session.add(organization)
+    session.flush()
+    session.add(
+        OrganizationMembership(
+            user_id=owner_user_id,
+            organization_id=organization.id,
+            role="owner",
+        )
+    )
     session.commit()
     session.refresh(organization)
     return organization
@@ -18,9 +27,27 @@ def get_organization(session: Session, organization_id: UUID) -> Organization | 
     return session.get(Organization, organization_id)
 
 
-def list_organizations(session: Session, limit: int, offset: int) -> list[Organization]:
+def get_organization_for_update(
+    session: Session, organization_id: UUID
+) -> Organization | None:
     statement = (
         select(Organization)
+        .where(Organization.id == organization_id)
+        .with_for_update()
+    )
+    return session.scalar(statement)
+
+
+def list_organizations_for_user(
+    session: Session, user_id: UUID, limit: int, offset: int
+) -> list[Organization]:
+    statement = (
+        select(Organization)
+        .join(
+            OrganizationMembership,
+            OrganizationMembership.organization_id == Organization.id,
+        )
+        .where(OrganizationMembership.user_id == user_id)
         .order_by(Organization.created_at, Organization.id)
         .limit(limit)
         .offset(offset)

@@ -95,7 +95,6 @@ def get_authenticated_user(
 def logout(
     response: Response,
     session: Annotated[Session, Depends(get_session)],
-    _current_user: Annotated[User, Depends(get_current_user)],
     raw_session_token: Annotated[
         str | None, Cookie(alias=AUTH_SESSION_COOKIE_NAME)
     ] = None,

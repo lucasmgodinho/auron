@@ -110,7 +110,7 @@ def revoke_session(session: Session, raw_token: str) -> bool:
     auth_session = repository.get_auth_session_by_token_hash(
         session, _hash_session_token(raw_token)
     )
-    if auth_session is None:
+    if auth_session is None or auth_session.revoked_at is not None:
         return False
     repository.revoke_auth_session(session, auth_session, datetime.now(UTC))
     return True

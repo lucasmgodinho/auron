@@ -18,6 +18,14 @@ class MembershipConflictError(Exception):
     pass
 
 
+class MembershipAccessDeniedError(Exception):
+    pass
+
+
+class LastOwnerError(Exception):
+    pass
+
+
 def _is_membership_unique_violation(error: IntegrityError) -> bool:
     return (
         isinstance(error.orig, UniqueViolation)
@@ -32,8 +40,18 @@ def create_membership(
     organization_id: UUID,
     user_id: UUID,
     role: str,
+    current_user_id: UUID,
 ) -> OrganizationMembership:
-    organization_service.get_organization(session, organization_id)
+    organization_service.get_organization_for_update(session, organization_id)
+    current_membership = repository.get_membership_for_user_organization(
+        session,
+        user_id=current_user_id,
+        organization_id=organization_id,
+    )
+    if current_membership is None or current_membership.role == "member":
+        raise MembershipAccessDeniedError
+    if current_membership.role == "admin" and role == "owner":
+        raise MembershipAccessDeniedError
     user_service.get_user(session, user_id)
 
     try:
@@ -51,15 +69,26 @@ def create_membership(
 
 
 def list_organization_memberships(
-    session: Session, organization_id: UUID
+    session: Session, organization_id: UUID, current_user_id: UUID
 ) -> list[OrganizationMembership]:
     organization_service.get_organization(session, organization_id)
+    if (
+        repository.get_membership_for_user_organization(
+            session,
+            user_id=current_user_id,
+            organization_id=organization_id,
+        )
+        is None
+    ):
+        raise MembershipAccessDeniedError
     return repository.list_organization_memberships(session, organization_id)
 
 
 def list_user_memberships(
-    session: Session, user_id: UUID
+    session: Session, user_id: UUID, current_user_id: UUID
 ) -> list[OrganizationMembership]:
+    if user_id != current_user_id:
+        raise MembershipAccessDeniedError
     user_service.get_user(session, user_id)
     return repository.list_user_memberships(session, user_id)
 
@@ -70,8 +99,16 @@ def update_membership_role(
     organization_id: UUID,
     membership_id: UUID,
     role: str,
+    current_user_id: UUID,
 ) -> OrganizationMembership:
-    organization_service.get_organization(session, organization_id)
+    organization_service.get_organization_for_update(session, organization_id)
+    current_membership = repository.get_membership_for_user_organization(
+        session,
+        user_id=current_user_id,
+        organization_id=organization_id,
+    )
+    if current_membership is None or current_membership.role == "member":
+        raise MembershipAccessDeniedError
     membership = repository.get_membership(
         session,
         membership_id=membership_id,
@@ -79,4 +116,14 @@ def update_membership_role(
     )
     if membership is None:
         raise MembershipNotFoundError
+    if current_membership.role == "admin" and (
+        membership.role == "owner" or role == "owner"
+    ):
+        raise MembershipAccessDeniedError
+    if (
+        membership.role == "owner"
+        and role != "owner"
+        and repository.count_organization_owners(session, organization_id) == 1
+    ):
+        raise LastOwnerError
     return repository.update_membership_role(session, membership, role)

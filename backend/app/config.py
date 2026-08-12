@@ -1,11 +1,15 @@
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic import AnyHttpUrl, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+ENV_FILE = REPOSITORY_ROOT / ".env"
+
 
 class Settings(BaseSettings):
-    database_url: str = "postgresql+psycopg://platform:platform@localhost:5432/platform"
+    database_url: str = "postgresql+psycopg://platform:platform@127.0.0.1:5432/platform"
     test_database_url: str | None = None
     auth_session_ttl_hours: int = Field(default=168, gt=0)
     auth_session_cookie_secure: bool = False
@@ -15,7 +19,7 @@ class Settings(BaseSettings):
     oauth_state_secret: SecretStr | None = Field(default=None, min_length=32)
     auth_login_success_redirect_url: AnyHttpUrl | None = None
 
-    model_config = SettingsConfigDict(env_file=("../.env", ".env"), extra="ignore")
+    model_config = SettingsConfigDict(env_file=ENV_FILE, extra="ignore")
 
     @property
     def google_authentication_configured(self) -> bool:

@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.organization_memberships.model import OrganizationMembership
@@ -35,6 +35,24 @@ def get_membership(
         OrganizationMembership.organization_id == organization_id,
     )
     return session.scalar(statement)
+
+
+def get_membership_for_user_organization(
+    session: Session, *, user_id: UUID, organization_id: UUID
+) -> OrganizationMembership | None:
+    statement = select(OrganizationMembership).where(
+        OrganizationMembership.user_id == user_id,
+        OrganizationMembership.organization_id == organization_id,
+    )
+    return session.scalar(statement)
+
+
+def count_organization_owners(session: Session, organization_id: UUID) -> int:
+    statement = select(func.count()).select_from(OrganizationMembership).where(
+        OrganizationMembership.organization_id == organization_id,
+        OrganizationMembership.role == "owner",
+    )
+    return session.scalar(statement) or 0
 
 
 def list_organization_memberships(

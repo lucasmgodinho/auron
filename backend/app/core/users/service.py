@@ -16,6 +16,10 @@ class UserEmailConflictError(Exception):
     pass
 
 
+class UserAccessDeniedError(Exception):
+    pass
+
+
 def _is_user_email_unique_violation(error: IntegrityError) -> bool:
     return (
         isinstance(error.orig, UniqueViolation)
@@ -55,8 +59,10 @@ def get_user(session: Session, user_id: UUID) -> User:
     return user
 
 
-def list_users(session: Session, limit: int, offset: int) -> list[User]:
-    return repository.list_users(session, limit, offset)
+def get_own_user(session: Session, user_id: UUID, current_user_id: UUID) -> User:
+    if user_id != current_user_id:
+        raise UserAccessDeniedError
+    return get_user(session, user_id)
 
 
 def update_user(
@@ -82,3 +88,16 @@ def update_user(
         if _is_user_email_unique_violation(error):
             raise UserEmailConflictError from error
         raise
+
+
+def update_own_user(
+    session: Session,
+    user_id: UUID,
+    current_user_id: UUID,
+    *,
+    email: str | None,
+    name: str | None,
+) -> User:
+    if user_id != current_user_id:
+        raise UserAccessDeniedError
+    return update_user(session, user_id, email=email, name=name)

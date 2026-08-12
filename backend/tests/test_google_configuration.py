@@ -7,7 +7,7 @@ from textwrap import dedent
 import pytest
 from pydantic import ValidationError
 
-from app.config import Settings
+from app.config import ENV_FILE, Settings
 
 GOOGLE_ENVIRONMENT_VARIABLES = (
     "GOOGLE_CLIENT_ID",
@@ -47,6 +47,10 @@ def run_unconfigured_app(tmp_path: Path, environment_updates: dict[str, str]) ->
         from fastapi.testclient import TestClient
         from starlette.middleware.sessions import SessionMiddleware
 
+        from app.config import Settings
+
+        Settings.model_config["env_file"] = None
+
         from app.core.auth import google
         from app.main import app
 
@@ -55,7 +59,8 @@ def run_unconfigured_app(tmp_path: Path, environment_updates: dict[str, str]) ->
 
         route_paths = set(app.openapi()["paths"])
         assert "/organizations" in route_paths
-        assert "/users" in route_paths
+        assert "/users" not in route_paths
+        assert "/users/{user_id}" in route_paths
         assert "/organizations/{organization_id}/memberships" in route_paths
 
         with TestClient(app) as client:
@@ -69,7 +74,7 @@ def run_unconfigured_app(tmp_path: Path, environment_updates: dict[str, str]) ->
         assert health_response.json() == {"status": "ok"}
         assert me_response.status_code == 401
         assert me_response.json() == {"detail": "Authentication required"}
-        assert logout_response.status_code == 401
+        assert logout_response.status_code == 204
         assert login_response.status_code == 503
         assert callback_response.status_code == 503
         expected_error = {"detail": "Google authentication is not configured."}
@@ -103,6 +108,65 @@ def test_settings_load_without_google_configuration(
     assert settings.oauth_state_secret is None
     assert settings.auth_login_success_redirect_url is None
     assert settings.google_authentication_configured is False
+
+
+def test_settings_uses_repository_root_env_file() -> None:
+    expected_repository_root = Path(__file__).resolve().parents[2]
+
+    assert ENV_FILE == expected_repository_root / ".env"
+    assert Settings.model_config["env_file"] == ENV_FILE
+
+
+def test_absolute_env_file_loads_independently_of_working_directory(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    env_file = tmp_path / "repository.env"
+    env_file.write_text(
+        "DATABASE_URL=postgresql+psycopg://file:file@db.example/file\n",
+        encoding="utf-8",
+    )
+    working_directory = tmp_path / "unrelated" / "working-directory"
+    working_directory.mkdir(parents=True)
+    monkeypatch.chdir(working_directory)
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+
+    settings = Settings(_env_file=env_file)
+
+    assert settings.database_url == "postgresql+psycopg://file:file@db.example/file"
+
+
+def test_process_environment_overrides_env_file(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    env_file = tmp_path / "repository.env"
+    env_file.write_text(
+        "DATABASE_URL=postgresql+psycopg://file:file@db.example/file\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv(
+        "DATABASE_URL",
+        "postgresql+psycopg://process:process@db.example/process",
+    )
+
+    settings = Settings(_env_file=env_file)
+
+    assert settings.database_url == (
+        "postgresql+psycopg://process:process@db.example/process"
+    )
+
+
+def test_default_database_url_uses_repository_loopback_standard(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+
+    settings = Settings(_env_file=None)
+
+    assert settings.database_url == (
+        "postgresql+psycopg://platform:platform@127.0.0.1:5432/platform"
+    )
 
 
 @pytest.mark.parametrize("missing_setting", COMPLETE_GOOGLE_SETTINGS)
