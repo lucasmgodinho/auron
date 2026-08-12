@@ -1,12 +1,16 @@
-from uuid import uuid4
+from concurrent.futures import ThreadPoolExecutor
+from threading import Barrier
+from uuid import UUID, uuid4
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.auth import service as auth_service
 from app.core.auth.dependencies import AUTH_SESSION_COOKIE_NAME
+from app.core.organization_memberships import repository as membership_repository
 from app.core.organization_memberships import service as membership_service
 from app.core.organization_memberships.model import OrganizationMembership
 from app.core.organizations import service as organization_service
@@ -106,11 +110,11 @@ def test_user_can_update_themselves(client: TestClient, db_session: Session) -> 
 
     response = client.patch(
         f"/users/{user.id}",
-        json={"email": "  NEW@EXAMPLE.COM  ", "name": "  New Name  "},
+        json={"name": "  New Name  "},
     )
 
     assert response.status_code == 200
-    assert response.json()["email"] == "new@example.com"
+    assert response.json()["email"] == "lucas@example.com"
     assert response.json()["name"] == "New Name"
 
 
@@ -141,19 +145,37 @@ def test_update_user_rejects_empty_or_null_changes(
     assert null_response.status_code == 422
 
 
-def test_update_user_rejects_duplicate_email(
+def test_user_cannot_update_their_email(
     client: TestClient, db_session: Session
 ) -> None:
-    first_user = create_user(db_session, email="first@example.com", name="First")
-    create_user(db_session, email="second@example.com", name="Second")
-    authenticate(client, db_session, first_user)
+    user = create_user(db_session)
+    authenticate(client, db_session, user)
 
     response = client.patch(
-        f"/users/{first_user.id}",
-        json={"email": "SECOND@EXAMPLE.COM"},
+        f"/users/{user.id}",
+        json={"email": "victim@example.com"},
     )
 
-    assert response.status_code == 409
+    assert response.status_code == 422
+    db_session.refresh(user)
+    assert user.email == "lucas@example.com"
+
+
+def test_user_cannot_update_name_and_email_together(
+    client: TestClient, db_session: Session
+) -> None:
+    user = create_user(db_session)
+    authenticate(client, db_session, user)
+
+    response = client.patch(
+        f"/users/{user.id}",
+        json={"name": "Changed", "email": "victim@example.com"},
+    )
+
+    assert response.status_code == 422
+    db_session.refresh(user)
+    assert user.email == "lucas@example.com"
+    assert user.name == "Lucas"
 
 
 def test_user_service_normalizes_and_rejects_duplicate_email(
@@ -581,6 +603,105 @@ def test_sole_owner_cannot_be_demoted(client: TestClient, db_session: Session) -
     assert response.status_code == 409
     db_session.refresh(owner_membership)
     assert owner_membership.role == "owner"
+
+
+def test_concurrent_owner_demotions_preserve_an_owner(test_engine: Engine) -> None:
+    unique_suffix = uuid4().hex
+    organization_id = None
+    user_ids = []
+    membership_ids = []
+
+    try:
+        with Session(test_engine) as setup_session:
+            first_owner = create_user(
+                setup_session,
+                email=f"first-owner-{unique_suffix}@example.com",
+                name="First owner",
+            )
+            user_ids.append(first_owner.id)
+            second_owner = create_user(
+                setup_session,
+                email=f"second-owner-{unique_suffix}@example.com",
+                name="Second owner",
+            )
+            user_ids.append(second_owner.id)
+            organization = create_organization(
+                setup_session,
+                first_owner,
+                f"Concurrent owners {unique_suffix}",
+            )
+            organization_id = organization.id
+            first_membership = membership_service.list_user_memberships(
+                setup_session,
+                first_owner.id,
+                first_owner.id,
+            )[0]
+            membership_ids.append(first_membership.id)
+            second_membership = add_membership(
+                setup_session,
+                organization=organization,
+                actor=first_owner,
+                user=second_owner,
+                role="owner",
+            )
+            membership_ids.append(second_membership.id)
+
+        start = Barrier(2)
+
+        def demote_owner(user_id: UUID, membership_id: UUID) -> str:
+            with Session(test_engine) as session:
+                initial_owner_count = membership_repository.count_organization_owners(
+                    session, organization_id
+                )
+                start.wait(timeout=10)
+                assert initial_owner_count == 2
+                try:
+                    membership_service.update_membership_role(
+                        session,
+                        organization_id=organization_id,
+                        membership_id=membership_id,
+                        role="member",
+                        current_user_id=user_id,
+                    )
+                except membership_service.LastOwnerError:
+                    session.rollback()
+                    return "last-owner-protected"
+                return "demoted"
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            futures = [
+                executor.submit(demote_owner, user_id, membership_id)
+                for user_id, membership_id in zip(user_ids, membership_ids, strict=True)
+            ]
+            results = [future.result(timeout=15) for future in futures]
+
+        with Session(test_engine) as verification_session:
+            owner_count = membership_repository.count_organization_owners(
+                verification_session, organization_id
+            )
+            roles = [
+                verification_session.get(OrganizationMembership, membership_id).role
+                for membership_id in membership_ids
+            ]
+
+        assert sorted(results) == ["demoted", "last-owner-protected"]
+        assert owner_count == 1
+        assert sorted(roles) == ["member", "owner"]
+    finally:
+        with Session(test_engine) as cleanup_session:
+            for membership_id in membership_ids:
+                membership = cleanup_session.get(OrganizationMembership, membership_id)
+                if membership is not None:
+                    cleanup_session.delete(membership)
+            if organization_id is not None:
+                organization = cleanup_session.get(Organization, organization_id)
+                if organization is not None:
+                    cleanup_session.delete(organization)
+            for user_id in user_ids:
+                user = cleanup_session.get(User, user_id)
+                if user is not None:
+                    cleanup_session.delete(user)
+            cleanup_session.commit()
 
 
 def test_membership_cannot_be_modified_through_another_organization(

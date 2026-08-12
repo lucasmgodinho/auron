@@ -17,17 +17,8 @@ def get_user(session: Session, user_id: UUID) -> User | None:
     return session.get(User, user_id)
 
 
-def update_user(
-    session: Session,
-    user: User,
-    *,
-    email: str | None,
-    name: str | None,
-) -> User:
-    if email is not None:
-        user.email = email
-    if name is not None:
-        user.name = name
+def update_user_name(session: Session, user: User, name: str) -> User:
+    user.name = name
     session.commit()
     session.refresh(user)
     return user

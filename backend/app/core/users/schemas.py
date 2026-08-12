@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Annotated, Self
+from typing import Annotated
 from uuid import UUID
 
 from pydantic import (
@@ -8,7 +8,6 @@ from pydantic import (
     ConfigDict,
     EmailStr,
     StringConstraints,
-    model_validator,
 )
 
 
@@ -31,16 +30,9 @@ class UserCreate(BaseModel):
 
 
 class UserUpdate(BaseModel):
-    email: NormalizedEmail | None = None
-    name: UserName | None = None
+    name: UserName
 
-    @model_validator(mode="after")
-    def require_non_null_change(self) -> Self:
-        if not self.model_fields_set:
-            raise ValueError("At least one field must be provided")
-        if any(getattr(self, field) is None for field in self.model_fields_set):
-            raise ValueError("User fields cannot be null")
-        return self
+    model_config = ConfigDict(extra="forbid")
 
 
 class UserResponse(BaseModel):

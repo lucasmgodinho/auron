@@ -39,15 +39,9 @@ def update_user(
             session,
             user_id,
             current_user.id,
-            email=str(payload.email) if payload.email is not None else None,
             name=payload.name,
         )
     except service.UserNotFoundError as error:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND) from error
-    except service.UserEmailConflictError as error:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="A user with this email already exists",
-        ) from error
     except service.UserAccessDeniedError as error:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN) from error

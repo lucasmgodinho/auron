@@ -69,25 +69,10 @@ def update_user(
     session: Session,
     user_id: UUID,
     *,
-    email: str | None,
-    name: str | None,
+    name: str,
 ) -> User:
     user = get_user(session, user_id)
-    normalized_email = _normalize_email(email) if email is not None else None
-    normalized_name = _normalize_name(name) if name is not None else None
-
-    try:
-        return repository.update_user(
-            session,
-            user,
-            email=normalized_email,
-            name=normalized_name,
-        )
-    except IntegrityError as error:
-        session.rollback()
-        if _is_user_email_unique_violation(error):
-            raise UserEmailConflictError from error
-        raise
+    return repository.update_user_name(session, user, _normalize_name(name))
 
 
 def update_own_user(
@@ -95,9 +80,8 @@ def update_own_user(
     user_id: UUID,
     current_user_id: UUID,
     *,
-    email: str | None,
-    name: str | None,
+    name: str,
 ) -> User:
     if user_id != current_user_id:
         raise UserAccessDeniedError
-    return update_user(session, user_id, email=email, name=name)
+    return update_user(session, user_id, name=name)
