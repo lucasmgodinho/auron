@@ -21,9 +21,9 @@ export function AppShell({
   return (
     <div className="app-shell">
       <header className="app-header">
-        <Link className="product-mark" to="/app" aria-label="Business Platform home">
-          <span className="product-symbol" aria-hidden="true">B</span>
-          <span>Business Platform</span>
+        <Link className="product-mark" to="/app" aria-label="Auron home">
+          <span className="product-symbol" aria-hidden="true">A</span>
+          <span>Auron</span>
         </Link>
 
         <div className="account-area">

@@ -28,13 +28,13 @@ export function LoginPage() {
       <section className="login-card" aria-labelledby="login-heading">
         <div className="login-introduction">
           <div className="product-mark product-mark-light">
-            <span className="product-symbol" aria-hidden="true">B</span>
-            <span>Business Platform</span>
+            <span className="product-symbol" aria-hidden="true">A</span>
+            <span>Auron</span>
           </div>
           <div>
             <p className="eyebrow eyebrow-light">Secure workspace access</p>
             <h1 id="login-heading">A clear foundation for the work ahead.</h1>
-            <p>Sign in to access your account and continue to the platform.</p>
+            <p>Sign in to access your account and continue to Auron.</p>
           </div>
         </div>
 

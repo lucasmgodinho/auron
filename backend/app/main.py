@@ -8,7 +8,7 @@ from app.core.organizations.router import router as organizations_router
 from app.core.users.router import router as users_router
 
 settings = get_settings()
-app = FastAPI(title="Business Platform")
+app = FastAPI(title="Auron")
 if settings.google_authentication_configured:
     assert settings.oauth_state_secret is not None
     app.add_middleware(

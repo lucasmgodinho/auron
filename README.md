@@ -1,6 +1,6 @@
-# Business Platform
+# Auron
 
-Minimal technical foundation for a modular B2B SaaS platform. The FastAPI backend and React frontend run directly on the host; Docker Compose runs PostgreSQL only.
+Auron is a modular B2B SaaS platform. The FastAPI backend and React frontend run directly on the host; Docker Compose runs PostgreSQL only.
 
 ## Prerequisites
 
