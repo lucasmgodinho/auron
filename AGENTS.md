@@ -18,6 +18,8 @@
 - Organization is the tenant root. Classify data as global/platform data or tenant-owned data.
 - Tenant-owned entities must include `organization_id`, and their queries must always be scoped by it.
 - Never trust an `organization_id` supplied by a client as authorization context.
+- Organization context is request-scoped; never persist tenant selection in AuthSession, User, or a cookie.
+- Tenant-owned services and repositories must receive `organization_id` from server-validated Organization context or an equivalent validated source.
 - Include `organization_id` in tenant-specific uniqueness constraints when appropriate.
 - Cover cross-tenant isolation with automated tests.
 - User is a global platform identity and must not contain `organization_id`.

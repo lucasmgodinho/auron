@@ -5,6 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.auth.dependencies import get_current_user
+from app.core.organization_context.context import OrganizationContext
+from app.core.organization_context.dependencies import get_organization_context
 from app.core.organizations import service
 from app.core.organizations.model import Organization
 from app.core.organizations.schemas import (
@@ -29,18 +31,9 @@ def create_organization(
 
 @router.get("/{organization_id}", response_model=OrganizationResponse)
 def get_organization(
-    organization_id: UUID,
-    session: Annotated[Session, Depends(get_session)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    context: Annotated[OrganizationContext, Depends(get_organization_context)],
 ) -> Organization:
-    try:
-        return service.get_organization_for_user(
-            session, organization_id, current_user.id
-        )
-    except service.OrganizationNotFoundError as error:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND) from error
-    except service.OrganizationAccessDeniedError as error:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN) from error
+    return context.organization
 
 
 @router.get("", response_model=list[OrganizationResponse])
@@ -64,7 +57,10 @@ def update_organization(
 ) -> Organization:
     try:
         return service.update_organization_name(
-            session, organization_id, current_user.id, payload.name
+            session,
+            organization_id,
+            current_user.id,
+            payload.name,
         )
     except service.OrganizationNotFoundError as error:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND) from error

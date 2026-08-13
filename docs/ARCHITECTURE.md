@@ -10,6 +10,10 @@ Required platform capabilities live under `app/core`, including organizations, u
 
 AuthIdentity stores an external provider's stable subject and links it to User; provider email is not an identity key. AuthSession is an opaque authenticated platform session that stores only a token hash. Authentication resolves User only and does not select an Organization.
 
+Organization context is resolved explicitly for each organization-scoped request. The authenticated User and the route's `organization_id` are used to load the requested Organization and validate the matching OrganizationMembership, producing a request-scoped `OrganizationContext` containing all three records. A client-provided `organization_id` identifies the desired tenant but never authorizes access by itself. Missing Organizations return 404, while existing Organizations without a matching membership return 403.
+
+Future tenant-owned modules must use `OrganizationContext.organization.id` as the validated `organization_id` for every business-data query. Organization selection is not stored in AuthSession, User, or a cookie, so membership changes apply on the next request without changing the authenticated session.
+
 The frontend never handles authentication tokens. It derives browser authentication state from
 `GET /auth/me`, while the backend-owned HttpOnly cookie remains the session mechanism.
 

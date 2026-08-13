@@ -63,14 +63,6 @@ def _require_membership(
     return membership
 
 
-def get_organization_for_user(
-    session: Session, organization_id: UUID, current_user_id: UUID
-) -> Organization:
-    organization = get_organization(session, organization_id)
-    _require_membership(session, organization_id, current_user_id)
-    return organization
-
-
 def list_organizations_for_user(
     session: Session, current_user_id: UUID, limit: int, offset: int
 ) -> list[Organization]:

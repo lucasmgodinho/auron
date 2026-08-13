@@ -69,18 +69,8 @@ def create_membership(
 
 
 def list_organization_memberships(
-    session: Session, organization_id: UUID, current_user_id: UUID
+    session: Session, organization_id: UUID
 ) -> list[OrganizationMembership]:
-    organization_service.get_organization(session, organization_id)
-    if (
-        repository.get_membership_for_user_organization(
-            session,
-            user_id=current_user_id,
-            organization_id=organization_id,
-        )
-        is None
-    ):
-        raise MembershipAccessDeniedError
     return repository.list_organization_memberships(session, organization_id)
 
 

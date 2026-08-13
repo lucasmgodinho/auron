@@ -5,6 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.auth.dependencies import get_current_user
+from app.core.organization_context.context import OrganizationContext
+from app.core.organization_context.dependencies import get_organization_context
 from app.core.organization_memberships import service
 from app.core.organization_memberships.model import OrganizationMembership
 from app.core.organization_memberships.schemas import (
@@ -57,18 +59,10 @@ def create_membership(
     response_model=list[OrganizationMembershipResponse],
 )
 def list_organization_memberships(
-    organization_id: UUID,
     session: Annotated[Session, Depends(get_session)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    context: Annotated[OrganizationContext, Depends(get_organization_context)],
 ) -> list[OrganizationMembership]:
-    try:
-        return service.list_organization_memberships(
-            session, organization_id, current_user.id
-        )
-    except organization_service.OrganizationNotFoundError as error:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND) from error
-    except service.MembershipAccessDeniedError as error:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN) from error
+    return service.list_organization_memberships(session, context.organization.id)
 
 
 @router.get(
