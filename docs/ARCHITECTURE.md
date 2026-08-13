@@ -39,7 +39,15 @@ Future tenant-owned modules must use `OrganizationContext.organization.id` as th
 The frontend never handles authentication tokens. It derives browser authentication state from
 `GET /auth/me`, while the backend-owned HttpOnly cookie remains the session mechanism.
 
-Google login follows `Google OIDC -> AuthIdentity(provider="google", provider_subject=sub) -> User -> AuthSession`. Organization access remains separate through `User -> OrganizationMembership -> Organization`. Google login does not select a tenant; Current Organization resolution remains a separate future concern.
+The frontend keeps tenant selection in the route. `/app` combines the authenticated User's
+membership-scoped Organization list with invitations for that User's email, while
+`/app/organizations/:organizationId` asks the backend to validate membership each time the route
+loads. The route ID identifies the requested Organization but never grants access, and no selected
+Organization is persisted in authentication state, cookies, or browser storage. Platform Admin
+Organization listing and provisioning remain a separate `/admin` flow and do not imply tenant
+access.
+
+Google login follows `Google OIDC -> AuthIdentity(provider="google", provider_subject=sub) -> User -> AuthSession`. Organization access remains separate through `User -> OrganizationMembership -> Organization`. Google login does not select a tenant.
 
 Optional business capabilities such as fleet, clinic, documents, workflows, and analytics live under `app/modules`. Tenant-owned entities remain inside their business module, reference `organization_id`, and scope data access to that organization.
 

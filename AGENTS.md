@@ -47,3 +47,8 @@
 - Frontend authentication state must be resolved through `/auth/me`; never store authentication or
   provider tokens in browser storage.
 - Frontend tenant or authorization assumptions must never replace backend enforcement.
+- Frontend Organization selection comes from the route and must be validated by the backend on
+  each Organization route load; never persist a selected Organization in authentication state,
+  cookies, or browser storage.
+- Normal `/app` Organization discovery must use membership-scoped APIs. Platform Admin listing and
+  provisioning remain a separate `/admin` concern and do not grant tenant access.

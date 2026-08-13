@@ -11,6 +11,7 @@ type AppShellProps = {
   onLogout: () => void
   isPlatformAdmin?: boolean
   activePage?: 'home' | 'admin'
+  organizationName?: string
 }
 
 export function AppShell({
@@ -21,6 +22,7 @@ export function AppShell({
   onLogout,
   isPlatformAdmin = false,
   activePage = 'home',
+  organizationName,
 }: AppShellProps) {
   return (
     <div className="app-shell">
@@ -66,7 +68,15 @@ export function AppShell({
               </Link>
             ) : null}
           </nav>
-          <p className="sidebar-note">Organization selection and product modules will be added next.</p>
+          {organizationName ? (
+            <div className="sidebar-organization">
+              <span>Organization</span>
+              <strong>{organizationName}</strong>
+              <Link to="/app">Switch organization</Link>
+            </div>
+          ) : (
+            <p className="sidebar-note">Organization access is selected separately from authentication.</p>
+          )}
         </aside>
 
         <main className="app-content">

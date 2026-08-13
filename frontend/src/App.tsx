@@ -6,6 +6,7 @@ import { AuthenticationError, AuthenticationLoading } from './components/AuthSta
 import { AppPage } from './pages/AppPage'
 import { AdminPage } from './pages/AdminPage'
 import { LoginPage } from './pages/LoginPage'
+import { OrganizationPage } from './pages/OrganizationPage'
 
 function AuthenticationRedirect() {
   const { status, refreshUser } = useAuth()
@@ -37,6 +38,14 @@ function App() {
         element={
           <ProtectedRoute>
             <AdminPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/app/organizations/:organizationId"
+        element={
+          <ProtectedRoute>
+            <OrganizationPage />
           </ProtectedRoute>
         }
       />

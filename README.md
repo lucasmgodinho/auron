@@ -133,9 +133,17 @@ npm.cmd install
 npm.cmd run dev
 ```
 
-The Vite development server is available at `http://127.0.0.1:5173`. It proxies relative
-`/auth/*` requests to the backend at `http://127.0.0.1:8000`, so no frontend secrets or local CORS
-configuration are needed.
+The Vite development server is available at `http://127.0.0.1:5173`. It proxies the frontend's
+relative authentication, Organization, invitation, and Platform Admin API requests to the backend
+at `http://127.0.0.1:8000`, so no frontend secrets or local CORS configuration are needed.
+
+After authentication, `/app` loads only the User's membership-scoped Organizations and invitations
+for their authenticated email. A single Organization opens automatically when no invitation is
+pending; otherwise `/app` presents the applicable invitations and Organization selector. The
+Organization route includes its ID (`/app/organizations/<organization-id>`) and validates access
+with the backend whenever it loads. Current Organization selection is not persisted in the session,
+a cookie, or browser storage. Organization provisioning remains available only through `/admin` to
+authorized Platform Admins.
 
 Run frontend checks and a production build from `frontend/`:
 
