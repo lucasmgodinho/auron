@@ -1,0 +1,5 @@
+# organization Invitation
+python -m app.scripts.reissue_organization_invitation `
+  --organization-id <uuid> `
+  --email user@example.com `
+  --expires-hours 168
