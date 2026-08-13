@@ -23,6 +23,16 @@
 - Include `organization_id` in tenant-specific uniqueness constraints when appropriate.
 - Cover cross-tenant isolation with automated tests.
 - User is a global platform identity and must not contain `organization_id`.
+- User is authentication-provider independent; trusted authentication methods sharing a verified
+  normalized email must converge on the same User.
+- `User.email_verified_at` is the provider-independent email-ownership trust signal. Existing
+  external `provider + subject` mappings are authoritative and must not be reassigned by email.
+- Passwords must use a password-specific hash such as Argon2id. Raw passwords and raw email
+  verification tokens must never be persisted or logged.
+- Never create LocalCredential for an existing User without verified email or authenticated account
+  control. Registration must not replace a credential or act as password reset.
+- OrganizationInvitation acceptance requires `User.email_verified_at`; authentication method must
+  not change OrganizationMembership or PlatformAdmin access.
 - OrganizationMembership connects Users to Organizations; organization-specific roles belong there.
 - PlatformAdmin is global and independent from OrganizationMembership; Organization roles must
   never grant Platform Admin access, and Platform Admin access does not imply tenant membership.

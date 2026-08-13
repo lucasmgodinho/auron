@@ -73,6 +73,42 @@ Authentication uses opaque server-side sessions stored in PostgreSQL. Session co
 HttpOnly and SameSite=Lax. Set `AUTH_SESSION_COOKIE_SECURE=true` in HTTPS production
 environments; `AUTH_SESSION_TTL_HOURS` controls the session lifetime and defaults to seven days.
 
+## Local authentication
+
+Local account enrollment follows `register -> verify email -> choose password -> authenticated
+session`. Submit a name and email at `/register`; Auron sends a link whose verification token is in
+the URL fragment. Only after that token is proven does Auron create the User's Argon2id
+`LocalCredential` and the same PostgreSQL-backed `AuthSession` used by Google login. Registration
+never accepts a password and never acts as password reset.
+
+Configure SMTP in `.env` to enable registration and resend:
+
+```text
+SMTP_HOST=127.0.0.1
+SMTP_PORT=1025
+SMTP_USERNAME=
+SMTP_PASSWORD=
+SMTP_STARTTLS=false
+EMAIL_FROM=no-reply@auron.local
+FRONTEND_BASE_URL=http://127.0.0.1:5173
+```
+
+`SMTP_USERNAME` and `SMTP_PASSWORD` are optional for a local SMTP capture server. Auron does not
+ship or require a mail container; point these values at a local SMTP test server of your choice.
+SMTP is optional at startup, and existing local credentials can still sign in when it is absent.
+Registration and resend return 503 when delivery is required but unavailable. Verification links
+expire after `EMAIL_VERIFICATION_TTL_HOURS` (24 by default), and resend uses
+`EMAIL_VERIFICATION_RESEND_COOLDOWN_SECONDS` (60 by default).
+
+User is provider-independent. A `LocalCredential` and a Google `AuthIdentity` may both belong to
+the same User. On first trusted Google linking, a verified matching email reuses that global User;
+existing `provider + subject` mappings remain authoritative. Adding another authentication method
+does not modify Platform Admin access, OrganizationMembership, invitations, or existing sessions.
+
+Before an Internet-facing production deployment, apply distributed rate limits at the ingress to
+`/auth/login`, `/auth/register`, and `/auth/email-verifications/resend`. A process-local limiter is
+intentionally not included.
+
 Google authentication is optional for local core development. Without its configuration, the core
 API starts normally and the Google login endpoints return 503. To enable Google sign-in, configure
 the OAuth consent screen, create a Google OAuth web client, and register

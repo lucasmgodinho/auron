@@ -33,8 +33,9 @@ def create_user_with_identity(
     name: str,
     provider: str,
     provider_subject: str,
+    email_verified_at: datetime,
 ) -> User:
-    user = User(email=email, name=name)
+    user = User(email=email, name=name, email_verified_at=email_verified_at)
     session.add(user)
     session.flush()
     session.add(
@@ -80,8 +81,7 @@ def create_auth_session(
         expires_at=expires_at,
     )
     session.add(auth_session)
-    session.commit()
-    session.refresh(auth_session)
+    session.flush()
     return auth_session
 
 

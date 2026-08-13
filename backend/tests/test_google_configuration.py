@@ -16,6 +16,15 @@ GOOGLE_ENVIRONMENT_VARIABLES = (
     "OAUTH_STATE_SECRET",
     "AUTH_LOGIN_SUCCESS_REDIRECT_URL",
 )
+EMAIL_ENVIRONMENT_VARIABLES = (
+    "SMTP_HOST",
+    "SMTP_PORT",
+    "SMTP_USERNAME",
+    "SMTP_PASSWORD",
+    "SMTP_STARTTLS",
+    "EMAIL_FROM",
+    "FRONTEND_BASE_URL",
+)
 
 COMPLETE_GOOGLE_SETTINGS = {
     "google_client_id": "configured-client-id",
@@ -34,6 +43,8 @@ def clear_google_environment(monkeypatch: pytest.MonkeyPatch) -> None:
 def run_unconfigured_app(tmp_path: Path, environment_updates: dict[str, str]) -> None:
     environment = os.environ.copy()
     for variable in GOOGLE_ENVIRONMENT_VARIABLES:
+        environment.pop(variable, None)
+    for variable in EMAIL_ENVIRONMENT_VARIABLES:
         environment.pop(variable, None)
     environment.update(environment_updates)
 
@@ -69,6 +80,10 @@ def run_unconfigured_app(tmp_path: Path, environment_updates: dict[str, str]) ->
             logout_response = client.post("/auth/logout")
             login_response = client.get("/auth/google/login")
             callback_response = client.get("/auth/google/callback")
+            register_response = client.post(
+                "/auth/register",
+                json={"name": "Local", "email": "local@example.com"},
+            )
 
         assert health_response.status_code == 200
         assert health_response.json() == {"status": "ok"}
@@ -77,6 +92,7 @@ def run_unconfigured_app(tmp_path: Path, environment_updates: dict[str, str]) ->
         assert logout_response.status_code == 204
         assert login_response.status_code == 503
         assert callback_response.status_code == 503
+        assert register_response.status_code == 503
         expected_error = {"detail": "Google authentication is not configured."}
         assert login_response.json() == expected_error
         assert callback_response.json() == expected_error
@@ -108,6 +124,20 @@ def test_settings_load_without_google_configuration(
     assert settings.oauth_state_secret is None
     assert settings.auth_login_success_redirect_url is None
     assert settings.google_authentication_configured is False
+
+
+def test_settings_load_without_email_configuration(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    for variable in EMAIL_ENVIRONMENT_VARIABLES:
+        monkeypatch.delenv(variable, raising=False)
+
+    settings = Settings(_env_file=None)
+
+    assert settings.smtp_host is None
+    assert settings.email_from is None
+    assert settings.frontend_base_url is None
+    assert settings.email_delivery_configured is False
 
 
 def test_settings_uses_repository_root_env_file() -> None:

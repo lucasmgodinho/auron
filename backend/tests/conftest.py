@@ -14,7 +14,12 @@ os.environ.setdefault("OAUTH_STATE_SECRET", "test-only-oauth-state-secret-with-3
 os.environ.setdefault("AUTH_LOGIN_SUCCESS_REDIRECT_URL", "http://frontend.test/app")
 
 from app.config import get_settings
-from app.core.auth.model import AuthIdentity, AuthSession
+from app.core.auth.model import (
+    AuthIdentity,
+    AuthSession,
+    EmailVerification,
+    LocalCredential,
+)
 from app.core.organization_invitations.model import OrganizationInvitation
 from app.core.organization_memberships.model import OrganizationMembership
 from app.core.organizations.model import Organization
@@ -61,6 +66,8 @@ def db_session(test_engine: Engine) -> Iterator[Session]:
 
     try:
         session.execute(delete(AuthSession))
+        session.execute(delete(EmailVerification))
+        session.execute(delete(LocalCredential))
         session.execute(delete(AuthIdentity))
         session.execute(delete(PlatformAdmin))
         session.execute(delete(OrganizationMembership))

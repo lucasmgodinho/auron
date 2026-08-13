@@ -39,6 +39,7 @@ class UserResponse(BaseModel):
     id: UUID
     email: EmailStr
     name: str
+    email_verified_at: datetime | None
     created_at: datetime
     updated_at: datetime
 

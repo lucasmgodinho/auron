@@ -32,6 +32,10 @@ class OrganizationInvitationEmailMismatchError(Exception):
     pass
 
 
+class OrganizationInvitationEmailUnverifiedError(Exception):
+    pass
+
+
 class OrganizationInvitationOrganizationNotFoundError(Exception):
     pass
 
@@ -63,6 +67,8 @@ def accept_invitation(
     session: Session, *, invitation_id: UUID, current_user: User
 ) -> Organization:
     try:
+        if current_user.email_verified_at is None:
+            raise OrganizationInvitationEmailUnverifiedError
         invitation = repository.get_invitation_for_update(session, invitation_id)
         if invitation is None:
             raise OrganizationInvitationNotFoundError

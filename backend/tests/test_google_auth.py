@@ -118,6 +118,7 @@ def test_first_google_login_creates_user_identity_and_platform_session(
     assert auth_session is not None
     assert user.email == "lucas@example.com"
     assert user.name == "Lucas"
+    assert user.email_verified_at is not None
     assert identity.user_id == user.id
     assert identity.provider == "google"
     assert identity.provider_subject == "google-user-123"
@@ -178,6 +179,7 @@ def test_google_login_links_existing_user_by_normalized_verified_email(
     assert identity is not None
     assert identity.user_id == user.id
     assert user.name == "Existing name"
+    assert user.email_verified_at is not None
 
 
 def test_existing_identity_wins_over_changed_email_and_does_not_reassign_user(

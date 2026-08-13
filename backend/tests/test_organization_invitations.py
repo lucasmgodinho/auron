@@ -10,6 +10,7 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
+from app.core.auth import google
 from app.core.auth import service as auth_service
 from app.core.auth.dependencies import AUTH_SESSION_COOKIE_NAME
 from app.core.organization_invitations import service as invitation_service
@@ -30,6 +31,19 @@ def create_user(
     *,
     email: str = "invited@example.com",
     name: str = "Invited User",
+) -> User:
+    user = user_service.create_user(session, email=email, name=name)
+    user.email_verified_at = datetime.now(UTC)
+    session.commit()
+    session.refresh(user)
+    return user
+
+
+def create_unverified_user(
+    session: Session,
+    *,
+    email: str = "unverified@example.com",
+    name: str = "Unverified User",
 ) -> User:
     return user_service.create_user(session, email=email, name=name)
 
@@ -67,6 +81,54 @@ def test_invitation_endpoints_require_authentication(client: TestClient) -> None
 
     assert list_response.status_code == 401
     assert accept_response.status_code == 401
+
+
+def test_unverified_user_cannot_accept_matching_invitation(
+    client: TestClient, db_session: Session
+) -> None:
+    user = create_unverified_user(db_session)
+    organization, invitation = create_organization_invitation(
+        db_session, email=user.email
+    )
+    authenticate(client, db_session, user)
+
+    response = client.post(f"/organization-invitations/{invitation.id}/accept")
+
+    assert response.status_code == 403
+    assert response.json() == {"detail": "Verified email required"}
+    assert membership_repository.get_membership_for_user_organization(
+        db_session,
+        user_id=user.id,
+        organization_id=organization.id,
+    ) is None
+
+
+def test_google_verified_user_can_accept_matching_invitation(
+    client: TestClient, db_session: Session
+) -> None:
+    user = google.resolve_google_user(
+        db_session,
+        {
+            "sub": "invitation-google-subject",
+            "email": "google-invited@example.com",
+            "email_verified": True,
+            "name": "Google Invited",
+        },
+    )
+    organization, invitation = create_organization_invitation(
+        db_session, email=user.email
+    )
+    authenticate(client, db_session, user)
+
+    response = client.post(f"/organization-invitations/{invitation.id}/accept")
+
+    assert response.status_code == 200
+    membership = membership_repository.get_membership_for_user_organization(
+        db_session,
+        user_id=user.id,
+        organization_id=organization.id,
+    )
+    assert membership is not None
 
 
 def test_user_sees_only_matching_pending_unexpired_invitations(

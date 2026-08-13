@@ -1,4 +1,5 @@
 from collections.abc import Mapping
+from datetime import UTC, datetime
 
 from authlib.integrations.starlette_client import OAuth
 from psycopg.errors import UniqueViolation
@@ -70,6 +71,7 @@ def _validated_claims(claims: Mapping[str, object]) -> tuple[str, UserCreate]:
 
 
 def _link_identity_or_resolve(session: Session, *, user: User, provider_subject: str) -> User:
+    user.email_verified_at = user.email_verified_at or datetime.now(UTC)
     try:
         service.link_identity(
             session,
@@ -114,6 +116,7 @@ def resolve_google_user(session: Session, claims: Mapping[str, object]) -> User:
             name=user_data.name,
             provider=GOOGLE_PROVIDER,
             provider_subject=provider_subject,
+            email_verified_at=datetime.now(UTC),
         )
     except IntegrityError as error:
         session.rollback()

@@ -1,7 +1,7 @@
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import AnyHttpUrl, Field, SecretStr
+from pydantic import AnyHttpUrl, EmailStr, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -18,6 +18,15 @@ class Settings(BaseSettings):
     google_redirect_uri: AnyHttpUrl | None = None
     oauth_state_secret: SecretStr | None = Field(default=None, min_length=32)
     auth_login_success_redirect_url: AnyHttpUrl | None = None
+    email_verification_ttl_hours: int = Field(default=24, gt=0)
+    email_verification_resend_cooldown_seconds: int = Field(default=60, ge=0)
+    smtp_host: str | None = Field(default=None, min_length=1)
+    smtp_port: int = Field(default=587, gt=0, le=65535)
+    smtp_username: str | None = None
+    smtp_password: SecretStr | None = None
+    smtp_starttls: bool = True
+    email_from: EmailStr | None = None
+    frontend_base_url: AnyHttpUrl | None = None
 
     model_config = SettingsConfigDict(env_file=ENV_FILE, extra="ignore")
 
@@ -32,6 +41,13 @@ class Settings(BaseSettings):
                 self.oauth_state_secret,
                 self.auth_login_success_redirect_url,
             )
+        )
+
+    @property
+    def email_delivery_configured(self) -> bool:
+        return all(
+            value is not None
+            for value in (self.smtp_host, self.email_from, self.frontend_base_url)
         )
 
 

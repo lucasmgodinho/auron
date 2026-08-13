@@ -1,21 +1,39 @@
-import { useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { useState, type FormEvent } from 'react'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 
-import { AuthenticationError, AuthenticationLoading } from '../components/AuthStatus'
+import { AuthApiError, loginWithPassword } from '../api/auth'
 import { useAuth } from '../auth/useAuth'
+import { AuthenticationError, AuthenticationLoading } from '../components/AuthStatus'
 
 export function LoginPage() {
   const { status, refreshUser, loginWithGoogle } = useAuth()
+  const navigate = useNavigate()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [isRedirecting, setIsRedirecting] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
 
-  if (status === 'loading') {
-    return <AuthenticationLoading />
-  }
-  if (status === 'error') {
-    return <AuthenticationError onRetry={refreshUser} />
-  }
-  if (status === 'authenticated') {
-    return <Navigate to="/app" replace />
+  if (status === 'loading') return <AuthenticationLoading />
+  if (status === 'error') return <AuthenticationError onRetry={refreshUser} />
+  if (status === 'authenticated') return <Navigate to="/app" replace />
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setIsSubmitting(true)
+    setFormError(null)
+    try {
+      await loginWithPassword(email, password)
+      await refreshUser()
+      navigate('/app', { replace: true })
+    } catch (error) {
+      setFormError(
+        error instanceof AuthApiError && error.status === 401
+          ? 'Invalid email or password.'
+          : 'We could not sign you in. Check the server and try again.',
+      )
+      setIsSubmitting(false)
+    }
   }
 
   function handleGoogleLogin() {
@@ -42,19 +60,47 @@ export function LoginPage() {
           <div>
             <p className="eyebrow">Welcome back</p>
             <h2>Sign in to continue</h2>
-            <p>Use your Google account to authenticate securely.</p>
           </div>
 
+          <form className="auth-form" onSubmit={(event) => void handleSubmit(event)}>
+            <label className="field-label" htmlFor="login-email">Email</label>
+            <input
+              id="login-email"
+              className="text-input"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
+            />
+            <label className="field-label" htmlFor="login-password">Password</label>
+            <input
+              id="login-password"
+              className="text-input"
+              type="password"
+              autoComplete="current-password"
+              maxLength={256}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              required
+            />
+            {formError ? <p className="inline-error" role="alert">{formError}</p> : null}
+            <button className="button button-primary" type="submit" disabled={isSubmitting || isRedirecting}>
+              {isSubmitting ? 'Signing in...' : 'Sign in'}
+            </button>
+          </form>
+
+          <div className="auth-divider"><span>or</span></div>
           <button
             className="button google-button"
             type="button"
             onClick={handleGoogleLogin}
-            disabled={isRedirecting}
+            disabled={isRedirecting || isSubmitting}
           >
-            {isRedirecting ? 'Redirecting…' : 'Continue with Google'}
+            {isRedirecting ? 'Redirecting...' : 'Continue with Google'}
           </button>
-
-          <p className="security-note">Authentication is completed by the backend. No provider token is stored in this browser application.</p>
+          <p className="auth-switch">Don't have an account? <Link to="/register">Create account</Link></p>
+          <p className="security-note">Authentication is completed by the backend. No password or token is stored by this browser application.</p>
         </div>
       </section>
     </main>

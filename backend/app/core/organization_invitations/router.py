@@ -52,3 +52,8 @@ def accept_invitation(
         ) from error
     except service.OrganizationInvitationEmailMismatchError as error:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN) from error
+    except service.OrganizationInvitationEmailUnverifiedError as error:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Verified email required",
+        ) from error

@@ -80,6 +80,13 @@ def link_identity(
 
 def create_auth_session(session: Session, user_id: UUID) -> tuple[AuthSession, str]:
     user_service.get_user(session, user_id)
+    auth_session, raw_token = add_auth_session(session, user_id)
+    session.commit()
+    session.refresh(auth_session)
+    return auth_session, raw_token
+
+
+def add_auth_session(session: Session, user_id: UUID) -> tuple[AuthSession, str]:
     raw_token = secrets.token_urlsafe(32)
     expires_at = datetime.now(UTC) + timedelta(
         hours=get_settings().auth_session_ttl_hours

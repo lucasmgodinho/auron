@@ -8,7 +8,25 @@ The FastAPI backend owns application logic and persistence. The React frontend i
 
 Required platform capabilities live under `app/core`, including organizations, users, organization memberships, and authentication. Organization is the tenant root, while User is a global platform identity. OrganizationMembership links Users to Organizations and stores the organization-specific role.
 
-AuthIdentity stores an external provider's stable subject and links it to User; provider email is not an identity key. AuthSession is an opaque authenticated platform session that stores only a token hash. Authentication resolves User only and does not select an Organization.
+User is authentication-provider independent. Its nullable `email_verified_at` is the common trust
+signal that Auron has established control of the immutable email, whether through Auron email
+verification or a trusted provider's verified claim. `LocalCredential` stores one Argon2id password
+hash per User, while AuthIdentity stores an external provider's stable subject; provider email is
+not an identity key. AuthSession is an opaque authenticated platform session that stores only a
+token hash. Authentication resolves User only and does not select an Organization.
+
+The identity shape is `User -> LocalCredential`, `User -> AuthIdentity(Google)`, `User ->
+AuthSession`, `User -> OrganizationMembership`, and optional `User -> PlatformAdmin`. A User may
+have both local and Google authentication without duplicating or moving tenant/platform access.
+For a new trusted Google subject, a verified matching email reuses the existing User and marks its
+email verified. An existing `AuthIdentity(provider, subject)` is authoritative and is never
+reassigned because the provider later reports a different email.
+
+Local registration stores only a hashed, expiring email-verification challenge. Proving that token
+atomically creates the LocalCredential, marks the User verified, consumes the challenge, and creates
+the normal AuthSession. SMTP delivery happens only after the challenge transaction commits. Before
+Internet exposure, `/auth/login`, `/auth/register`, and `/auth/email-verifications/resend` require
+deployment/ingress rate limiting; no process-local limiter is treated as distributed protection.
 
 Organization context is resolved explicitly for each organization-scoped request. The authenticated User and the route's `organization_id` are used to load the requested Organization and validate the matching OrganizationMembership, producing a request-scoped `OrganizationContext` containing all three records. A client-provided `organization_id` identifies the desired tenant but never authorizes access by itself. Missing Organizations return 404, while existing Organizations without a matching membership return 403.
 
@@ -47,7 +65,7 @@ Organization is persisted in authentication state, cookies, or browser storage. 
 Organization listing and provisioning remain a separate `/admin` flow and do not imply tenant
 access.
 
-Google login follows `Google OIDC -> AuthIdentity(provider="google", provider_subject=sub) -> User -> AuthSession`. Organization access remains separate through `User -> OrganizationMembership -> Organization`. Google login does not select a tenant.
+Google login follows `Google OIDC -> AuthIdentity(provider="google", provider_subject=sub) -> User -> AuthSession`. Password login follows `LocalCredential -> User -> AuthSession`. Organization access remains separate through `User -> OrganizationMembership -> Organization`; neither login method selects a tenant.
 
 Optional business capabilities such as fleet, clinic, documents, workflows, and analytics live under `app/modules`. Tenant-owned entities remain inside their business module, reference `organization_id`, and scope data access to that organization.
 
