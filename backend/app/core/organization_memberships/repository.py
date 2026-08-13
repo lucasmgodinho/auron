@@ -13,14 +13,30 @@ def create_membership(
     organization_id: UUID,
     role: str,
 ) -> OrganizationMembership:
+    membership = add_membership(
+        session,
+        user_id=user_id,
+        organization_id=organization_id,
+        role=role,
+    )
+    session.commit()
+    session.refresh(membership)
+    return membership
+
+
+def add_membership(
+    session: Session,
+    *,
+    user_id: UUID,
+    organization_id: UUID,
+    role: str,
+) -> OrganizationMembership:
     membership = OrganizationMembership(
         user_id=user_id,
         organization_id=organization_id,
         role=role,
     )
     session.add(membership)
-    session.commit()
-    session.refresh(membership)
     return membership
 
 

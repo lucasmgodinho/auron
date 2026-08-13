@@ -9,6 +9,8 @@ type AppShellProps = {
   isLoggingOut: boolean
   logoutError: string | null
   onLogout: () => void
+  isPlatformAdmin?: boolean
+  activePage?: 'home' | 'admin'
 }
 
 export function AppShell({
@@ -17,6 +19,8 @@ export function AppShell({
   isLoggingOut,
   logoutError,
   onLogout,
+  isPlatformAdmin = false,
+  activePage = 'home',
 }: AppShellProps) {
   return (
     <div className="app-shell">
@@ -45,9 +49,22 @@ export function AppShell({
       <div className="app-layout">
         <aside className="app-sidebar" aria-label="Primary navigation">
           <nav>
-            <Link className="nav-item nav-item-active" to="/app" aria-current="page">
+            <Link
+              className={`nav-item${activePage === 'home' ? ' nav-item-active' : ''}`}
+              to="/app"
+              aria-current={activePage === 'home' ? 'page' : undefined}
+            >
               Home
             </Link>
+            {isPlatformAdmin ? (
+              <Link
+                className={`nav-item${activePage === 'admin' ? ' nav-item-active' : ''}`}
+                to="/admin"
+                aria-current={activePage === 'admin' ? 'page' : undefined}
+              >
+                Admin
+              </Link>
+            ) : null}
           </nav>
           <p className="sidebar-note">Organization selection and product modules will be added next.</p>
         </aside>

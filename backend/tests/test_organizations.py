@@ -2,13 +2,12 @@ from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.auth import service as auth_service
 from app.core.auth.dependencies import AUTH_SESSION_COOKIE_NAME
-from app.core.organization_memberships import repository as membership_repository
 from app.core.organization_memberships import service as membership_service
 from app.core.organizations import service as organization_service
 from app.core.organizations.model import Organization
@@ -30,16 +29,9 @@ def authenticate(client: TestClient, session: Session, user: User) -> None:
     client.cookies.set(AUTH_SESSION_COOKIE_NAME, raw_token)
 
 
-def create_organization(client: TestClient, name: str) -> dict[str, object]:
-    response = client.post("/organizations", json={"name": name})
-    assert response.status_code == 201
-    return response.json()
-
-
 @pytest.mark.parametrize(
     ("method", "path", "payload"),
     [
-        ("post", "/organizations", {"name": "Acme"}),
         ("get", "/organizations", None),
         ("get", f"/organizations/{uuid4()}", None),
         ("patch", f"/organizations/{uuid4()}", {"name": "Acme"}),
@@ -54,25 +46,16 @@ def test_organization_endpoints_require_authentication(
     assert response.json() == {"detail": "Authentication required"}
 
 
-def test_create_organization_adds_creator_as_owner(
+def test_ordinary_authenticated_user_cannot_create_organization(
     client: TestClient, db_session: Session
 ) -> None:
     user = create_user(db_session)
     authenticate(client, db_session, user)
 
-    organization = create_organization(client, "  Acme  ")
-    membership = membership_repository.get_membership_for_user_organization(
-        db_session,
-        user_id=user.id,
-        organization_id=organization["id"],
-    )
+    response = client.post("/organizations", json={"name": "Acme"})
 
-    assert organization["name"] == "Acme"
-    assert organization["id"]
-    assert organization["created_at"]
-    assert organization["updated_at"]
-    assert membership is not None
-    assert membership.role == "owner"
+    assert response.status_code == 405
+    assert db_session.scalar(select(func.count()).select_from(Organization)) == 0
 
 
 def test_organization_and_initial_owner_are_created_atomically(
@@ -90,18 +73,6 @@ def test_organization_and_initial_owner_are_created_atomically(
     assert db_session.scalar(
         select(Organization).where(Organization.name == organization_name)
     ) is None
-
-
-@pytest.mark.parametrize("name", ["", "   "])
-def test_create_organization_rejects_empty_name(
-    client: TestClient, db_session: Session, name: str
-) -> None:
-    user = create_user(db_session)
-    authenticate(client, db_session, user)
-
-    response = client.post("/organizations", json={"name": name})
-
-    assert response.status_code == 422
 
 
 def test_get_organization_requires_membership(
@@ -134,13 +105,17 @@ def test_list_organizations_returns_only_current_users_organizations(
     current_user = create_user(db_session)
     other_user = create_user(db_session, email="other@example.com", name="Other")
     authenticate(client, db_session, current_user)
-    accessible = create_organization(client, "Acme")
+    accessible = organization_service.create_organization(
+        db_session, "Acme", current_user.id
+    )
     organization_service.create_organization(db_session, "Other", other_user.id)
 
     response = client.get("/organizations")
 
     assert response.status_code == 200
-    assert [organization["id"] for organization in response.json()] == [accessible["id"]]
+    assert [organization["id"] for organization in response.json()] == [
+        str(accessible.id)
+    ]
 
 
 def test_list_organizations_paginates_within_current_users_memberships(
@@ -149,7 +124,7 @@ def test_list_organizations_paginates_within_current_users_memberships(
     user = create_user(db_session)
     authenticate(client, db_session, user)
     for name in ("Acme", "Globex", "Initech"):
-        create_organization(client, name)
+        organization_service.create_organization(db_session, name, user.id)
 
     all_organizations = client.get("/organizations").json()
     response = client.get("/organizations", params={"limit": 1, "offset": 1})

@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
+import { getPlatformAdminStatus } from '../api/platform-admin'
 import { useAuth } from '../auth/useAuth'
 import { AppShell } from '../components/AppShell'
 
@@ -7,6 +8,21 @@ export function AppPage() {
   const { user, logout } = useAuth()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [logoutError, setLogoutError] = useState<string | null>(null)
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false)
+
+  useEffect(() => {
+    let active = true
+    void getPlatformAdminStatus()
+      .then((hasAccess) => {
+        if (active) setIsPlatformAdmin(hasAccess)
+      })
+      .catch(() => {
+        if (active) setIsPlatformAdmin(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
 
   if (user === null) {
     return null
@@ -29,6 +45,7 @@ export function AppPage() {
       isLoggingOut={isLoggingOut}
       logoutError={logoutError}
       onLogout={() => void handleLogout()}
+      isPlatformAdmin={isPlatformAdmin}
     >
       <section className="welcome-panel" aria-labelledby="welcome-heading">
         <p className="eyebrow">Account authenticated</p>

@@ -15,8 +15,10 @@ os.environ.setdefault("AUTH_LOGIN_SUCCESS_REDIRECT_URL", "http://frontend.test/a
 
 from app.config import get_settings
 from app.core.auth.model import AuthIdentity, AuthSession
+from app.core.organization_invitations.model import OrganizationInvitation
 from app.core.organization_memberships.model import OrganizationMembership
 from app.core.organizations.model import Organization
+from app.core.platform_admin.model import PlatformAdmin
 from app.core.users.model import User
 from app.database import get_session
 from app.main import app
@@ -60,7 +62,9 @@ def db_session(test_engine: Engine) -> Iterator[Session]:
     try:
         session.execute(delete(AuthSession))
         session.execute(delete(AuthIdentity))
+        session.execute(delete(PlatformAdmin))
         session.execute(delete(OrganizationMembership))
+        session.execute(delete(OrganizationInvitation))
         session.execute(delete(User))
         session.execute(delete(Organization))
         session.flush()

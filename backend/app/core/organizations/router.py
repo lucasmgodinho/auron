@@ -10,7 +10,6 @@ from app.core.organization_context.dependencies import get_organization_context
 from app.core.organizations import service
 from app.core.organizations.model import Organization
 from app.core.organizations.schemas import (
-    OrganizationCreate,
     OrganizationResponse,
     OrganizationUpdate,
 )
@@ -18,15 +17,6 @@ from app.core.users.model import User
 from app.database import get_session
 
 router = APIRouter(prefix="/organizations", tags=["organizations"])
-
-
-@router.post("", response_model=OrganizationResponse, status_code=status.HTTP_201_CREATED)
-def create_organization(
-    payload: OrganizationCreate,
-    session: Annotated[Session, Depends(get_session)],
-    current_user: Annotated[User, Depends(get_current_user)],
-) -> Organization:
-    return service.create_organization(session, payload.name, current_user.id)
 
 
 @router.get("/{organization_id}", response_model=OrganizationResponse)

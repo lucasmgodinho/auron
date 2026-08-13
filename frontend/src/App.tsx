@@ -4,6 +4,7 @@ import { ProtectedRoute } from './auth/ProtectedRoute'
 import { useAuth } from './auth/useAuth'
 import { AuthenticationError, AuthenticationLoading } from './components/AuthStatus'
 import { AppPage } from './pages/AppPage'
+import { AdminPage } from './pages/AdminPage'
 import { LoginPage } from './pages/LoginPage'
 
 function AuthenticationRedirect() {
@@ -28,6 +29,14 @@ function App() {
         element={
           <ProtectedRoute>
             <AppPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute>
+            <AdminPage />
           </ProtectedRoute>
         }
       />

@@ -12,6 +12,21 @@ AuthIdentity stores an external provider's stable subject and links it to User; 
 
 Organization context is resolved explicitly for each organization-scoped request. The authenticated User and the route's `organization_id` are used to load the requested Organization and validate the matching OrganizationMembership, producing a request-scoped `OrganizationContext` containing all three records. A client-provided `organization_id` identifies the desired tenant but never authorizes access by itself. Missing Organizations return 404, while existing Organizations without a matching membership return 403.
 
+PlatformAdmin is binary global Auron access and is independent from OrganizationMembership. A
+Platform Admin provisions a new Organization together with one or more OrganizationInvitation
+records; no placeholder Users or memberships are created. An authenticated User sees invitations
+only for their verified immutable email and acceptance atomically creates the tenant membership.
+This means a newly provisioned Organization may validly have no memberships until an invitation is
+accepted. V1 stores at most one invitation per Organization and normalized email; duplicate form
+entries are deduplicated, and there is no invitation reissue or history workflow yet.
+
+Conceptually, Auron has `PlatformAdmin -> platform provisioning` alongside
+`Organization -> OrganizationInvitation -> OrganizationMembership`. Platform Admin access never
+implies tenant access, and an Organization role never grants Platform Admin access. Future tenant
+authorization may evolve toward `Organization -> Access Groups -> Memberships`, with permission
+catalogs defined by implemented Auron modules; neither access groups nor module entitlements exist
+yet.
+
 Future tenant-owned modules must use `OrganizationContext.organization.id` as the validated `organization_id` for every business-data query. Organization selection is not stored in AuthSession, User, or a cookie, so membership changes apply on the next request without changing the authenticated session.
 
 The frontend never handles authentication tokens. It derives browser authentication state from

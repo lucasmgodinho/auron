@@ -24,6 +24,12 @@
 - Cover cross-tenant isolation with automated tests.
 - User is a global platform identity and must not contain `organization_id`.
 - OrganizationMembership connects Users to Organizations; organization-specific roles belong there.
+- PlatformAdmin is global and independent from OrganizationMembership; Organization roles must
+  never grant Platform Admin access, and Platform Admin access does not imply tenant membership.
+- New customer Organizations are provisioned only by Platform Admin. Invitation emails never
+  create placeholder Users, and acceptance must match the authenticated User's verified email.
+- Business-module entitlements remain separate from invitations. Any future Organization access
+  groups are tenant-owned and do not grant Platform Admin access.
 - Keep authentication identities and provider-specific fields separate from User.
 - Key external identities by provider and stable provider subject, never by email.
 - Never persist or log raw session tokens; server-side sessions store only token hashes.

@@ -7,9 +7,14 @@ from app.core.organization_memberships.model import OrganizationMembership
 from app.core.organizations.model import Organization
 
 
-def create_organization(session: Session, name: str, owner_user_id: UUID) -> Organization:
+def add_organization(session: Session, name: str) -> Organization:
     organization = Organization(name=name)
     session.add(organization)
+    return organization
+
+
+def create_organization(session: Session, name: str, owner_user_id: UUID) -> Organization:
+    organization = add_organization(session, name)
     session.flush()
     session.add(
         OrganizationMembership(
@@ -21,6 +26,18 @@ def create_organization(session: Session, name: str, owner_user_id: UUID) -> Org
     session.commit()
     session.refresh(organization)
     return organization
+
+
+def list_all_organizations(
+    session: Session, limit: int, offset: int
+) -> list[Organization]:
+    statement = (
+        select(Organization)
+        .order_by(Organization.created_at, Organization.id)
+        .limit(limit)
+        .offset(offset)
+    )
+    return list(session.scalars(statement))
 
 
 def get_organization(session: Session, organization_id: UUID) -> Organization | None:

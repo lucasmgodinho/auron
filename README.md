@@ -88,6 +88,29 @@ Start sign-in at `GET /auth/google/login`. The callback is handled only at
 redirects to `AUTH_LOGIN_SUCCESS_REDIRECT_URL`. The flow requests only `openid`, `email`, and
 `profile`; Google access and ID tokens are not stored.
 
+## Platform Admin bootstrap
+
+Platform Admin is global Auron access and is independent from tenant access through
+OrganizationMembership. To bootstrap an operator:
+
+1. Sign in to Auron through Google once so the existing authentication flow creates the User.
+2. From `backend/`, grant that existing User Platform Admin access:
+
+   ```powershell
+   .\.venv\Scripts\python.exe -m app.scripts.grant_platform_admin --email operator@example.com
+   ```
+
+3. Open `http://127.0.0.1:5173/admin` and create an Organization with one or more initial
+   invitation emails.
+
+The grant command is idempotent, does not create Users, and does not create Organization
+memberships. Platform Admin provisioning creates the Organization and its normalized email
+invitations atomically. An invited User later authenticates with the same verified email and
+accepts the invitation; the current schema assigns the compatibility role `member`. If that User
+already has membership, acceptance marks the invitation accepted without changing or duplicating
+the membership. Platform Admin V1 does not manage modules, Organization roles, groups, or
+permissions.
+
 ## Frontend setup
 
 From a second terminal:

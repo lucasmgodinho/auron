@@ -5,13 +5,6 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, StringConstraints
 
 
-class OrganizationCreate(BaseModel):
-    name: Annotated[
-        str,
-        StringConstraints(strip_whitespace=True, min_length=1, max_length=255),
-    ]
-
-
 class OrganizationUpdate(BaseModel):
     name: Annotated[
         str,

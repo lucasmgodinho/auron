@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.users.model import User
@@ -15,6 +16,10 @@ def create_user(session: Session, email: str, name: str) -> User:
 
 def get_user(session: Session, user_id: UUID) -> User | None:
     return session.get(User, user_id)
+
+
+def get_user_by_email(session: Session, email: str) -> User | None:
+    return session.scalar(select(User).where(User.email == email))
 
 
 def update_user_name(session: Session, user: User, name: str) -> User:
