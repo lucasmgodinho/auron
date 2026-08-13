@@ -53,3 +53,18 @@ def get_invitation_for_update(
         .execution_options(populate_existing=True)
     )
     return session.scalar(statement)
+
+
+def get_invitation_by_organization_email_for_update(
+    session: Session, *, organization_id: UUID, email: str
+) -> OrganizationInvitation | None:
+    statement = (
+        select(OrganizationInvitation)
+        .where(
+            OrganizationInvitation.organization_id == organization_id,
+            OrganizationInvitation.email == email,
+        )
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    return session.scalar(statement)

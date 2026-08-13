@@ -71,6 +71,13 @@ def count_organization_owners(session: Session, organization_id: UUID) -> int:
     return session.scalar(statement) or 0
 
 
+def count_organization_memberships(session: Session, organization_id: UUID) -> int:
+    statement = select(func.count()).select_from(OrganizationMembership).where(
+        OrganizationMembership.organization_id == organization_id
+    )
+    return session.scalar(statement) or 0
+
+
 def list_organization_memberships(
     session: Session, organization_id: UUID
 ) -> list[OrganizationMembership]:

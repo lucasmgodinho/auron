@@ -28,6 +28,11 @@
   never grant Platform Admin access, and Platform Admin access does not imply tenant membership.
 - New customer Organizations are provisioned only by Platform Admin. Invitation emails never
   create placeholder Users, and acceptance must match the authenticated User's verified email.
+- A provisioned Organization may start with zero memberships. Under an Organization lock, the
+  first accepted invitation establishes the initial owner; subsequent acceptances default to
+  member, and an existing membership role is never overwritten.
+- Expired, unaccepted Organization invitations may be reissued in place. Active invitations are
+  not silently extended, and accepted invitations are never reopened.
 - Business-module entitlements remain separate from invitations. Any future Organization access
   groups are tenant-owned and do not grant Platform Admin access.
 - Keep authentication identities and provider-specific fields separate from User.

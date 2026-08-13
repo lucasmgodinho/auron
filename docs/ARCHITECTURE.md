@@ -18,7 +18,14 @@ records; no placeholder Users or memberships are created. An authenticated User 
 only for their verified immutable email and acceptance atomically creates the tenant membership.
 This means a newly provisioned Organization may validly have no memberships until an invitation is
 accepted. V1 stores at most one invitation per Organization and normalized email; duplicate form
-entries are deduplicated, and there is no invitation reissue or history workflow yet.
+entries are deduplicated. The first acceptance is serialized under an Organization row lock and
+creates the initial `owner`; subsequent acceptances create `member` memberships. These roles remain
+the current compatibility authorization mechanism. Existing membership roles are never changed by
+invitation acceptance.
+
+An expired, unaccepted invitation can be reissued in place by trusted operator tooling. Reissue
+locks the existing invitation and changes only its expiration; active invitations are not extended
+and accepted invitations are never reopened.
 
 Conceptually, Auron has `PlatformAdmin -> platform provisioning` alongside
 `Organization -> OrganizationInvitation -> OrganizationMembership`. Platform Admin access never

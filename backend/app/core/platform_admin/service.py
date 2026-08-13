@@ -5,6 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.organization_invitations import repository as invitation_repository
+from app.core.organization_invitations.schemas import DEFAULT_INVITATION_TTL_HOURS
 from app.core.organizations import repository as organization_repository
 from app.core.organizations.model import Organization
 from app.core.platform_admin import repository
@@ -60,7 +61,7 @@ def list_organizations(
 def provision_organization(
     session: Session, payload: PlatformOrganizationCreate
 ) -> Organization:
-    expires_at = datetime.now(UTC) + timedelta(hours=168)
+    expires_at = datetime.now(UTC) + timedelta(hours=DEFAULT_INVITATION_TTL_HOURS)
     try:
         organization = organization_repository.add_organization(
             session, payload.name

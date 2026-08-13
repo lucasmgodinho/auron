@@ -15,6 +15,7 @@ from app.core.auth.dependencies import AUTH_SESSION_COOKIE_NAME
 from app.core.organization_invitations import service as invitation_service
 from app.core.organization_invitations.model import OrganizationInvitation
 from app.core.organization_memberships import repository as membership_repository
+from app.core.organization_memberships import service as membership_service
 from app.core.organization_memberships.model import OrganizationMembership
 from app.core.organizations import service as organization_service
 from app.core.organizations.model import Organization
@@ -134,10 +135,106 @@ def test_matching_user_accepts_invitation_and_gains_only_invited_organization(
     assert response.status_code == 200
     assert response.json()["id"] == str(organization.id)
     assert membership is not None
-    assert membership.role == "member"
+    assert membership.role == "owner"
     assert invitation.accepted_at is not None
     assert client.get(f"/organizations/{organization.id}").status_code == 200
     assert client.get(f"/organizations/{other_organization.id}").status_code == 403
+
+
+def test_first_acceptance_is_owner_and_subsequent_acceptances_are_members(
+    client: TestClient, db_session: Session
+) -> None:
+    users = [
+        create_user(
+            db_session,
+            email=f"invited-{index}@example.com",
+            name=f"Invited {index}",
+        )
+        for index in range(1, 4)
+    ]
+    organization = platform_admin_service.provision_organization(
+        db_session,
+        PlatformOrganizationCreate(
+            name="Ownership bootstrap",
+            invitation_emails=[user.email for user in users],
+        ),
+    )
+    invitations = {
+        invitation.email: invitation
+        for invitation in db_session.scalars(
+            select(OrganizationInvitation).where(
+                OrganizationInvitation.organization_id == organization.id
+            )
+        )
+    }
+
+    for user in users:
+        authenticate(client, db_session, user)
+        response = client.post(
+            f"/organization-invitations/{invitations[user.email].id}/accept"
+        )
+        assert response.status_code == 200
+
+    memberships = list(
+        db_session.scalars(
+            select(OrganizationMembership)
+            .where(OrganizationMembership.organization_id == organization.id)
+            .order_by(OrganizationMembership.created_at, OrganizationMembership.id)
+        )
+    )
+    roles_by_user_id = {
+        membership.user_id: membership.role for membership in memberships
+    }
+    assert roles_by_user_id == {
+        users[0].id: "owner",
+        users[1].id: "member",
+        users[2].id: "member",
+    }
+
+    authenticate(client, db_session, users[0])
+    owner_response = client.patch(
+        f"/organizations/{organization.id}", json={"name": "Owner managed"}
+    )
+    authenticate(client, db_session, users[1])
+    member_response = client.patch(
+        f"/organizations/{organization.id}", json={"name": "Forbidden"}
+    )
+
+    assert owner_response.status_code == 200
+    assert member_response.status_code == 403
+
+
+def test_existing_organization_membership_makes_new_acceptance_a_member(
+    client: TestClient, db_session: Session
+) -> None:
+    owner = create_user(db_session, email="owner@example.com", name="Owner")
+    invited_user = create_user(
+        db_session, email="new-member@example.com", name="New Member"
+    )
+    organization = organization_service.create_organization(
+        db_session, "Existing Organization", owner.id
+    )
+    invitation = OrganizationInvitation(
+        organization_id=organization.id,
+        email=invited_user.email,
+        expires_at=datetime.now(UTC) + timedelta(days=7),
+    )
+    db_session.add(invitation)
+    db_session.commit()
+    authenticate(client, db_session, invited_user)
+
+    response = client.post(
+        f"/organization-invitations/{invitation.id}/accept"
+    )
+
+    membership = membership_repository.get_membership_for_user_organization(
+        db_session,
+        user_id=invited_user.id,
+        organization_id=organization.id,
+    )
+    assert response.status_code == 200
+    assert membership is not None
+    assert membership.role == "member"
 
 
 def test_another_user_cannot_accept_invitation(
@@ -212,9 +309,17 @@ def test_accepted_invitation_cannot_create_duplicate_membership(
 def test_existing_membership_acceptance_marks_invitation_without_duplicate(
     client: TestClient, db_session: Session
 ) -> None:
+    owner = create_user(db_session, email="owner@example.com", name="Owner")
     user = create_user(db_session)
     organization = organization_service.create_organization(
-        db_session, "Existing Membership", user.id
+        db_session, "Existing Membership", owner.id
+    )
+    membership_service.create_membership(
+        db_session,
+        organization_id=organization.id,
+        user_id=user.id,
+        role="admin",
+        current_user_id=owner.id,
     )
     invitation = OrganizationInvitation(
         organization_id=organization.id,
@@ -241,7 +346,7 @@ def test_existing_membership_acceptance_marks_invitation_without_duplicate(
     assert response.status_code == 200
     assert invitation.accepted_at is not None
     assert len(memberships) == 1
-    assert memberships[0].role == "owner"
+    assert memberships[0].role == "admin"
 
 
 def test_acceptance_failure_rolls_back_membership_and_invitation(
@@ -348,4 +453,128 @@ def test_concurrent_acceptance_creates_one_membership(test_engine: Engine) -> No
                 )
             if user_id is not None:
                 cleanup_session.execute(delete(User).where(User.id == user_id))
+            cleanup_session.commit()
+
+
+def test_concurrent_initial_acceptances_create_one_owner_and_one_member(
+    test_engine: Engine,
+) -> None:
+    suffix = uuid4().hex
+    organization_id: UUID | None = None
+    user_ids: list[UUID] = []
+    invitation_ids: list[UUID] = []
+    start = Barrier(2)
+
+    try:
+        with Session(test_engine) as setup_session:
+            users = [
+                create_user(
+                    setup_session,
+                    email=f"initial-{index}-{suffix}@example.com",
+                    name=f"Initial {index}",
+                )
+                for index in range(2)
+            ]
+            user_ids = [user.id for user in users]
+            organization = platform_admin_service.provision_organization(
+                setup_session,
+                PlatformOrganizationCreate(
+                    name=f"Concurrent initial ownership {suffix}",
+                    invitation_emails=[user.email for user in users],
+                ),
+            )
+            organization_id = organization.id
+            invitation_ids = list(
+                setup_session.scalars(
+                    select(OrganizationInvitation.id)
+                    .where(
+                        OrganizationInvitation.organization_id == organization.id
+                    )
+                    .order_by(OrganizationInvitation.email)
+                )
+            )
+
+        def accept(user_id: UUID, invitation_id: UUID) -> str:
+            with Session(test_engine) as session:
+                current_user = session.get(User, user_id)
+                assert current_user is not None
+                initial_membership_count = (
+                    membership_repository.count_organization_memberships(
+                        session, organization_id
+                    )
+                )
+                start.wait(timeout=10)
+                assert initial_membership_count == 0
+                invitation_service.accept_invitation(
+                    session,
+                    invitation_id=invitation_id,
+                    current_user=current_user,
+                )
+                return "accepted"
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            futures = [
+                executor.submit(accept, user_id, invitation_id)
+                for user_id, invitation_id in zip(
+                    user_ids, invitation_ids, strict=True
+                )
+            ]
+            results = [future.result(timeout=15) for future in futures]
+
+        with Session(test_engine) as verification_session:
+            memberships = list(
+                verification_session.scalars(
+                    select(OrganizationMembership).where(
+                        OrganizationMembership.organization_id == organization_id
+                    )
+                )
+            )
+            invitations = list(
+                verification_session.scalars(
+                    select(OrganizationInvitation).where(
+                        OrganizationInvitation.organization_id == organization_id
+                    )
+                )
+            )
+            owner_membership = next(
+                membership for membership in memberships if membership.role == "owner"
+            )
+            roles = sorted(membership.role for membership in memberships)
+            membership_user_ids = {
+                membership.user_id for membership in memberships
+            }
+            invitations_accepted = all(
+                invitation.accepted_at is not None for invitation in invitations
+            )
+            organization_service.update_organization_name(
+                verification_session,
+                organization_id,
+                owner_membership.user_id,
+                "Concurrently owned Organization",
+            )
+
+        assert results == ["accepted", "accepted"]
+        assert len(memberships) == 2
+        assert roles == ["member", "owner"]
+        assert len(membership_user_ids) == 2
+        assert len(invitations) == 2
+        assert invitations_accepted
+    finally:
+        with Session(test_engine) as cleanup_session:
+            if organization_id is not None:
+                cleanup_session.execute(
+                    delete(OrganizationMembership).where(
+                        OrganizationMembership.organization_id == organization_id
+                    )
+                )
+                cleanup_session.execute(
+                    delete(OrganizationInvitation).where(
+                        OrganizationInvitation.organization_id == organization_id
+                    )
+                )
+                cleanup_session.execute(
+                    delete(Organization).where(Organization.id == organization_id)
+                )
+            if user_ids:
+                cleanup_session.execute(delete(User).where(User.id.in_(user_ids)))
             cleanup_session.commit()

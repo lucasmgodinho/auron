@@ -106,10 +106,22 @@ OrganizationMembership. To bootstrap an operator:
 The grant command is idempotent, does not create Users, and does not create Organization
 memberships. Platform Admin provisioning creates the Organization and its normalized email
 invitations atomically. An invited User later authenticates with the same verified email and
-accepts the invitation; the current schema assigns the compatibility role `member`. If that User
-already has membership, acceptance marks the invitation accepted without changing or duplicating
-the membership. Platform Admin V1 does not manage modules, Organization roles, groups, or
-permissions.
+accepts the invitation. The first accepted invitation establishes the initial `owner`; subsequent
+acceptances use the compatibility role `member`. If that User already has membership, acceptance
+marks the invitation accepted without changing or duplicating the membership. Platform Admin V1
+does not manage modules, Organization roles, groups, or permissions.
+
+Reissue an expired, unaccepted invitation from `backend/` with:
+
+```powershell
+.\.venv\Scripts\python.exe -m app.scripts.reissue_organization_invitation `
+  --organization-id <uuid> `
+  --email user@example.com
+```
+
+Use `--expires-hours` to override the default seven-day lifetime. Reissue updates the existing
+invitation's expiration in place. Active invitations are not silently extended, accepted
+invitations cannot be reopened, and no new invitation or membership is created.
 
 ## Frontend setup
 
