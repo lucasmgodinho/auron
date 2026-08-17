@@ -1,11 +1,15 @@
 import { useState, type FormEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 
 import { AuthApiError, registerLocalAccount } from '../api/auth'
 import { useAuth } from '../auth/useAuth'
+import { AuthLayout } from '../components/AuthLayout'
 import { AuthenticationError, AuthenticationLoading } from '../components/AuthStatus'
+import { usePageMetadata } from '../hooks/usePageMetadata'
 
 export function RegisterPage() {
+  const { t } = useTranslation()
   const { status, refreshUser, loginWithGoogle } = useAuth()
   const navigate = useNavigate()
   const [name, setName] = useState('')
@@ -13,6 +17,7 @@ export function RegisterPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isRedirecting, setIsRedirecting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
+  usePageMetadata(t('auth.meta.registerTitle'), t('auth.meta.registerDescription'))
 
   if (status === 'loading') return <AuthenticationLoading />
   if (status === 'error') return <AuthenticationError onRetry={refreshUser} />
@@ -28,8 +33,8 @@ export function RegisterPage() {
     } catch (error) {
       setFormError(
         error instanceof AuthApiError && error.status === 422
-          ? 'Enter a valid name and email address.'
-          : 'We could not send verification instructions. Please try again.',
+          ? t('auth.register.invalid')
+          : t('auth.register.unavailable'),
       )
       setIsSubmitting(false)
     }
@@ -41,43 +46,32 @@ export function RegisterPage() {
   }
 
   return (
-    <main className="login-page">
-      <section className="login-card" aria-labelledby="register-heading">
-        <div className="login-introduction">
-          <div className="product-mark product-mark-light">
-            <span className="product-symbol" aria-hidden="true">A</span>
-            <span>Auron</span>
-          </div>
-          <div>
-            <p className="eyebrow eyebrow-light">Create your account</p>
-            <h1 id="register-heading">Start with one global Auron identity.</h1>
-            <p>Your Organization access remains separate and will appear after sign-in.</p>
-          </div>
-        </div>
-
-        <div className="login-action">
-          <div>
-            <p className="eyebrow">Get started</p>
-            <h2>Create your Auron account</h2>
-            <p>We'll verify your email before you choose a password.</p>
-          </div>
-          <form className="auth-form" onSubmit={(event) => void handleSubmit(event)}>
-            <label className="field-label" htmlFor="register-name">Name</label>
-            <input id="register-name" className="text-input" autoComplete="name" maxLength={255} value={name} onChange={(event) => setName(event.target.value)} required />
-            <label className="field-label" htmlFor="register-email">Email</label>
-            <input id="register-email" className="text-input" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
-            {formError ? <p className="inline-error" role="alert">{formError}</p> : null}
-            <button className="button button-primary" type="submit" disabled={isSubmitting || isRedirecting}>
-              {isSubmitting ? 'Sending...' : 'Continue'}
-            </button>
-          </form>
-          <div className="auth-divider"><span>or</span></div>
-          <button className="button google-button" type="button" onClick={handleGoogleLogin} disabled={isRedirecting || isSubmitting}>
-            {isRedirecting ? 'Redirecting...' : 'Continue with Google'}
-          </button>
-          <p className="auth-switch">Already have an account? <Link to="/login">Sign in</Link></p>
-        </div>
-      </section>
-    </main>
+    <AuthLayout
+      labelledBy="register-heading"
+      panelEyebrow={t('auth.register.panelEyebrow')}
+      panelTitle={t('auth.register.panelTitle')}
+      panelDescription={t('auth.register.panelDescription')}
+    >
+      <div className="auth-form-heading">
+        <p className="eyebrow">{t('auth.register.eyebrow')}</p>
+        <h2 id="register-heading">{t('auth.register.title')}</h2>
+        <p>{t('auth.register.description')}</p>
+      </div>
+      <form className="auth-form" onSubmit={(event) => void handleSubmit(event)}>
+        <label className="field-label" htmlFor="register-name">{t('auth.register.name')}</label>
+        <input id="register-name" className="text-input" autoComplete="name" maxLength={255} value={name} aria-invalid={formError ? true : undefined} aria-describedby={formError ? 'register-error' : undefined} onChange={(event) => setName(event.target.value)} required />
+        <label className="field-label" htmlFor="register-email">{t('auth.register.email')}</label>
+        <input id="register-email" className="text-input" type="email" autoComplete="email" value={email} aria-invalid={formError ? true : undefined} aria-describedby={formError ? 'register-error' : undefined} onChange={(event) => setEmail(event.target.value)} required />
+        {formError ? <div className="alert alert-danger" id="register-error" role="alert">{formError}</div> : null}
+        <button className="button button-primary button-full" type="submit" disabled={isSubmitting || isRedirecting}>
+          {isSubmitting ? t('auth.register.submitting') : t('auth.register.submit')}
+        </button>
+      </form>
+      <div className="auth-divider"><span>{t('auth.login.separator')}</span></div>
+      <button className="button google-button" type="button" onClick={handleGoogleLogin} disabled={isRedirecting || isSubmitting}>
+        {isRedirecting ? t('auth.register.redirecting') : t('auth.register.google')}
+      </button>
+      <p className="auth-switch">{t('auth.register.hasAccount')} <Link to="/login">{t('auth.register.signIn')}</Link></p>
+    </AuthLayout>
   )
 }

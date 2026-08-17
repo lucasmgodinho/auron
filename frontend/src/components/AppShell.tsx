@@ -1,7 +1,10 @@
-import type { ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import type { User } from '../api/auth'
+import { BrandLogo } from './BrandLogo'
+import { PreferenceControls } from './PreferenceControls'
 
 type AppShellProps = {
   children: ReactNode
@@ -10,8 +13,43 @@ type AppShellProps = {
   logoutError: string | null
   onLogout: () => void
   isPlatformAdmin?: boolean
-  activePage?: 'home' | 'admin'
+  activePage?: 'overview' | 'admin'
   organizationName?: string
+}
+
+type NavigationProps = {
+  activePage: 'overview' | 'admin'
+  isPlatformAdmin: boolean
+  onNavigate?: () => void
+}
+
+function Navigation({ activePage, isPlatformAdmin, onNavigate }: NavigationProps) {
+  const { t } = useTranslation()
+
+  return (
+    <nav className="app-navigation" aria-label={t('common.navigation.primary')}>
+      <Link
+        className={`nav-item${activePage === 'overview' ? ' nav-item-active' : ''}`}
+        to="/app"
+        aria-current={activePage === 'overview' ? 'page' : undefined}
+        onClick={onNavigate}
+      >
+        <span className="nav-icon" aria-hidden="true">⌂</span>
+        <span>{t('common.navigation.overview')}</span>
+      </Link>
+      {isPlatformAdmin ? (
+        <Link
+          className={`nav-item${activePage === 'admin' ? ' nav-item-active' : ''}`}
+          to="/admin"
+          aria-current={activePage === 'admin' ? 'page' : undefined}
+          onClick={onNavigate}
+        >
+          <span className="nav-icon" aria-hidden="true">◇</span>
+          <span>{t('common.navigation.admin')}</span>
+        </Link>
+      ) : null}
+    </nav>
+  )
 }
 
 export function AppShell({
@@ -21,69 +59,236 @@ export function AppShell({
   logoutError,
   onLogout,
   isPlatformAdmin = false,
-  activePage = 'home',
+  activePage = 'overview',
   organizationName,
 }: AppShellProps) {
+  const { t } = useTranslation()
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+  const drawerRef = useRef<HTMLElement>(null)
+  const drawerTriggerRef = useRef<HTMLButtonElement>(null)
+  const userMenuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!isDrawerOpen) return
+    const drawer = drawerRef.current
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    drawer?.querySelector<HTMLElement>('button')?.focus()
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setIsDrawerOpen(false)
+        drawerTriggerRef.current?.focus()
+        return
+      }
+      if (event.key !== 'Tab' || !drawer) return
+
+      const focusable = Array.from(
+        drawer.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      )
+      if (focusable.length === 0) return
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isDrawerOpen])
+
+  useEffect(() => {
+    if (!isUserMenuOpen) return
+
+    function handlePointerDown(event: PointerEvent) {
+      if (!userMenuRef.current?.contains(event.target as Node)) setIsUserMenuOpen(false)
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setIsUserMenuOpen(false)
+        userMenuRef.current?.querySelector<HTMLElement>('button')?.focus()
+      }
+    }
+
+    document.addEventListener('pointerdown', handlePointerDown)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isUserMenuOpen])
+
+  const closeDrawer = () => setIsDrawerOpen(false)
+
   return (
     <div className="app-shell">
-      <header className="app-header">
-        <Link className="product-mark" to="/app" aria-label="Auron home">
-          <span className="product-symbol" aria-hidden="true">A</span>
-          <span>Auron</span>
+      <a className="skip-link" href="#main-content">{t('common.navigation.skip')}</a>
+
+      <aside className="desktop-sidebar">
+        <Link className="sidebar-brand" to="/app" aria-label={t('common.navigation.auronHome')}>
+          <BrandLogo variant="horizontal" eager />
         </Link>
-
-        <div className="account-area">
-          <div className="account-copy">
-            <strong>{user.name}</strong>
-            <span>{user.email}</span>
-          </div>
-          <button
-            className="button button-secondary"
-            type="button"
-            onClick={onLogout}
-            disabled={isLoggingOut}
-          >
-            {isLoggingOut ? 'Signing out…' : 'Log out'}
-          </button>
-        </div>
-      </header>
-
-      <div className="app-layout">
-        <aside className="app-sidebar" aria-label="Primary navigation">
-          <nav>
-            <Link
-              className={`nav-item${activePage === 'home' ? ' nav-item-active' : ''}`}
-              to="/app"
-              aria-current={activePage === 'home' ? 'page' : undefined}
-            >
-              Home
-            </Link>
-            {isPlatformAdmin ? (
-              <Link
-                className={`nav-item${activePage === 'admin' ? ' nav-item-active' : ''}`}
-                to="/admin"
-                aria-current={activePage === 'admin' ? 'page' : undefined}
-              >
-                Admin
-              </Link>
-            ) : null}
-          </nav>
+        <Navigation activePage={activePage} isPlatformAdmin={isPlatformAdmin} />
+        <div className="sidebar-context">
           {organizationName ? (
-            <div className="sidebar-organization">
-              <span>Organization</span>
+            <div className="organization-context">
+              <span>{t('common.organization.label')}</span>
               <strong>{organizationName}</strong>
-              <Link to="/app">Switch organization</Link>
+              <Link to="/app">{t('common.organization.switch')}</Link>
             </div>
           ) : (
-            <p className="sidebar-note">Organization access is selected separately from authentication.</p>
+            <p>{t('common.organization.separateContext')}</p>
           )}
-        </aside>
+        </div>
+      </aside>
 
-        <main className="app-content">
-          {logoutError ? <p className="inline-error" role="alert">{logoutError}</p> : null}
+      <div className="app-frame">
+        <header className="app-topbar">
+          <div className="mobile-brand-area">
+            <button
+              ref={drawerTriggerRef}
+              className="icon-button mobile-menu-button"
+              type="button"
+              aria-label={t('common.navigation.openMenu')}
+              aria-expanded={isDrawerOpen}
+              aria-controls="mobile-navigation"
+              onClick={() => setIsDrawerOpen(true)}
+            >
+              <span aria-hidden="true">☰</span>
+            </button>
+            <Link to="/app" aria-label={t('common.navigation.auronHome')}>
+              <BrandLogo variant="mark" eager />
+            </Link>
+          </div>
+
+          <div className="topbar-context">
+            <span>{organizationName ? t('common.organization.label') : 'Auron'}</span>
+            <strong>
+              {organizationName
+                ?? t(activePage === 'admin' ? 'common.navigation.admin' : 'common.navigation.overview')}
+            </strong>
+          </div>
+
+          <div className="user-menu" ref={userMenuRef}>
+            <button
+              className="user-menu-trigger"
+              type="button"
+              aria-label={t('common.account.menu', { name: user.name })}
+              aria-expanded={isUserMenuOpen}
+              aria-haspopup="dialog"
+              aria-controls="user-preferences"
+              onClick={() => setIsUserMenuOpen((open) => !open)}
+            >
+              <span className="user-avatar" aria-hidden="true">{user.name.trim().charAt(0).toUpperCase()}</span>
+              <span className="user-summary">
+                <strong>{user.name}</strong>
+                <small>{user.email}</small>
+              </span>
+              <span aria-hidden="true">⌄</span>
+            </button>
+            {isUserMenuOpen ? (
+              <div
+                className="user-menu-panel"
+                id="user-preferences"
+                role="dialog"
+                aria-label={t('common.account.preferences')}
+              >
+                <p className="menu-heading">{t('common.account.preferences')}</p>
+                <PreferenceControls />
+                <button
+                  className="button button-secondary button-full"
+                  type="button"
+                  onClick={onLogout}
+                  disabled={isLoggingOut}
+                >
+                  {isLoggingOut ? t('common.account.loggingOut') : t('common.account.logout')}
+                </button>
+              </div>
+            ) : null}
+          </div>
+        </header>
+
+        <main className="app-content" id="main-content" tabIndex={-1}>
+          {logoutError ? <div className="alert alert-danger" role="alert">{logoutError}</div> : null}
           {children}
         </main>
       </div>
+
+      {isDrawerOpen ? (
+        <div className="mobile-drawer-layer">
+          <button
+            className="drawer-overlay"
+            type="button"
+            aria-label={t('common.navigation.closeOverlay')}
+            onClick={() => {
+              closeDrawer()
+              drawerTriggerRef.current?.focus()
+            }}
+          />
+          <aside
+            className="mobile-drawer"
+            id="mobile-navigation"
+            ref={drawerRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label={t('common.navigation.primary')}
+          >
+            <div className="drawer-header">
+              <BrandLogo variant="horizontal" eager />
+              <button
+                className="icon-button"
+                type="button"
+                aria-label={t('common.navigation.closeMenu')}
+                onClick={() => {
+                  closeDrawer()
+                  drawerTriggerRef.current?.focus()
+                }}
+              >
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <Navigation
+              activePage={activePage}
+              isPlatformAdmin={isPlatformAdmin}
+              onNavigate={closeDrawer}
+            />
+            {organizationName ? (
+              <div className="organization-context">
+                <span>{t('common.organization.label')}</span>
+                <strong>{organizationName}</strong>
+                <Link to="/app" onClick={closeDrawer}>{t('common.organization.switch')}</Link>
+              </div>
+            ) : null}
+            <div className="drawer-account">
+              <div className="drawer-user">
+                <strong>{user.name}</strong>
+                <span>{user.email}</span>
+              </div>
+              <PreferenceControls />
+              <button
+                className="button button-secondary button-full"
+                type="button"
+                onClick={onLogout}
+                disabled={isLoggingOut}
+              >
+                {isLoggingOut ? t('common.account.loggingOut') : t('common.account.logout')}
+              </button>
+            </div>
+          </aside>
+        </div>
+      ) : null}
     </div>
   )
 }

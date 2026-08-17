@@ -1,10 +1,27 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Auron" />
+    <meta name="description" content="Acesse com segurança a plataforma Auron." />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#f5f7fa" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)" />
     <title>Auron</title>
+    <script>
+      ;(() => {
+        try {
+          const preference = localStorage.getItem('auron-theme')
+          const dark = preference === 'dark' || (
+            preference !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches
+          )
+          document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+          document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
+        } catch {
+          document.documentElement.dataset.theme = 'light'
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

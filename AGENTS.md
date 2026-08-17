@@ -62,3 +62,12 @@
   cookies, or browser storage.
 - Normal `/app` Organization discovery must use membership-scoped APIs. Platform Admin listing and
   provisioning remain a separate `/admin` concern and do not grant tenant access.
+
+## Frontend foundation
+
+- All new user-visible frontend strings must use the existing i18n resources; `pt-BR` is the default locale.
+- New UI must support light and dark themes through semantic design tokens and remain usable on desktop and mobile.
+- Functional UI colors must satisfy accessibility requirements independently from brand artwork.
+- Frontend Organization state and Platform Admin navigation are never authorization mechanisms.
+- Browser storage may contain theme and locale preferences only, never authentication, verification, or tenant-access data.
+- Do not add navigation for a business module before that module exists.

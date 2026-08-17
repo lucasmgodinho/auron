@@ -1,0 +1,128 @@
+export const en = {
+  common: {
+    actions: { retry: 'Try again', cancel: 'Cancel', close: 'Close', remove: 'Remove', open: 'Open' },
+    navigation: {
+      skip: 'Skip to main content', primary: 'Primary navigation', overview: 'Overview', admin: 'Administration',
+      openMenu: 'Open menu', closeMenu: 'Close menu', closeOverlay: 'Close navigation', auronHome: 'Auron home',
+    },
+    account: {
+      menu: 'Open preferences for {{name}}', preferences: 'Preferences', language: 'Language', theme: 'Theme',
+      portuguese: 'Português', english: 'English', system: 'System', light: 'Light', dark: 'Dark',
+      logout: 'Log out', loggingOut: 'Signing out…',
+      logoutError: 'We could not log you out. Check the server and try again.',
+    },
+    organization: {
+      label: 'Organization', switch: 'Switch organization',
+      separateContext: 'Organization access is selected separately from authentication.',
+    },
+    status: {
+      checkingSession: 'Checking your session…', loadingContent: 'Loading content…',
+      connectionEyebrow: 'Connection problem',
+      connectionTitle: 'We could not connect to the server.',
+      connectionBody: 'Your authentication status could not be verified. Check the backend and try again.',
+    },
+  },
+  auth: {
+    meta: {
+      loginTitle: 'Sign in', loginDescription: 'Sign in securely to your Auron account.',
+      registerTitle: 'Create account', registerDescription: 'Create your global identity in Auron.',
+      checkEmailTitle: 'Check your email', checkEmailDescription: 'Instructions to continue creating your Auron account.',
+      verifyTitle: 'Verify email', verifyDescription: 'Finish setting up your Auron account securely.',
+    },
+    layout: {
+      eyebrow: 'Secure workspace access', title: 'A clear foundation for the work ahead.',
+      description: 'Sign in to access your account and continue to Auron.',
+    },
+    login: {
+      eyebrow: 'Welcome back', title: 'Sign in to continue', email: 'Email', password: 'Password',
+      submit: 'Sign in', submitting: 'Signing in…', separator: 'or', google: 'Continue with Google',
+      redirecting: 'Redirecting…', noAccount: "Don't have an account?", createAccount: 'Create account',
+      security: 'Authentication is completed by the backend. No password or token is stored by this application.',
+      invalid: 'Invalid email or password.', unavailable: 'We could not sign you in. Check the server and try again.',
+    },
+    register: {
+      panelEyebrow: 'Create your account', panelTitle: 'Start with one global Auron identity.',
+      panelDescription: 'Your Organization access remains separate and will appear after sign-in.',
+      eyebrow: 'Get started', title: 'Create your Auron account',
+      description: "We'll verify your email before you choose a password.", name: 'Name', email: 'Email',
+      submit: 'Continue', submitting: 'Sending…', google: 'Continue with Google', redirecting: 'Redirecting…',
+      hasAccount: 'Already have an account?', signIn: 'Sign in', invalid: 'Enter a valid name and email address.',
+      unavailable: 'We could not send verification instructions. Please try again.',
+    },
+    checkEmail: {
+      eyebrow: 'Account verification', title: 'Check your email',
+      body: "If this email can be used to continue with Auron, we've sent instructions to finish setting up your account.",
+      return: 'Return to sign in',
+    },
+    verify: {
+      eyebrow: 'Email verification', setupEyebrow: 'Verified email setup', createPassword: 'Create your password',
+      passwordHint: 'Use at least 10 characters. Spaces and passphrases are allowed.', password: 'Create password',
+      confirmation: 'Confirm password', finish: 'Finish account setup', finishing: 'Finishing setup…',
+      minimum: 'Use at least 10 characters.', mismatch: 'Passwords do not match.', expiredTitle: 'Link expired',
+      expiredBody: 'This verification link has expired.', completedTitle: 'Setup unavailable',
+      completedBody: 'This setup can no longer be completed. Sign in if your account is ready.',
+      invalidTitle: 'Invalid link', invalidBody: 'This verification link is invalid.',
+      errorTitle: 'Verification unavailable', errorBody: 'We could not finish account setup. Please try again.',
+      email: 'Email', resend: 'Resend verification email',
+      resendSuccess: 'If this email can be used to continue, new instructions have been sent.',
+      resendError: 'We could not send verification instructions. Please try again.', return: 'Return to sign in',
+    },
+  },
+  organizations: {
+    meta: {
+      selectorTitle: 'Organizations', selectorDescription: 'Select your Organization in Auron.',
+      homeTitle: '{{name}}', homeDescription: 'Home for the {{name}} Organization in Auron.',
+    },
+    loadError: {
+      eyebrow: 'Organizations unavailable', title: 'We could not load your access',
+      body: 'Check the backend connection and try again.',
+    },
+    selector: {
+      eyebrow: 'Organization access', welcome: 'Welcome, {{name}}',
+      body: 'Select an Organization or review an invitation to continue.', invitationsTitle: 'Pending invitations',
+      invitationsBody: 'Accept an invitation to join that Organization.', expires: 'Expires {{date}}',
+      accept: 'Accept invitation', accepting: 'Accepting…', organizationsTitle: 'Your Organizations',
+      organizationsBody: 'Choose the Organization you want to open.', openHome: 'Open Organization home',
+      noAccessEyebrow: 'No Organization access', noAccessTitle: 'You do not have Organization access yet',
+      noAccessBody: 'A Platform Admin can invite your authenticated email address to an Organization.',
+    },
+    invitationErrors: {
+      forbidden: 'This invitation is not available to your account.',
+      accepted: 'This invitation was already accepted. Your access has been refreshed.',
+      expired: 'This invitation has expired. Ask a Platform Admin to reissue it.',
+      unavailable: 'The invitation could not be accepted. Check your connection and try again.',
+    },
+    home: {
+      eyebrow: 'Organization home', body: 'You are viewing this Organization through your current membership.',
+      readyTitle: 'Organization workspace ready', readyBody: 'Business modules will appear here as they are implemented.',
+      deniedEyebrow: 'Access denied', deniedTitle: 'You cannot access this Organization',
+      deniedBody: 'Your authenticated account does not have membership in this Organization.',
+      notFoundEyebrow: 'Not found', notFoundTitle: 'Organization not found',
+      notFoundBody: 'The requested Organization does not exist.', errorEyebrow: 'Organization unavailable',
+      errorTitle: 'We could not load this Organization', errorBody: 'Check the backend connection and try again.',
+      return: 'Return to Organizations',
+    },
+  },
+  platformAdmin: {
+    meta: { title: 'Administration', description: 'Global Auron platform administration.' },
+    denied: {
+      eyebrow: 'Access denied', title: 'Platform Admin access is required',
+      body: 'Your authenticated account does not have global Auron administration access.', return: 'Return to Auron',
+    },
+    error: {
+      eyebrow: 'Administration unavailable', title: 'We could not load Platform Admin',
+      body: 'Check the backend connection and try again.',
+    },
+    page: {
+      eyebrow: 'Auron Administration', title: 'Organizations',
+      body: 'Provision customer Organizations and their initial access invitations.',
+      newOrganization: 'New organization', provisionEyebrow: 'Provision tenant', organizationName: 'Organization name',
+      initialEmails: 'Initial access emails', emailLabel: 'Initial access email {{number}}', addEmail: 'Add email',
+      create: 'Create organization', creating: 'Creating…', registered: 'Registered Organizations',
+      empty: 'No Organizations have been registered yet.', created: 'Created {{date}}',
+      invalidName: 'Enter an Organization name.', invalidEmails: 'Enter at least one valid initial access email.',
+      invalidPayload: 'Check the Organization name and invitation emails.',
+      createError: 'The Organization could not be created. Please try again.',
+    },
+  },
+} as const

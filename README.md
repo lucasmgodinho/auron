@@ -181,6 +181,24 @@ with the backend whenever it loads. Current Organization selection is not persis
 a cookie, or browser storage. Organization provisioning remains available only through `/admin` to
 authorized Platform Admins.
 
+The frontend uses one responsive `AppShell` for desktop, tablet, and mobile. At narrow widths its
+navigation becomes a keyboard-accessible drawer; there is no separate mobile application. Light
+and dark themes follow the operating-system preference on first visit, and an explicit selection is
+stored locally as UI preference only. The initial theme is applied before React renders to avoid a
+visible theme flash.
+
+The default interface language is Brazilian Portuguese (`pt-BR`), with English (`en`) available
+from the preferences controls. An explicit language choice is also stored locally, and translation
+resources live in `frontend/src/i18n/locales/`. Future modules should add their user-visible copy
+under a module-specific translation section and use browser `Intl` APIs for locale-aware values.
+
+Official brand PNGs live in `frontend/public/` and are referenced only through `BrandLogo`. The
+replacement contract is a roughly 4:1 horizontal logo displayed at 140–180 px, a square vertical
+brand displayed at 140–180 px on authentication screens, and a square mark displayed at 32–40 px.
+Keep the current light/dark filenames when replacing them so layouts need no code changes. A future
+asset delivery should preferably provide cropped, transparent SVG equivalents and a dedicated
+favicon; the current pixels are intentionally unchanged.
+
 Run frontend checks and a production build from `frontend/`:
 
 ```powershell

@@ -1,12 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 
-import {
-  AuthApiError,
-  completeEmailVerification,
-  resendEmailVerification,
-} from '../api/auth'
+import { AuthApiError, completeEmailVerification, resendEmailVerification } from '../api/auth'
 import { useAuth } from '../auth/useAuth'
+import { StatusPage } from '../components/StatusPage'
+import { usePageMetadata } from '../hooks/usePageMetadata'
 
 type VerificationStatus = 'form' | 'invalid' | 'expired' | 'completed' | 'error'
 
@@ -15,6 +14,7 @@ function readVerificationToken(): string | null {
 }
 
 export function VerifyEmailPage() {
+  const { t } = useTranslation()
   const { refreshUser } = useAuth()
   const navigate = useNavigate()
   const [token, setToken] = useState(readVerificationToken)
@@ -25,6 +25,7 @@ export function VerifyEmailPage() {
   const [formError, setFormError] = useState<string | null>(null)
   const [resendEmail, setResendEmail] = useState('')
   const [resendMessage, setResendMessage] = useState<string | null>(null)
+  usePageMetadata(t('auth.meta.verifyTitle'), t('auth.meta.verifyDescription'))
 
   useEffect(() => {
     function consumeFragmentToken() {
@@ -32,11 +33,7 @@ export function VerifyEmailPage() {
       if (!nextToken) return
       setToken(nextToken)
       setStatus('form')
-      window.history.replaceState(
-        null,
-        '',
-        `${window.location.pathname}${window.location.search}`,
-      )
+      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`)
     }
 
     consumeFragmentToken()
@@ -48,11 +45,11 @@ export function VerifyEmailPage() {
     event.preventDefault()
     if (!token) return
     if (password.length < 10) {
-      setFormError('Use at least 10 characters.')
+      setFormError(t('auth.verify.minimum'))
       return
     }
     if (password !== passwordConfirmation) {
-      setFormError('Passwords do not match.')
+      setFormError(t('auth.verify.mismatch'))
       return
     }
     setIsSubmitting(true)
@@ -75,62 +72,63 @@ export function VerifyEmailPage() {
     setResendMessage(null)
     try {
       await resendEmailVerification(resendEmail)
-      setResendMessage('If this email can be used to continue, new instructions have been sent.')
+      setResendMessage(t('auth.verify.resendSuccess'))
     } catch {
-      setResendMessage('We could not send verification instructions. Please try again.')
+      setResendMessage(t('auth.verify.resendError'))
     }
   }
 
   if (status !== 'form') {
     const copy = status === 'expired'
-      ? ['Link expired', 'This verification link has expired.']
+      ? [t('auth.verify.expiredTitle'), t('auth.verify.expiredBody')]
       : status === 'completed'
-        ? ['Setup unavailable', 'This setup can no longer be completed. Sign in if your account is ready.']
+        ? [t('auth.verify.completedTitle'), t('auth.verify.completedBody')]
         : status === 'invalid'
-          ? ['Invalid link', 'This verification link is invalid.']
-          : ['Verification unavailable', 'We could not finish account setup. Please try again.']
+          ? [t('auth.verify.invalidTitle'), t('auth.verify.invalidBody')]
+          : [t('auth.verify.errorTitle'), t('auth.verify.errorBody')]
+
     return (
-      <main className="status-page">
+      <StatusPage>
         <section className="status-card">
-          <p className="eyebrow">Email verification</p>
+          <p className="eyebrow">{t('auth.verify.eyebrow')}</p>
           <h1>{copy[0]}</h1>
           <p>{copy[1]}</p>
           {status === 'expired' ? (
             <form className="auth-form resend-form" onSubmit={(event) => void handleResend(event)}>
-              <label className="field-label" htmlFor="resend-email">Email</label>
-              <input id="resend-email" className="text-input" type="email" value={resendEmail} onChange={(event) => setResendEmail(event.target.value)} required />
-              <button className="button button-primary" type="submit">Resend verification email</button>
-              {resendMessage ? <p role="status">{resendMessage}</p> : null}
+              <label className="field-label" htmlFor="resend-email">{t('auth.verify.email')}</label>
+              <input id="resend-email" className="text-input" type="email" autoComplete="email" value={resendEmail} onChange={(event) => setResendEmail(event.target.value)} required />
+              <button className="button button-primary" type="submit">{t('auth.verify.resend')}</button>
+              {resendMessage ? <p className="alert alert-info" role="status">{resendMessage}</p> : null}
             </form>
           ) : status === 'error' ? (
             <button className="button button-primary" type="button" onClick={() => setStatus('form')}>
-              Try again
+              {t('common.actions.retry')}
             </button>
           ) : (
-            <Link className="button button-primary status-link" to="/login">Return to sign in</Link>
+            <Link className="button button-primary status-link" to="/login">{t('auth.verify.return')}</Link>
           )}
         </section>
-      </main>
+      </StatusPage>
     )
   }
 
   return (
-    <main className="status-page">
+    <StatusPage>
       <section className="status-card">
-        <p className="eyebrow">Email verified setup</p>
-        <h1>Create your password</h1>
-        <p>Use at least 10 characters. Spaces and passphrases are allowed.</p>
+        <p className="eyebrow">{t('auth.verify.setupEyebrow')}</p>
+        <h1>{t('auth.verify.createPassword')}</h1>
+        <p>{t('auth.verify.passwordHint')}</p>
         <form className="auth-form" onSubmit={(event) => void handleCompletion(event)}>
-          <label className="field-label" htmlFor="new-password">Create password</label>
-          <input id="new-password" className="text-input" type="password" autoComplete="new-password" minLength={10} maxLength={256} value={password} onChange={(event) => setPassword(event.target.value)} required />
-          <label className="field-label" htmlFor="confirm-password">Confirm password</label>
-          <input id="confirm-password" className="text-input" type="password" autoComplete="new-password" minLength={10} maxLength={256} value={passwordConfirmation} onChange={(event) => setPasswordConfirmation(event.target.value)} required />
-          {formError ? <p className="inline-error" role="alert">{formError}</p> : null}
+          <label className="field-label" htmlFor="new-password">{t('auth.verify.password')}</label>
+          <input id="new-password" className="text-input" type="password" autoComplete="new-password" minLength={10} maxLength={256} value={password} aria-invalid={formError ? true : undefined} aria-describedby={formError ? 'verification-error' : undefined} onChange={(event) => setPassword(event.target.value)} required />
+          <label className="field-label" htmlFor="confirm-password">{t('auth.verify.confirmation')}</label>
+          <input id="confirm-password" className="text-input" type="password" autoComplete="new-password" minLength={10} maxLength={256} value={passwordConfirmation} aria-invalid={formError ? true : undefined} aria-describedby={formError ? 'verification-error' : undefined} onChange={(event) => setPasswordConfirmation(event.target.value)} required />
+          {formError ? <div className="alert alert-danger" id="verification-error" role="alert">{formError}</div> : null}
           <button className="button button-primary" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Finishing setup...' : 'Finish account setup'}
+            {isSubmitting ? t('auth.verify.finishing') : t('auth.verify.finish')}
           </button>
         </form>
       </section>
-    </main>
+    </StatusPage>
   )
 }

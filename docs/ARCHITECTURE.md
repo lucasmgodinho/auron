@@ -65,6 +65,25 @@ Organization is persisted in authentication state, cookies, or browser storage. 
 Organization listing and provisioning remain a separate `/admin` flow and do not imply tenant
 access.
 
+The frontend foundation is organized around the existing route tree:
+
+```text
+AppShell
+├── responsive navigation
+├── theme preference
+├── locale preference
+└── route content
+```
+
+`AppShell` is shared by desktop, tablet, and mobile layouts; its narrow layout uses an accessible
+navigation drawer. Theme and locale are non-authoritative UI preferences and are the only Auron
+state persisted in browser storage. Brazilian Portuguese is the default locale, English is the
+second supported locale, and visible copy is sourced from `frontend/src/i18n/locales/`. The current
+Organization remains route-derived and backend-authorized on every Organization route load.
+PlatformAdmin remains independent from OrganizationMembership. Future implemented modules can add
+real navigation entries and translation sections to this shell, but no module registry or
+placeholder module navigation exists today.
+
 Google login follows `Google OIDC -> AuthIdentity(provider="google", provider_subject=sub) -> User -> AuthSession`. Password login follows `LocalCredential -> User -> AuthSession`. Organization access remains separate through `User -> OrganizationMembership -> Organization`; neither login method selects a tenant.
 
 Optional business capabilities such as fleet, clinic, documents, workflows, and analytics live under `app/modules`. Tenant-owned entities remain inside their business module, reference `organization_id`, and scope data access to that organization.
