@@ -49,7 +49,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [])
 
   const refreshUser = useCallback(async () => {
-    setAuthState({ user: null, status: 'loading' })
     setAuthState(await resolveAuthentication())
   }, [])
 

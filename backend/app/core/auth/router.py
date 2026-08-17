@@ -12,14 +12,19 @@ from app.config import get_settings
 from app.core.auth import google, local, service
 from app.core.auth.dependencies import (
     AUTH_SESSION_COOKIE_NAME,
+    CurrentAuthentication,
     clear_auth_session_cookie,
+    get_current_authentication,
     get_current_user,
     set_auth_session_cookie,
 )
 from app.core.auth.schemas import (
+    AccountResponse,
+    AuthenticationMethodsResponse,
     EmailVerificationCompleteRequest,
     EmailVerificationResendRequest,
     GenericMessageResponse,
+    PasswordChangeRequest,
     PasswordLoginRequest,
     RegistrationRequest,
 )
@@ -108,12 +113,21 @@ def complete_email_verification(
     payload: EmailVerificationCompleteRequest,
     response: Response,
     session: Annotated[Session, Depends(get_session)],
+    raw_current_session_token: Annotated[
+        str | None, Cookie(alias=AUTH_SESSION_COOKIE_NAME)
+    ] = None,
 ) -> User:
+    current_auth_session = None
+    if raw_current_session_token is not None:
+        current_auth_session = service.resolve_auth_session_from_session_token(
+            session, raw_current_session_token
+        )
     try:
         user, raw_session_token = local.complete_verification(
             session,
             raw_token=payload.token,
             password=payload.password,
+            current_auth_session=current_auth_session,
         )
     except local.ExpiredVerificationError as error:
         raise HTTPException(
@@ -130,7 +144,8 @@ def complete_email_verification(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Verification link is invalid.",
         ) from error
-    set_auth_session_cookie(response, raw_session_token)
+    if raw_session_token is not None:
+        set_auth_session_cookie(response, raw_session_token)
     return user
 
 
@@ -211,6 +226,85 @@ def get_authenticated_user(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> User:
     return current_user
+
+
+@router.get("/account", response_model=AccountResponse)
+def get_account(
+    session: Annotated[Session, Depends(get_session)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> AccountResponse:
+    methods = local.get_authentication_methods(session, current_user.id)
+    return AccountResponse(
+        user=current_user,
+        authentication_methods=AuthenticationMethodsResponse(
+            password=methods.password,
+            google=methods.google,
+        ),
+    )
+
+
+@router.post("/password/change", response_model=GenericMessageResponse)
+def change_password(
+    payload: PasswordChangeRequest,
+    session: Annotated[Session, Depends(get_session)],
+    authentication: Annotated[
+        CurrentAuthentication, Depends(get_current_authentication)
+    ],
+) -> GenericMessageResponse:
+    try:
+        local.change_password(
+            session,
+            user_id=authentication.user.id,
+            current_auth_session_id=authentication.auth_session.id,
+            current_password=payload.current_password,
+            new_password=payload.new_password,
+        )
+    except local.PasswordNotConfiguredError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Password authentication is not configured.",
+        ) from error
+    except local.IncorrectCurrentPasswordError as error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect.",
+        ) from error
+    except local.PasswordReuseError as error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be different from the current password.",
+        ) from error
+    return GenericMessageResponse(message="Password updated successfully.")
+
+
+@router.post(
+    "/password/enrollment/start",
+    status_code=status.HTTP_202_ACCEPTED,
+    response_model=GenericMessageResponse,
+)
+def start_password_enrollment(
+    session: Annotated[Session, Depends(get_session)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> GenericMessageResponse:
+    _require_email_delivery()
+    try:
+        delivery = local.start_password_enrollment(
+            session, user_id=current_user.id
+        )
+    except local.PasswordAlreadyConfiguredError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Password authentication is already configured.",
+        ) from error
+    except local.EmailNotVerifiedError as error:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="A verified email is required.",
+        ) from error
+    _send_verification(delivery)
+    return GenericMessageResponse(
+        message="Password enrollment instructions have been sent."
+    )
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)

@@ -62,6 +62,13 @@
   cookies, or browser storage.
 - Normal `/app` Organization discovery must use membership-scoped APIs. Platform Admin listing and
   provisioning remain a separate `/admin` concern and do not grant tenant access.
+- Global account settings must not depend on Organization context.
+- User email remains immutable unless an explicit verified-email-change flow is implemented.
+- Password changes require the current password, preserve the current session, and revoke the
+  User's other active sessions.
+- Authentication-method changes must not affect OrganizationMembership or PlatformAdmin.
+- Account APIs must never expose password hashes, provider subjects, session tokens, or
+  verification tokens.
 
 ## Frontend foundation
 

@@ -57,6 +57,14 @@ Future tenant-owned modules must use `OrganizationContext.organization.id` as th
 The frontend never handles authentication tokens. It derives browser authentication state from
 `GET /auth/me`, while the backend-owned HttpOnly cookie remains the session mechanism.
 
+Global User settings live at `/app/settings/*` and do not depend on Organization context.
+Any future Organization settings remain tenant-scoped and separate from these global routes.
+`AuthIdentity` and `LocalCredential` are authentication methods for the same User: account metadata
+exposes only whether each method exists. Password changes lock the LocalCredential and atomically
+revoke the User's other active sessions while preserving the server-resolved current session. A
+User without LocalCredential adds one through the same verified-email challenge used by local
+enrollment; this does not change AuthIdentity, OrganizationMembership, or PlatformAdmin records.
+
 The frontend keeps tenant selection in the route. `/app` combines the authenticated User's
 membership-scoped Organization list with invitations for that User's email, while
 `/app/organizations/:organizationId` asks the backend to validate membership each time the route

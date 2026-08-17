@@ -101,6 +101,15 @@ def add_auth_session(session: Session, user_id: UUID) -> tuple[AuthSession, str]
 
 
 def resolve_user_from_session_token(session: Session, raw_token: str) -> User | None:
+    auth_session = resolve_auth_session_from_session_token(session, raw_token)
+    if auth_session is None:
+        return None
+    return user_service.get_user(session, auth_session.user_id)
+
+
+def resolve_auth_session_from_session_token(
+    session: Session, raw_token: str
+) -> AuthSession | None:
     auth_session = repository.get_auth_session_by_token_hash(
         session, _hash_session_token(raw_token)
     )
@@ -110,7 +119,7 @@ def resolve_user_from_session_token(session: Session, raw_token: str) -> User | 
         or auth_session.expires_at <= datetime.now(UTC)
     ):
         return None
-    return user_service.get_user(session, auth_session.user_id)
+    return auth_session
 
 
 def revoke_session(session: Session, raw_token: str) -> bool:

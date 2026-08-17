@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from app.core.auth.model import AuthIdentity, AuthSession
@@ -97,3 +97,22 @@ def revoke_auth_session(
 ) -> None:
     auth_session.revoked_at = revoked_at
     session.commit()
+
+
+def revoke_other_active_auth_sessions(
+    session: Session,
+    *,
+    user_id: UUID,
+    current_auth_session_id: UUID,
+    revoked_at: datetime,
+) -> None:
+    session.execute(
+        update(AuthSession)
+        .where(
+            AuthSession.user_id == user_id,
+            AuthSession.id != current_auth_session_id,
+            AuthSession.revoked_at.is_(None),
+            AuthSession.expires_at > revoked_at,
+        )
+        .values(revoked_at=revoked_at)
+    )

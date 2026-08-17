@@ -13,12 +13,12 @@ type AppShellProps = {
   logoutError: string | null
   onLogout: () => void
   isPlatformAdmin?: boolean
-  activePage?: 'overview' | 'admin'
+  activePage?: 'overview' | 'admin' | 'account'
   organizationName?: string
 }
 
 type NavigationProps = {
-  activePage: 'overview' | 'admin'
+  activePage: 'overview' | 'admin' | 'account'
   isPlatformAdmin: boolean
   onNavigate?: () => void
 }
@@ -131,6 +131,9 @@ export function AppShell({
   }, [isUserMenuOpen])
 
   const closeDrawer = () => setIsDrawerOpen(false)
+  const accountContext = activePage === 'account'
+    ? t('common.navigation.account')
+    : t(activePage === 'admin' ? 'common.navigation.admin' : 'common.navigation.overview')
 
   return (
     <div className="app-shell">
@@ -176,8 +179,7 @@ export function AppShell({
           <div className="topbar-context">
             <span>{organizationName ? t('common.organization.label') : 'Auron'}</span>
             <strong>
-              {organizationName
-                ?? t(activePage === 'admin' ? 'common.navigation.admin' : 'common.navigation.overview')}
+              {organizationName ?? accountContext}
             </strong>
           </div>
 
@@ -205,6 +207,16 @@ export function AppShell({
                 role="dialog"
                 aria-label={t('common.account.preferences')}
               >
+                <div className="user-menu-links">
+                  <Link to="/app/settings/profile" onClick={() => setIsUserMenuOpen(false)}>
+                    {t('common.account.myAccount')}
+                  </Link>
+                  {isPlatformAdmin ? (
+                    <Link to="/admin" onClick={() => setIsUserMenuOpen(false)}>
+                      {t('common.navigation.admin')}
+                    </Link>
+                  ) : null}
+                </div>
                 <p className="menu-heading">{t('common.account.preferences')}</p>
                 <PreferenceControls />
                 <button
@@ -275,6 +287,14 @@ export function AppShell({
               <div className="drawer-user">
                 <strong>{user.name}</strong>
                 <span>{user.email}</span>
+              </div>
+              <div className="drawer-account-links">
+                <Link to="/app/settings/profile" onClick={closeDrawer}>
+                  {t('common.account.myAccount')}
+                </Link>
+                {isPlatformAdmin ? (
+                  <Link to="/admin" onClick={closeDrawer}>{t('common.navigation.admin')}</Link>
+                ) : null}
               </div>
               <PreferenceControls />
               <button

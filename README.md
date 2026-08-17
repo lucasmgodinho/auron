@@ -105,6 +105,18 @@ the same User. On first trusted Google linking, a verified matching email reuses
 existing `provider + subject` mappings remain authoritative. Adding another authentication method
 does not modify Platform Admin access, OrganizationMembership, invitations, or existing sessions.
 
+## Account settings
+
+Authenticated account settings are available at `/app/settings/profile` and
+`/app/settings/security`. Profile updates use the existing self-only User endpoint; email remains
+immutable and its verification status is read-only.
+
+Changing a configured password requires the current password. A successful change keeps the
+current authenticated session and revokes the User's other active sessions in the same database
+transaction. A Google-only User can choose **Add password** to start the existing verified-email
+enrollment flow; Auron commits the challenge before sending it through the configured SMTP server.
+Account settings never select or modify an Organization.
+
 Before an Internet-facing production deployment, apply distributed rate limits at the ingress to
 `/auth/login`, `/auth/register`, and `/auth/email-verifications/resend`. A process-local limiter is
 intentionally not included.

@@ -28,6 +28,16 @@ const OrganizationPage = lazy(() =>
 const AdminPage = lazy(() =>
   import('./pages/AdminPage').then((module) => ({ default: module.AdminPage })),
 )
+const ProfileSettingsPage = lazy(() =>
+  import('./pages/settings/ProfileSettingsPage').then((module) => ({
+    default: module.ProfileSettingsPage,
+  })),
+)
+const SecuritySettingsPage = lazy(() =>
+  import('./pages/settings/SecuritySettingsPage').then((module) => ({
+    default: module.SecuritySettingsPage,
+  })),
+)
 
 function AuthenticationRedirect() {
   const { t } = useTranslation()
@@ -50,6 +60,14 @@ function App() {
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/app" element={<ProtectedRoute><AppPage /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
+        <Route
+          path="/app/settings/profile"
+          element={<ProtectedRoute><ProfileSettingsPage /></ProtectedRoute>}
+        />
+        <Route
+          path="/app/settings/security"
+          element={<ProtectedRoute><SecuritySettingsPage /></ProtectedRoute>}
+        />
         <Route
           path="/app/organizations/:organizationId"
           element={<ProtectedRoute><OrganizationPage /></ProtectedRoute>}

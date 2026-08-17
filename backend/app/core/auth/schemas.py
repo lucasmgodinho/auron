@@ -1,6 +1,8 @@
+from datetime import datetime
 from typing import Annotated
+from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, StringConstraints
+from pydantic import BaseModel, ConfigDict, EmailStr, StringConstraints
 
 from app.core.users.schemas import NormalizedEmail, UserName
 
@@ -33,6 +35,32 @@ class PasswordLoginRequest(BaseModel):
     password: Annotated[str, StringConstraints(min_length=1, max_length=256)]
 
     model_config = ConfigDict(extra="forbid")
+
+
+class PasswordChangeRequest(BaseModel):
+    current_password: Annotated[str, StringConstraints(min_length=1, max_length=256)]
+    new_password: Password
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class AccountUserResponse(BaseModel):
+    id: UUID
+    email: EmailStr
+    name: str
+    email_verified_at: datetime | None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AuthenticationMethodsResponse(BaseModel):
+    password: bool
+    google: bool
+
+
+class AccountResponse(BaseModel):
+    user: AccountUserResponse
+    authentication_methods: AuthenticationMethodsResponse
 
 
 class GenericMessageResponse(BaseModel):

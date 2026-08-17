@@ -2,6 +2,7 @@ import hashlib
 import secrets
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from uuid import UUID
 
 from argon2 import PasswordHasher
 from argon2.exceptions import InvalidHashError, VerificationError, VerifyMismatchError
@@ -11,8 +12,9 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
+from app.core.auth import repository as auth_repository
 from app.core.auth import service as auth_service
-from app.core.auth.model import EmailVerification, LocalCredential
+from app.core.auth.model import AuthIdentity, AuthSession, EmailVerification, LocalCredential
 from app.core.users.model import User
 
 _PASSWORD_HASHER = PasswordHasher()
@@ -35,10 +37,36 @@ class CompletedVerificationError(Exception):
     pass
 
 
+class PasswordNotConfiguredError(Exception):
+    pass
+
+
+class IncorrectCurrentPasswordError(Exception):
+    pass
+
+
+class PasswordReuseError(Exception):
+    pass
+
+
+class PasswordAlreadyConfiguredError(Exception):
+    pass
+
+
+class EmailNotVerifiedError(Exception):
+    pass
+
+
 @dataclass(frozen=True)
 class VerificationDelivery:
     recipient: str
     raw_token: str
+
+
+@dataclass(frozen=True)
+class AuthenticationMethods:
+    password: bool
+    google: bool
 
 
 def hash_verification_token(raw_token: str) -> str:
@@ -65,6 +93,16 @@ def _find_user_for_update(session: Session, email: str) -> User | None:
 def _find_credential(session: Session, user_id: object) -> LocalCredential | None:
     return session.scalar(
         select(LocalCredential).where(LocalCredential.user_id == user_id)
+    )
+
+
+def _find_credential_for_update(
+    session: Session, user_id: object
+) -> LocalCredential | None:
+    return session.scalar(
+        select(LocalCredential)
+        .where(LocalCredential.user_id == user_id)
+        .with_for_update()
     )
 
 
@@ -170,9 +208,90 @@ def resend_verification(session: Session, *, email: str) -> VerificationDelivery
         raise
 
 
+def get_authentication_methods(session: Session, user_id: UUID) -> AuthenticationMethods:
+    password = session.scalar(
+        select(LocalCredential.id).where(LocalCredential.user_id == user_id)
+    ) is not None
+    google = session.scalar(
+        select(AuthIdentity.id).where(
+            AuthIdentity.user_id == user_id,
+            AuthIdentity.provider == "google",
+        )
+    ) is not None
+    return AuthenticationMethods(password=password, google=google)
+
+
+def change_password(
+    session: Session,
+    *,
+    user_id: UUID,
+    current_auth_session_id: UUID,
+    current_password: str,
+    new_password: str,
+) -> None:
+    try:
+        credential = _find_credential_for_update(session, user_id)
+        if credential is None:
+            raise PasswordNotConfiguredError
+        if not _verify_password(credential.password_hash, current_password):
+            raise IncorrectCurrentPasswordError
+        if _verify_password(credential.password_hash, new_password):
+            raise PasswordReuseError
+
+        credential.password_hash = hash_password(new_password)
+        now = datetime.now(UTC)
+        auth_repository.revoke_other_active_auth_sessions(
+            session,
+            user_id=user_id,
+            current_auth_session_id=current_auth_session_id,
+            revoked_at=now,
+        )
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+
+
+def start_password_enrollment(
+    session: Session, *, user_id: UUID
+) -> VerificationDelivery | None:
+    try:
+        user = session.scalar(
+            select(User).where(User.id == user_id).with_for_update()
+        )
+        if user is None or user.email_verified_at is None:
+            raise EmailNotVerifiedError
+        if _find_credential(session, user.id) is not None:
+            raise PasswordAlreadyConfiguredError
+
+        now = datetime.now(UTC)
+        verification = _find_verification_for_user(session, user.id)
+        cooldown = timedelta(
+            seconds=get_settings().email_verification_resend_cooldown_seconds
+        )
+        if verification is not None and verification.last_sent_at + cooldown > now:
+            session.commit()
+            return None
+
+        verification, raw_token = _rotate_verification(
+            verification, user_id=user.id, now=now
+        )
+        session.add(verification)
+        recipient = user.email
+        session.commit()
+        return VerificationDelivery(recipient=recipient, raw_token=raw_token)
+    except Exception:
+        session.rollback()
+        raise
+
+
 def complete_verification(
-    session: Session, *, raw_token: str, password: str
-) -> tuple[User, str]:
+    session: Session,
+    *,
+    raw_token: str,
+    password: str,
+    current_auth_session: AuthSession | None = None,
+) -> tuple[User, str | None]:
     try:
         token_hash = hash_verification_token(raw_token)
         verification_candidate = session.scalar(
@@ -189,6 +308,11 @@ def complete_verification(
             .with_for_update()
         )
         if user is None:
+            raise InvalidVerificationError
+        if (
+            current_auth_session is not None
+            and current_auth_session.user_id != user.id
+        ):
             raise InvalidVerificationError
         verification = session.scalar(
             select(EmailVerification)
@@ -213,7 +337,9 @@ def complete_verification(
         user.email_verified_at = user.email_verified_at or now
         verification.used_at = now
         session.add(credential)
-        _, raw_session_token = auth_service.add_auth_session(session, user.id)
+        raw_session_token = None
+        if current_auth_session is None or current_auth_session.user_id != user.id:
+            _, raw_session_token = auth_service.add_auth_session(session, user.id)
         session.commit()
         session.refresh(user)
         return user, raw_session_token
