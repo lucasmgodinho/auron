@@ -5,6 +5,12 @@ export type PlatformAdminOrganization = {
   updated_at: string
 }
 
+export type PlatformAdminModule = {
+  key: string
+  name_key: string
+  enabled: boolean
+}
+
 export class PlatformAdminApiError extends Error {
   status: number
 
@@ -62,4 +68,37 @@ export async function createPlatformAdminOrganization(
     throw new PlatformAdminApiError('Unable to create the Organization', response.status)
   }
   return (await response.json()) as PlatformAdminOrganization
+}
+
+export async function listPlatformAdminOrganizationModules(
+  organizationId: string,
+): Promise<PlatformAdminModule[]> {
+  const response = await fetch(
+    `/platform-admin/organizations/${encodeURIComponent(organizationId)}/modules`,
+    { method: 'GET', credentials: 'include' },
+  )
+  if (!response.ok) {
+    throw new PlatformAdminApiError('Unable to load Organization modules', response.status)
+  }
+  return (await response.json()) as PlatformAdminModule[]
+}
+
+export async function updatePlatformAdminOrganizationModule(
+  organizationId: string,
+  moduleKey: string,
+  enabled: boolean,
+): Promise<PlatformAdminModule> {
+  const response = await fetch(
+    `/platform-admin/organizations/${encodeURIComponent(organizationId)}/modules/${encodeURIComponent(moduleKey)}`,
+    {
+      method: 'PUT',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled }),
+    },
+  )
+  if (!response.ok) {
+    throw new PlatformAdminApiError('Unable to update Organization module', response.status)
+  }
+  return (await response.json()) as PlatformAdminModule
 }

@@ -2,7 +2,16 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
-import { createPlatformAdminOrganization, getPlatformAdminStatus, listPlatformAdminOrganizations, PlatformAdminApiError, type PlatformAdminOrganization } from '../api/platform-admin'
+import {
+  createPlatformAdminOrganization,
+  getPlatformAdminStatus,
+  listPlatformAdminOrganizationModules,
+  listPlatformAdminOrganizations,
+  PlatformAdminApiError,
+  updatePlatformAdminOrganizationModule,
+  type PlatformAdminModule,
+  type PlatformAdminOrganization,
+} from '../api/platform-admin'
 import { useAuth } from '../auth/useAuth'
 import { AppShell } from '../components/AppShell'
 import { LoadingState } from '../components/LoadingState'
@@ -11,6 +20,8 @@ import { usePageMetadata } from '../hooks/usePageMetadata'
 import { usePreferences } from '../preferences/usePreferences'
 
 type PageStatus = 'loading' | 'ready' | 'denied' | 'error'
+type ModulePanelStatus = 'idle' | 'loading' | 'ready' | 'error'
+type ModuleMessage = { text: string; isError: boolean }
 const basicEmailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export function AdminPage() {
@@ -24,6 +35,11 @@ export function AdminPage() {
   const [invitationEmails, setInvitationEmails] = useState([''])
   const [formError, setFormError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [selectedOrganization, setSelectedOrganization] = useState<PlatformAdminOrganization | null>(null)
+  const [modules, setModules] = useState<PlatformAdminModule[]>([])
+  const [modulePanelStatus, setModulePanelStatus] = useState<ModulePanelStatus>('idle')
+  const [updatingModuleKey, setUpdatingModuleKey] = useState<string | null>(null)
+  const [moduleMessage, setModuleMessage] = useState<ModuleMessage | null>(null)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [logoutError, setLogoutError] = useState<string | null>(null)
   usePageMetadata(t('platformAdmin.meta.title'), t('platformAdmin.meta.description'))
@@ -130,6 +146,40 @@ export function AdminPage() {
     }
   }
 
+  async function openModuleManagement(organization: PlatformAdminOrganization) {
+    setSelectedOrganization(organization)
+    setModules([])
+    setModuleMessage(null)
+    setModulePanelStatus('loading')
+    try {
+      setModules(await listPlatformAdminOrganizationModules(organization.id))
+      setModulePanelStatus('ready')
+    } catch (error) {
+      if (error instanceof PlatformAdminApiError && error.status === 401) await refreshUser()
+      else setModulePanelStatus('error')
+    }
+  }
+
+  async function handleModuleChange(module: PlatformAdminModule, enabled: boolean) {
+    if (selectedOrganization === null) return
+    setUpdatingModuleKey(module.key)
+    setModuleMessage(null)
+    try {
+      const updated = await updatePlatformAdminOrganizationModule(
+        selectedOrganization.id,
+        module.key,
+        enabled,
+      )
+      setModules((current) => current.map((item) => (item.key === updated.key ? updated : item)))
+      setModuleMessage({ text: t('platformAdmin.modules.updated'), isError: false })
+    } catch (error) {
+      if (error instanceof PlatformAdminApiError && error.status === 401) await refreshUser()
+      else setModuleMessage({ text: t('platformAdmin.modules.updateError'), isError: true })
+    } finally {
+      setUpdatingModuleKey(null)
+    }
+  }
+
   return (
     <AppShell user={user} isLoggingOut={isLoggingOut} logoutError={logoutError} onLogout={() => void handleLogout()} isPlatformAdmin activePage="admin">
       <header className="page-header page-header-with-action">
@@ -191,12 +241,57 @@ export function AdminPage() {
             {organizations.map((organization) => (
               <article className="admin-organization-card" key={organization.id}>
                 <span className="organization-monogram" aria-hidden="true">{organization.name.trim().charAt(0).toUpperCase()}</span>
-                <div><h3>{organization.name}</h3><p>{t('platformAdmin.page.created', { date: formatDate(organization.created_at, locale) })}</p></div>
+                <div className="admin-organization-copy"><h3>{organization.name}</h3><p>{t('platformAdmin.page.created', { date: formatDate(organization.created_at, locale) })}</p></div>
+                <button className="button button-secondary" type="button" onClick={() => void openModuleManagement(organization)}>
+                  {t('platformAdmin.modules.manage')}
+                </button>
               </article>
             ))}
           </div>
         )}
       </section>
+
+      {selectedOrganization ? (
+        <section className="form-card module-management" aria-labelledby="module-management-heading">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">{t('platformAdmin.modules.eyebrow')}</p>
+              <h2 id="module-management-heading">{t('platformAdmin.modules.title', { name: selectedOrganization.name })}</h2>
+              <p>{t('platformAdmin.modules.description')}</p>
+            </div>
+            <button className="button button-secondary" type="button" onClick={() => { setSelectedOrganization(null); setModulePanelStatus('idle'); setModuleMessage(null) }}>
+              {t('common.actions.close')}
+            </button>
+          </div>
+          {modulePanelStatus === 'loading' ? <LoadingState label={t('platformAdmin.modules.loading')} /> : null}
+          {modulePanelStatus === 'error' ? (
+            <div className="alert alert-danger" role="alert">
+              {t('platformAdmin.modules.loadError')}
+              <button className="text-button" type="button" onClick={() => void openModuleManagement(selectedOrganization)}>{t('common.actions.retry')}</button>
+            </div>
+          ) : null}
+          {modulePanelStatus === 'ready' && modules.length === 0 ? (
+            <div className="empty-state compact-empty-state"><div className="empty-state-icon" aria-hidden="true">◇</div><p>{t('platformAdmin.modules.empty')}</p></div>
+          ) : null}
+          {modulePanelStatus === 'ready' && modules.length > 0 ? (
+            <div className="module-entitlement-list">
+              {modules.map((module) => {
+                const moduleName = t(module.name_key, { defaultValue: module.key })
+                return (
+                  <label className="module-entitlement" key={module.key}>
+                    <span><strong>{moduleName}</strong><small>{module.key}</small></span>
+                    <span className="module-entitlement-control">
+                      <input type="checkbox" checked={module.enabled} disabled={updatingModuleKey !== null} onChange={(event) => void handleModuleChange(module, event.target.checked)} />
+                      <span>{t(module.enabled ? 'platformAdmin.modules.enabled' : 'platformAdmin.modules.disabled')}</span>
+                    </span>
+                  </label>
+                )
+              })}
+            </div>
+          ) : null}
+          {moduleMessage ? <div className={`alert ${moduleMessage.isError ? 'alert-danger' : 'alert-info'}`} role={moduleMessage.isError ? 'alert' : 'status'}>{moduleMessage.text}</div> : null}
+        </section>
+      ) : null}
     </AppShell>
   )
 }

@@ -157,7 +157,21 @@ invitations atomically. An invited User later authenticates with the same verifi
 accepts the invitation. The first accepted invitation establishes the initial `owner`; subsequent
 acceptances use the compatibility role `member`. If that User already has membership, acceptance
 marks the invitation accepted without changing or duplicating the membership. Platform Admin V1
-does not manage modules, Organization roles, groups, or permissions.
+does not manage Organization roles, groups, or permissions.
+
+## Module platform foundation
+
+Business modules register stable module and permission keys explicitly in code. The production
+registry is currently empty because no business module has been implemented. PlatformAdmin may
+configure an Organization's registered entitlements through `OrganizationModule`, but this does not
+create OrganizationMembership or grant tenant-data access.
+
+Organization owners manage tenant-owned Access Groups, grant registered
+`module.resource.action` permission keys, and assign OrganizationMemberships to one or more groups.
+Effective permissions are the union of those grants filtered to enabled modules. Owner bypasses
+Access Group permission checks, but never a disabled module entitlement; `admin` and `member` receive
+no automatic module permission. Disabling a module preserves its group permission configuration.
+See `docs/MODULE_CONTRACT.md` for the module integration contract.
 
 Reissue an expired, unaccepted invitation from `backend/` with:
 

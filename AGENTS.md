@@ -69,6 +69,15 @@
 - Authentication-method changes must not affect OrganizationMembership or PlatformAdmin.
 - Account APIs must never expose password hashes, provider subjects, session tokens, or
   verification tokens.
+- Business modules must use the explicit Auron Module Registry; never register fake or unimplemented
+  production modules for UI completeness.
+- Module keys are stable identifiers, and permission keys are stable `module.resource.action`
+  identifiers defined by registered module code.
+- Tenant module endpoints must enforce Organization Context, module entitlement, and required
+  permission. Owners bypass Access Group permissions but never module entitlement.
+- Access Groups belong to Organizations and attach to OrganizationMemberships, never Users.
+- Only registered permission keys may be stored. Disabling a module must preserve its group grants.
+- Effective permissions are resolved dynamically and must never be stored in AuthSession.
 
 ## Frontend foundation
 

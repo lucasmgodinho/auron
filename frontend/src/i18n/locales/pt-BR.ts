@@ -282,5 +282,18 @@ export const ptBR = {
       invalidPayload: 'Confira o nome da Organização e os e-mails de convite.',
       createError: 'Não foi possível criar a Organização. Tente novamente.',
     },
+    modules: {
+      eyebrow: 'Módulos da Organização',
+      title: 'Módulos de {{name}}',
+      description: 'Habilite somente os módulos disponíveis nesta versão da Auron.',
+      manage: 'Gerenciar módulos',
+      enabled: 'Habilitado',
+      disabled: 'Desabilitado',
+      empty: 'Nenhum módulo está disponível nesta versão da Auron ainda.',
+      loading: 'Carregando módulos…',
+      updated: 'Configuração do módulo atualizada.',
+      updateError: 'Não foi possível atualizar o módulo. Tente novamente.',
+      loadError: 'Não foi possível carregar os módulos desta Organização.',
+    },
   },
 } as const

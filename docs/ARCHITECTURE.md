@@ -49,8 +49,31 @@ Conceptually, Auron has `PlatformAdmin -> platform provisioning` alongside
 `Organization -> OrganizationInvitation -> OrganizationMembership`. Platform Admin access never
 implies tenant access, and an Organization role never grants Platform Admin access. Future tenant
 authorization may evolve toward `Organization -> Access Groups -> Memberships`, with permission
-catalogs defined by implemented Auron modules; neither access groups nor module entitlements exist
-yet.
+catalogs defined by implemented Auron modules.
+
+The module platform uses an explicit code-defined Module Registry. Production registrations exist
+only for implemented business modules, so the registry is currently empty. `OrganizationModule`
+stores whether a registered module is enabled for a tenant; a missing row is disabled. PlatformAdmin
+may change this entitlement without gaining OrganizationMembership or tenant access.
+
+Operational access is tenant-owned: `OrganizationAccessGroup` contains code-defined permission-key
+grants through `OrganizationAccessGroupPermission`, and
+`OrganizationMembershipAccessGroup` assigns one OrganizationMembership to one or more groups.
+Effective permissions are resolved dynamically as the union of group grants filtered by enabled
+modules. They are never stored in AuthSession. Disabling a module preserves its grants.
+
+Future module requests follow:
+
+```text
+Authentication
+→ Organization Context
+→ OrganizationModule entitlement
+→ owner bypass or Access Group permission
+→ Business Module
+```
+
+Only `owner` bypasses Access Group permissions, and only after entitlement succeeds. `admin` has no
+automatic module bypass. PlatformAdmin remains outside tenant access unless separately associated.
 
 Future tenant-owned modules must use `OrganizationContext.organization.id` as the validated `organization_id` for every business-data query. Organization selection is not stored in AuthSession, User, or a cookie, so membership changes apply on the next request without changing the authenticated session.
 
@@ -89,8 +112,8 @@ state persisted in browser storage. Brazilian Portuguese is the default locale, 
 second supported locale, and visible copy is sourced from `frontend/src/i18n/locales/`. The current
 Organization remains route-derived and backend-authorized on every Organization route load.
 PlatformAdmin remains independent from OrganizationMembership. Future implemented modules can add
-real navigation entries and translation sections to this shell, but no module registry or
-placeholder module navigation exists today.
+real navigation entries and translation sections to this shell, but no placeholder module
+navigation exists today.
 
 Google login follows `Google OIDC -> AuthIdentity(provider="google", provider_subject=sub) -> User -> AuthSession`. Password login follows `LocalCredential -> User -> AuthSession`. Organization access remains separate through `User -> OrganizationMembership -> Organization`; neither login method selects a tenant.
 

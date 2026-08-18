@@ -169,5 +169,14 @@ export const en = {
       invalidPayload: 'Check the Organization name and invitation emails.',
       createError: 'The Organization could not be created. Please try again.',
     },
+    modules: {
+      eyebrow: 'Organization entitlements', title: '{{name}} modules',
+      description: 'Enable only modules available in this Auron build.', manage: 'Manage modules',
+      enabled: 'Enabled', disabled: 'Disabled',
+      empty: 'No modules are available in this Auron build yet.', loading: 'Loading modules…',
+      updated: 'Module configuration updated.',
+      updateError: 'We could not update the module. Please try again.',
+      loadError: 'We could not load modules for this Organization.',
+    },
   },
 } as const
