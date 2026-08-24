@@ -42,12 +42,36 @@ Authentication
 → business behavior
 ```
 
+## AnalyticsProvider
+
+A business module may optionally expose one code-defined `AnalyticsProvider` through its
+`ModuleDefinition`. Provider metric keys use stable `module.metric_name` identifiers. Each metric
+declares its i18n name key, semantic format, supported dimensions, explicit typed filters, and a
+mandatory `required_permission` from the same source module. Modules without a provider remain
+valid and contribute no metrics.
+
+Analytics queries never accept `organization_id`, SQL, table names, columns, joins, or arbitrary
+expressions. Analytics Core validates the metric, declared `group_by`, filter keys, basic filter
+types, source-module entitlement, and current effective permission before invoking the provider.
+Owner bypasses the metric permission only when the source module is enabled. PlatformAdmin alone
+does not grant tenant Analytics access.
+
+Providers receive the existing request-scoped SQLAlchemy Session and a trusted context containing
+the server-validated Organization ID. They own their module-specific queries and must scope every
+repository call by that ID. Core can validate that a domain filter is a UUID, but the provider must
+verify that the referenced domain record belongs to the validated Organization.
+
+Analytics Core never queries business-module tables. A provider may query only its own module's
+models/repositories; future composite Analytics calls providers independently so every metric is
+authorized against its own source module. Results support scalar and grouped data without chart
+metadata. Values use `Decimal` internally and serialize as exact decimal strings. Currency uses an
+explicit uppercase currency code, percentage uses the `0..1` convention, and duration uses an
+explicit supported unit.
+
 ## Module isolation and frontend
 
-Modules must use this shared tenancy, entitlement, and authorization foundation instead of creating
-ad-hoc alternatives. Future cross-module Analytics must not query another module's models directly.
-A module may later participate through an AnalyticsProvider contract, but that contract belongs to
-Milestone 2 and is not defined here.
+Modules must use this shared tenancy, entitlement, authorization, and Analytics foundation instead
+of creating ad-hoc alternatives. A provider must not query another module's models directly.
 
 Module UI supports desktop/mobile, light/dark/system themes, semantic design tokens, and pt-BR plus
 English i18n. Backend entitlement and permission metadata may guide UX, but frontend visibility is

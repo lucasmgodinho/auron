@@ -29,6 +29,14 @@ class MembershipAssignmentError(Exception):
     pass
 
 
+class ModuleAccessNotFoundError(Exception):
+    pass
+
+
+class ModuleAccessDeniedError(Exception):
+    pass
+
+
 @dataclass(frozen=True, slots=True)
 class AccessGroupDetails:
     group: OrganizationAccessGroup
@@ -41,6 +49,12 @@ class EffectiveAccess:
     is_owner: bool
     enabled_module_keys: tuple[str, ...]
     permission_keys: tuple[str, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class AuthorizedModuleAccess:
+    module: ModuleDefinition
+    permission_key: str
 
 
 def _is_group_name_unique_violation(error: IntegrityError) -> bool:
@@ -275,6 +289,31 @@ def get_effective_access(
         enabled_module_keys=enabled_keys,
         permission_keys=tuple(permissions),
     )
+
+
+def authorize_module_permission(
+    session: Session,
+    *,
+    context: OrganizationContext,
+    registry: ModuleRegistry,
+    module_key: str,
+    permission_key: str,
+) -> AuthorizedModuleAccess:
+    module = registry.get(module_key)
+    permission = registry.get_permission(permission_key)
+    if (
+        module is None
+        or permission is None
+        or not permission.key.startswith(f"{module_key}.")
+    ):
+        raise ModuleAccessNotFoundError
+
+    access = get_effective_access(session, context=context, registry=registry)
+    if module_key not in access.enabled_module_keys:
+        raise ModuleAccessDeniedError
+    if permission_key not in access.permission_keys:
+        raise ModuleAccessDeniedError
+    return AuthorizedModuleAccess(module=module, permission_key=permission_key)
 
 
 def list_permission_catalog(

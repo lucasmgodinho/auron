@@ -14,7 +14,6 @@ from app.core.module_registry.registry import (
 )
 from app.core.organization_context.context import OrganizationContext
 from app.core.organization_context.dependencies import get_organization_context
-from app.core.organization_modules import service as module_service
 from app.database import get_session
 
 
@@ -52,27 +51,24 @@ def require_module_permission(
         session: Annotated[Session, Depends(get_session)],
         registry: Annotated[ModuleRegistry, Depends(get_module_registry)],
     ) -> ModuleAccessContext:
-        module = registry.get(module_key)
-        permission = registry.get_permission(permission_key)
-        if module is None or permission is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-        if not module_service.is_module_enabled(
-            session,
-            organization_id=context.organization.id,
-            module_key=module_key,
-        ):
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
-        if context.membership.role != "owner":
-            access = service.get_effective_access(
+        try:
+            access = service.authorize_module_permission(
                 session,
                 context=context,
                 registry=registry,
+                module_key=module_key,
+                permission_key=permission_key,
             )
-            if permission_key not in access.permission_keys:
-                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+        except service.ModuleAccessNotFoundError as error:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND) from error
+        except service.ModuleAccessDeniedError as error:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN) from error
+        permission = registry.get_permission(permission_key)
+        if permission is None:  # pragma: no cover - guaranteed by authorization
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
         return ModuleAccessContext(
             organization_context=context,
-            module=module,
+            module=access.module,
             permission=permission,
         )
 

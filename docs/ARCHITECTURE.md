@@ -75,6 +75,27 @@ Authentication
 Only `owner` bypasses Access Group permissions, and only after entitlement succeeds. `admin` has no
 automatic module bypass. PlatformAdmin remains outside tenant access unless separately associated.
 
+Implemented business modules may optionally expose a code-defined `AnalyticsProvider`. Analytics
+Core discovers those providers only through the Module Registry and orchestrates one source metric
+at a time:
+
+```text
+Analytics query
+-> Organization Context
+-> metric and source module
+-> OrganizationModule entitlement
+-> required source permission
+-> AnalyticsProvider
+-> source module repository
+```
+
+Analytics Core validates contracts and authorization but contains no business SQL. The provider
+receives the existing request-scoped Session plus the validated Organization ID and may query only
+its own module's repositories. A future dashboard may compose a Fleet metric and a Cost Management
+metric, but it must call and authorize each provider independently; one provider never crosses into
+another module's tables. Analytics definitions and results remain in memory and are neither cached
+nor persisted.
+
 Future tenant-owned modules must use `OrganizationContext.organization.id` as the validated `organization_id` for every business-data query. Organization selection is not stored in AuthSession, User, or a cookie, so membership changes apply on the next request without changing the authenticated session.
 
 The frontend never handles authentication tokens. It derives browser authentication state from

@@ -173,6 +173,12 @@ Access Group permission checks, but never a disabled module entitlement; `admin`
 no automatic module permission. Disabling a module preserves its group permission configuration.
 See `docs/MODULE_CONTRACT.md` for the module integration contract.
 
+A business module may optionally expose an `AnalyticsProvider` that returns standardized scalar or
+grouped metric results. This is a code-level integration contract only; no Analytics product or API
+exists yet. Every metric query requires the source module's Organization entitlement and the
+metric's source-module permission, using the same dynamic Access Group and owner rules as normal
+module endpoints. Analytics Core never queries business-module tables directly.
+
 Reissue an expired, unaccepted invitation from `backend/` with:
 
 ```powershell

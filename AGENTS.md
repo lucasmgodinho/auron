@@ -78,6 +78,14 @@
 - Access Groups belong to Organizations and attach to OrganizationMemberships, never Users.
 - Only registered permission keys may be stored. Disabling a module must preserve its group grants.
 - Effective permissions are resolved dynamically and must never be stored in AuthSession.
+- Business modules may optionally expose code-defined metrics through `AnalyticsProvider`.
+- Analytics metric keys use `module.metric_name` and require a permission from that same module.
+- Analytics access must enforce source-module entitlement and current Access Group authorization.
+- Analytics Core must never query business-module tables; providers query only their own module and
+  scope every query to the validated Organization context.
+- Providers must ownership-validate domain filter IDs. Analytics queries never accept
+  `organization_id`, raw SQL, table names, columns, or arbitrary expressions.
+- Analytics results are visualization-agnostic; do not add chart concepts to the Core contract.
 
 ## Frontend foundation
 
