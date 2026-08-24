@@ -10,6 +10,7 @@ from app.core.organization_modules.router import router as organization_modules_
 from app.core.organizations.router import router as organizations_router
 from app.core.platform_admin.router import router as platform_admin_router
 from app.core.users.router import router as users_router
+from app.modules import registry as module_registry  # noqa: F401
 
 settings = get_settings()
 app = FastAPI(title="Auron")

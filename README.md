@@ -179,6 +179,26 @@ exists yet. Every metric query requires the source module's Organization entitle
 metric's source-module permission, using the same dynamic Access Group and owner rules as normal
 module endpoints. Analytics Core never queries business-module tables directly.
 
+## Module development workflow
+
+Create a minimal registered module package with:
+
+```powershell
+python .agents/skills/auron-module/scripts/create_module.py --key <module_key> --name "<Name>"
+```
+
+Add `--analytics` only when the module will implement the existing AnalyticsProvider contract, or
+`--dry-run` to inspect paths without writing. Before completing module work, run:
+
+```powershell
+python .agents/skills/auron-module/scripts/validate_module.py <module_key>
+```
+
+The canonical architecture remains in `AGENTS.md`, `docs/ARCHITECTURE.md`, and
+`docs/MODULE_CONTRACT.md`. When an explicit cross-AI project snapshot is needed, invoke the
+`auron-handoff` Skill; it generates the ignored `.ai/AURON_HANDOFF.md` from current repository
+evidence. Normal module work does not generate this snapshot.
+
 Reissue an expired, unaccepted invitation from `backend/` with:
 
 ```powershell
