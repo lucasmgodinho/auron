@@ -8,7 +8,9 @@ description: Generate a current, source-backed Auron repository handoff for anot
 Generate `.ai/AURON_HANDOFF.md` only when the user explicitly requests an AI/project handoff.
 Never reuse conversation memory as repository truth.
 
-1. Run `scripts/collect_context.py` for deterministic Git, Alembic, registry, and path facts.
+1. From the repository root, run
+   `.\backend\.venv\Scripts\python.exe .agents\skills\auron-handoff\scripts\collect_context.py`
+   for deterministic Git, Alembic, registry, and path facts.
 2. Read the current `AGENTS.md`, `README.md`, `docs/ARCHITECTURE.md`,
    `docs/MODULE_CONTRACT.md`, and the relevant implementation/tests.
 3. Read [`references/handoff-outline.md`](references/handoff-outline.md) and write a concise

@@ -1,12 +1,18 @@
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 
 IMPORT_MARKER = "# AURON_MODULE_IMPORTS"
 DEFINITION_MARKER = "    # AURON_MODULE_DEFINITIONS"
+MODULE_IMPORT_PATTERN = re.compile(
+    r"from app\.modules\.(?P<key>[a-z][a-z0-9_]*)\.definition import \(\n"
+    r"    MODULE_DEFINITION as (?P<constant>[A-Z][A-Z0-9_]*_MODULE_DEFINITION),\n"
+    r"\)\n"
+)
 
 
 class ScaffoldError(Exception):
@@ -118,20 +124,53 @@ def _planned_files(
     return tuple(files)
 
 
-def _updated_registry(source: str, key: str) -> str:
-    if IMPORT_MARKER not in source or DEFINITION_MARKER not in source:
-        raise ScaffoldError("Module registry does not contain the scaffold markers")
-    constant = f"{key.upper()}_MODULE_DEFINITION"
-    import_line = (
+def _module_constant(key: str) -> str:
+    return f"{key.upper()}_MODULE_DEFINITION"
+
+
+def _module_import(key: str) -> str:
+    return (
         f"from app.modules.{key}.definition import (\n"
-        f"    MODULE_DEFINITION as {constant},\n"
+        f"    MODULE_DEFINITION as {_module_constant(key)},\n"
         ")\n"
     )
-    definition_line = f"    {constant},\n"
-    if import_line in source or definition_line in source:
+
+
+def _updated_registry(source: str, key: str) -> str:
+    if source.count(IMPORT_MARKER) != 1 or source.count(DEFINITION_MARKER) != 1:
+        raise ScaffoldError("Module registry does not contain the scaffold markers")
+
+    import_prefix, remainder = source.split(IMPORT_MARKER, 1)
+    matches = tuple(MODULE_IMPORT_PATTERN.finditer(import_prefix))
+    existing_keys = [match.group("key") for match in matches]
+    if len(existing_keys) != len(set(existing_keys)):
+        raise ScaffoldError("Module registry contains duplicate scaffold imports")
+    for match in matches:
+        if match.group("constant") != _module_constant(match.group("key")):
+            raise ScaffoldError("Module registry contains an invalid scaffold import")
+
+    definition_line = f"    {_module_constant(key)},\n"
+    if key in existing_keys or definition_line in remainder:
         raise ScaffoldError(f"Module is already registered: {key}")
-    source = source.replace(IMPORT_MARKER, f"{import_line}{IMPORT_MARKER}", 1)
-    return source.replace(DEFINITION_MARKER, f"{definition_line}{DEFINITION_MARKER}", 1)
+
+    for existing_key in existing_keys:
+        existing_line = f"    {_module_constant(existing_key)},\n"
+        if remainder.count(existing_line) != 1:
+            raise ScaffoldError("Module registry composition is inconsistent")
+        remainder = remainder.replace(existing_line, "", 1)
+
+    module_keys = sorted((*existing_keys, key))
+    import_block = "".join(_module_import(module_key) for module_key in module_keys)
+    definition_block = "".join(
+        f"    {_module_constant(module_key)},\n" for module_key in module_keys
+    )
+    import_prefix = MODULE_IMPORT_PATTERN.sub("", import_prefix).rstrip()
+    remainder = remainder.replace(
+        DEFINITION_MARKER,
+        f"{definition_block}{DEFINITION_MARKER}",
+        1,
+    )
+    return f"{import_prefix}\n{import_block}\n{IMPORT_MARKER}{remainder}"
 
 
 def create_module(

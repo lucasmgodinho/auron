@@ -137,6 +137,41 @@ def test_scaffold_refuses_existing_target_and_dry_run_does_not_write(
         )
 
 
+def test_scaffold_registry_is_deterministic_for_reverse_creation_order(
+    tmp_path: Path,
+    create_module_script: ModuleType,
+) -> None:
+    reverse_root = isolated_project(tmp_path / "reverse")
+    sorted_root = isolated_project(tmp_path / "sorted")
+
+    for root, keys in (
+        (reverse_root, ("zeta_test", "alpha_test")),
+        (sorted_root, ("alpha_test", "zeta_test")),
+    ):
+        for key in keys:
+            create_module_script.create_module(
+                root=root,
+                key=key,
+                name=key.replace("_", " ").title(),
+            )
+
+    reverse_registry = (
+        reverse_root / "backend" / "app" / "modules" / "registry.py"
+    ).read_text(encoding="utf-8")
+    sorted_registry = (
+        sorted_root / "backend" / "app" / "modules" / "registry.py"
+    ).read_text(encoding="utf-8")
+
+    assert reverse_registry == sorted_registry
+    assert reverse_registry.index("app.modules.alpha_test") < reverse_registry.index(
+        "app.modules.zeta_test"
+    )
+    definitions = reverse_registry.split("PRODUCTION_MODULE_DEFINITIONS", 1)[1]
+    assert definitions.index("ALPHA_TEST_MODULE_DEFINITION") < definitions.index(
+        "ZETA_TEST_MODULE_DEFINITION"
+    )
+
+
 def test_optional_analytics_scaffold_uses_existing_contract_and_validates(
     tmp_path: Path,
     create_module_script: ModuleType,

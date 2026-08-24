@@ -2,7 +2,8 @@
 
 ## Create
 
-1. Run `python .agents/skills/auron-module/scripts/create_module.py --key <key> --name <name>`.
+1. From the repository root, run
+   `.\backend\.venv\Scripts\python.exe .agents\skills\auron-module\scripts\create_module.py --key <key> --name <name>`.
 2. Add only concrete domain files required by current behavior. Keep routers thin and business
    logic in services/repositories.
 3. Replace the initially empty permission tuple with stable permissions before adding protected
@@ -30,8 +31,9 @@ non-authoritative. Do not add navigation before the module functionality exists.
 
 Run:
 
-```text
-python .agents/skills/auron-module/scripts/validate_module.py <module_key>
+```powershell
+.\backend\.venv\Scripts\python.exe `
+  .agents\skills\auron-module\scripts\validate_module.py <module_key>
 ```
 
 Then run focused tests, Ruff, the full backend suite when shared Core changed, Alembic checks for
