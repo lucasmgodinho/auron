@@ -15,6 +15,19 @@ Copy `.env.example` to `.env` for local development. `POSTGRES_*` variables conf
 Use `127.0.0.1` consistently for both local web servers. Authentication cookies are host-scoped,
 so mixing `localhost` and `127.0.0.1` can make a valid browser session appear unauthenticated.
 
+After installing the backend and frontend dependencies described below, start the complete local
+development environment from the repository root with:
+
+```powershell
+.\dev.ps1
+```
+
+The command starts PostgreSQL and Mailpit, applies pending migrations, and runs both application
+services in watch mode. Python changes automatically restart the FastAPI process. React, TypeScript,
+and CSS changes are applied in the open browser through Vite Hot Module Replacement, without a
+manual page refresh. Press `Ctrl+C` to stop the application processes; the infrastructure containers
+remain available for the next run and can be stopped with `docker compose down`.
+
 ## Backend setup
 
 From PowerShell:
@@ -37,18 +50,19 @@ Create the separate test database once, using the local defaults:
 docker compose exec postgres createdb -U platform platform_test
 ```
 
-Run migrations and start the API from `backend/`:
+When running the services separately instead of using `dev.ps1`, run migrations and start the API
+from `backend/`:
 
 ```powershell
-.\.venv\Scripts\alembic.exe upgrade head
-.\.venv\Scripts\uvicorn.exe app.main:app --reload
+.\.venv\Scripts\python.exe -m alembic upgrade head
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload
 ```
 
 Apply migrations to the test database from `backend/`, then restore normal configuration from `.env`:
 
 ```powershell
 $env:DATABASE_URL = "postgresql+psycopg://platform:platform@127.0.0.1:5432/platform_test"
-.\.venv\Scripts\alembic.exe upgrade head
+.\.venv\Scripts\python.exe -m alembic upgrade head
 Remove-Item Env:DATABASE_URL
 ```
 
@@ -57,14 +71,14 @@ The API is available at `http://127.0.0.1:8000`; `GET /health` returns its healt
 Create a migration after changing SQLAlchemy metadata with:
 
 ```powershell
-.\.venv\Scripts\alembic.exe revision --autogenerate -m "describe change"
+.\.venv\Scripts\python.exe -m alembic revision --autogenerate -m "describe change"
 ```
 
 Run backend checks from `backend/`:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest
-.\.venv\Scripts\ruff.exe check .
+.\.venv\Scripts\python.exe -m ruff check .
 ```
 
 Integration tests refuse to run if `TEST_DATABASE_URL` is missing or points to the same database as `DATABASE_URL`.
@@ -239,7 +253,7 @@ invitations cannot be reopened, and no new invitation or membership is created.
 
 ## Frontend setup
 
-From a second terminal:
+When running the services separately instead of using `dev.ps1`, use a second terminal:
 
 ```powershell
 cd frontend
