@@ -162,7 +162,7 @@ does not manage Organization roles, groups, or permissions.
 ## Module platform foundation
 
 Business modules register stable module and permission keys explicitly in code. The production
-registry is currently empty because no business module has been implemented. PlatformAdmin may
+registry currently contains the implemented `competitive_intelligence` module. PlatformAdmin may
 configure an Organization's registered entitlements through `OrganizationModule`, but this does not
 create OrganizationMembership or grant tenant-data access.
 
@@ -178,6 +178,20 @@ grouped metric results. This is a code-level integration contract only; no Analy
 exists yet. Every metric query requires the source module's Organization entitlement and the
 metric's source-module permission, using the same dynamic Access Group and owner rules as normal
 module endpoints. Analytics Core never queries business-module tables directly.
+
+### Competitive Intelligence V1
+
+Competitive Intelligence uses module key `competitive_intelligence` and permission
+`competitive_intelligence.analysis.run`. PlatformAdmin enables the module entitlement for an
+Organization. Owners may run it after entitlement succeeds; other memberships require that explicit
+permission through an Access Group.
+
+Configure `OPENAI_API_KEY` and `TAVILY_API_KEY` in the backend environment. `OPENAI_BASE_URL` is
+optional. The V1 endpoint runs a synchronous question generation, Tavily search, ephemeral Chroma
+retrieval, and report generation pipeline. Search documents and reports are not persisted, and each
+execution removes its temporary vector collection. The frontend route is
+`/app/organizations/:organizationId/modules/competitive-intelligence`. Tests replace external
+providers with deterministic fakes and do not call OpenAI or Tavily.
 
 ## Module development workflow
 

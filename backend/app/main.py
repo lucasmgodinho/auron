@@ -11,6 +11,9 @@ from app.core.organizations.router import router as organizations_router
 from app.core.platform_admin.router import router as platform_admin_router
 from app.core.users.router import router as users_router
 from app.modules import registry as module_registry  # noqa: F401
+from app.modules.competitive_intelligence.router import (
+    router as competitive_intelligence_router,
+)
 
 settings = get_settings()
 app = FastAPI(title="Auron")
@@ -33,6 +36,7 @@ app.include_router(organization_modules_router)
 app.include_router(access_control_router)
 app.include_router(users_router)
 app.include_router(memberships_router)
+app.include_router(competitive_intelligence_router)
 
 
 @app.get("/health")

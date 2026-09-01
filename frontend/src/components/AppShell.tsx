@@ -13,17 +13,24 @@ type AppShellProps = {
   logoutError: string | null
   onLogout: () => void
   isPlatformAdmin?: boolean
-  activePage?: 'overview' | 'admin' | 'account'
+  activePage?: 'overview' | 'admin' | 'account' | 'competitiveIntelligence'
   organizationName?: string
+  competitiveIntelligencePath?: string
 }
 
 type NavigationProps = {
-  activePage: 'overview' | 'admin' | 'account'
+  activePage: 'overview' | 'admin' | 'account' | 'competitiveIntelligence'
   isPlatformAdmin: boolean
+  competitiveIntelligencePath?: string
   onNavigate?: () => void
 }
 
-function Navigation({ activePage, isPlatformAdmin, onNavigate }: NavigationProps) {
+function Navigation({
+  activePage,
+  isPlatformAdmin,
+  competitiveIntelligencePath,
+  onNavigate,
+}: NavigationProps) {
   const { t } = useTranslation()
 
   return (
@@ -37,6 +44,17 @@ function Navigation({ activePage, isPlatformAdmin, onNavigate }: NavigationProps
         <span className="nav-icon" aria-hidden="true">⌂</span>
         <span>{t('common.navigation.overview')}</span>
       </Link>
+      {competitiveIntelligencePath ? (
+        <Link
+          className={`nav-item${activePage === 'competitiveIntelligence' ? ' nav-item-active' : ''}`}
+          to={competitiveIntelligencePath}
+          aria-current={activePage === 'competitiveIntelligence' ? 'page' : undefined}
+          onClick={onNavigate}
+        >
+          <span className="nav-icon" aria-hidden="true">◇</span>
+          <span>{t('modules.competitive_intelligence.name')}</span>
+        </Link>
+      ) : null}
       {isPlatformAdmin ? (
         <Link
           className={`nav-item${activePage === 'admin' ? ' nav-item-active' : ''}`}
@@ -61,6 +79,7 @@ export function AppShell({
   isPlatformAdmin = false,
   activePage = 'overview',
   organizationName,
+  competitiveIntelligencePath,
 }: AppShellProps) {
   const { t } = useTranslation()
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
@@ -133,7 +152,9 @@ export function AppShell({
   const closeDrawer = () => setIsDrawerOpen(false)
   const accountContext = activePage === 'account'
     ? t('common.navigation.account')
-    : t(activePage === 'admin' ? 'common.navigation.admin' : 'common.navigation.overview')
+    : activePage === 'competitiveIntelligence'
+      ? t('modules.competitive_intelligence.name')
+      : t(activePage === 'admin' ? 'common.navigation.admin' : 'common.navigation.overview')
 
   return (
     <div className="app-shell">
@@ -143,7 +164,11 @@ export function AppShell({
         <Link className="sidebar-brand" to="/app" aria-label={t('common.navigation.auronHome')}>
           <BrandLogo variant="horizontal" eager />
         </Link>
-        <Navigation activePage={activePage} isPlatformAdmin={isPlatformAdmin} />
+        <Navigation
+          activePage={activePage}
+          isPlatformAdmin={isPlatformAdmin}
+          competitiveIntelligencePath={competitiveIntelligencePath}
+        />
         <div className="sidebar-context">
           {organizationName ? (
             <div className="organization-context">
@@ -274,6 +299,7 @@ export function AppShell({
             <Navigation
               activePage={activePage}
               isPlatformAdmin={isPlatformAdmin}
+              competitiveIntelligencePath={competitiveIntelligencePath}
               onNavigate={closeDrawer}
             />
             {organizationName ? (

@@ -109,17 +109,22 @@ def add_membership(
     )
 
 
-def test_production_platform_admin_module_list_is_empty(
+def test_production_platform_admin_module_list_contains_implemented_module(
     client: TestClient, db_session: Session
 ) -> None:
-    operator = create_user(db_session, email="empty-registry-admin@example.com")
+    operator = create_user(db_session, email="module-registry-admin@example.com")
     platform_admin_service.grant_platform_admin(db_session, operator.email)
     authenticate(client, db_session, operator)
 
     response = client.get("/platform-admin/modules")
 
     assert response.status_code == 200
-    assert response.json() == []
+    assert response.json() == [
+        {
+            "key": "competitive_intelligence",
+            "name_key": "modules.competitive_intelligence.name",
+        }
+    ]
 
 
 @pytest.mark.parametrize(

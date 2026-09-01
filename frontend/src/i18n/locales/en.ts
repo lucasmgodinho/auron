@@ -113,6 +113,52 @@ export const en = {
       loadErrorBody: 'Check the backend connection and try again.',
     },
   },
+  modules: {
+    competitive_intelligence: {
+      name: 'Competitive Intelligence',
+    },
+  },
+  competitive_intelligence: {
+    meta: {
+      title: 'Competitive Intelligence',
+      description: 'Competitive research and analysis for the current Organization.',
+    },
+    page: {
+      eyebrow: 'Competitive intelligence',
+      title: 'Competitive Intelligence',
+      description: 'Research a company and generate a competitive report grounded in web sources.',
+      open: 'Open Competitive Intelligence',
+    },
+    form: {
+      title: 'New analysis',
+      description: 'Enter a known company. The research may take a few minutes.',
+      company: 'Company to analyze',
+      submit: 'Search',
+      searching: 'Searching…',
+      loading: 'Searching sources and preparing the report…',
+    },
+    errors: {
+      input: 'Enter a company name.',
+      invalidCompany: 'The company could not be validated. Check the name and try again.',
+      search: 'The web search failed. Please try again shortly.',
+      model: 'The model could not complete the analysis. Please try again.',
+      noResults: 'No valid results were found to generate the report.',
+      configuration: 'Competitive Intelligence is not configured in this environment yet.',
+      unexpected: 'The analysis could not be completed. Please try again.',
+    },
+    access: {
+      deniedEyebrow: 'Module unavailable',
+      deniedTitle: 'You cannot access Competitive Intelligence',
+      deniedBody: 'The module must be enabled and your membership must have the required permission.',
+      errorEyebrow: 'Module unavailable',
+      errorTitle: 'We could not load Competitive Intelligence',
+      errorBody: 'Check the backend connection and try again.',
+    },
+    report: {
+      eyebrow: 'Competitive report',
+      sector: 'Identified sector: {{sector}}',
+    },
+  },
   organizations: {
     meta: {
       selectorTitle: 'Organizations', selectorDescription: 'Select your Organization in Auron.',

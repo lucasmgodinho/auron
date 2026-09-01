@@ -27,6 +27,9 @@ class Settings(BaseSettings):
     smtp_starttls: bool = True
     email_from: EmailStr | None = None
     frontend_base_url: AnyHttpUrl | None = None
+    openai_api_key: SecretStr | None = Field(default=None, min_length=1)
+    openai_base_url: AnyHttpUrl | None = None
+    tavily_api_key: SecretStr | None = Field(default=None, min_length=1)
 
     model_config = SettingsConfigDict(env_file=ENV_FILE, extra="ignore")
 

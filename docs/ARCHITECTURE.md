@@ -52,9 +52,10 @@ authorization may evolve toward `Organization -> Access Groups -> Memberships`, 
 catalogs defined by implemented Auron modules.
 
 The module platform uses an explicit code-defined Module Registry. Production registrations exist
-only for implemented business modules, so the registry is currently empty. `OrganizationModule`
-stores whether a registered module is enabled for a tenant; a missing row is disabled. PlatformAdmin
-may change this entitlement without gaining OrganizationMembership or tenant access.
+only for implemented business modules; the current registry contains `competitive_intelligence`.
+`OrganizationModule` stores whether a registered module is enabled for a tenant; a missing row is
+disabled. PlatformAdmin may change this entitlement without gaining OrganizationMembership or
+tenant access.
 
 Operational access is tenant-owned: `OrganizationAccessGroup` contains code-defined permission-key
 grants through `OrganizationAccessGroupPermission`, and
@@ -62,7 +63,7 @@ grants through `OrganizationAccessGroupPermission`, and
 Effective permissions are resolved dynamically as the union of group grants filtered by enabled
 modules. They are never stored in AuthSession. Disabling a module preserves its grants.
 
-Future module requests follow:
+Module requests follow:
 
 ```text
 Authentication
@@ -74,6 +75,13 @@ Authentication
 
 Only `owner` bypasses Access Group permissions, and only after entitlement succeeds. `admin` has no
 automatic module bypass. PlatformAdmin remains outside tenant access unless separately associated.
+
+Competitive Intelligence is the first production business module. Its HTTP boundary receives the
+server-validated Organization context and enforces the module entitlement plus
+`competitive_intelligence.analysis.run`. The V1 workflow generates research questions, searches
+Tavily, embeds retrieved documents in a per-execution ephemeral Chroma collection, retrieves scoped
+context, and generates a report. It stores no analysis history or module-owned database rows and
+removes the temporary collection after each execution. It does not expose an AnalyticsProvider.
 
 Implemented business modules may optionally expose a code-defined `AnalyticsProvider`. Analytics
 Core discovers those providers only through the Module Registry and orchestrates one source metric
@@ -132,9 +140,10 @@ navigation drawer. Theme and locale are non-authoritative UI preferences and are
 state persisted in browser storage. Brazilian Portuguese is the default locale, English is the
 second supported locale, and visible copy is sourced from `frontend/src/i18n/locales/`. The current
 Organization remains route-derived and backend-authorized on every Organization route load.
-PlatformAdmin remains independent from OrganizationMembership. Future implemented modules can add
-real navigation entries and translation sections to this shell, but no placeholder module
-navigation exists today.
+PlatformAdmin remains independent from OrganizationMembership. Competitive Intelligence adds a
+real navigation entry only when the Organization access summary reports its entitlement and the
+required permission; backend authorization remains authoritative. No placeholder module navigation
+exists.
 
 Google login follows `Google OIDC -> AuthIdentity(provider="google", provider_subject=sub) -> User -> AuthSession`. Password login follows `LocalCredential -> User -> AuthSession`. Organization access remains separate through `User -> OrganizationMembership -> Organization`; neither login method selects a tenant.
 

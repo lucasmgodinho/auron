@@ -195,6 +195,52 @@ export const ptBR = {
       loadErrorBody: 'Verifique a conexão com o backend e tente novamente.',
     },
   },
+  modules: {
+    competitive_intelligence: {
+      name: 'Competitive Intelligence',
+    },
+  },
+  competitive_intelligence: {
+    meta: {
+      title: 'Competitive Intelligence',
+      description: 'Pesquisa e análise competitiva para a Organização atual.',
+    },
+    page: {
+      eyebrow: 'Inteligência competitiva',
+      title: 'Competitive Intelligence',
+      description: 'Pesquise uma empresa e gere um relatório competitivo baseado em fontes encontradas na web.',
+      open: 'Abrir Competitive Intelligence',
+    },
+    form: {
+      title: 'Nova análise',
+      description: 'Informe uma empresa conhecida. A pesquisa pode levar alguns minutos.',
+      company: 'Empresa para análise',
+      submit: 'Pesquisar',
+      searching: 'Pesquisando…',
+      loading: 'Pesquisando fontes e preparando o relatório…',
+    },
+    errors: {
+      input: 'Informe o nome de uma empresa.',
+      invalidCompany: 'A empresa informada não pôde ser validada. Confira o nome e tente novamente.',
+      search: 'A pesquisa na web falhou. Tente novamente em alguns instantes.',
+      model: 'O modelo não conseguiu concluir a análise. Tente novamente.',
+      noResults: 'Nenhum resultado válido foi encontrado para gerar o relatório.',
+      configuration: 'Competitive Intelligence ainda não está configurado neste ambiente.',
+      unexpected: 'Não foi possível concluir a análise. Tente novamente.',
+    },
+    access: {
+      deniedEyebrow: 'Módulo indisponível',
+      deniedTitle: 'Você não pode acessar Competitive Intelligence',
+      deniedBody: 'O módulo precisa estar habilitado e sua associação deve ter a permissão necessária.',
+      errorEyebrow: 'Módulo indisponível',
+      errorTitle: 'Não foi possível carregar Competitive Intelligence',
+      errorBody: 'Verifique a conexão com o backend e tente novamente.',
+    },
+    report: {
+      eyebrow: 'Relatório competitivo',
+      sector: 'Setor identificado: {{sector}}',
+    },
+  },
   organizations: {
     meta: {
       selectorTitle: 'Organizações',

@@ -96,7 +96,9 @@ def test_production_registry_contains_no_fake_or_unimplemented_modules() -> None
         "cost_management",
     }
 
-    assert production_module_registry.list() == ()
+    assert {
+        definition.key for definition in production_module_registry.list()
+    } == {"competitive_intelligence"}
     assert forbidden.isdisjoint(
         definition.key for definition in production_module_registry.list()
     )

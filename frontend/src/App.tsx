@@ -25,6 +25,11 @@ const AppPage = lazy(() =>
 const OrganizationPage = lazy(() =>
   import('./pages/OrganizationPage').then((module) => ({ default: module.OrganizationPage })),
 )
+const CompetitiveIntelligencePage = lazy(() =>
+  import('./modules/competitive_intelligence/CompetitiveIntelligencePage').then(
+    (module) => ({ default: module.CompetitiveIntelligencePage }),
+  ),
+)
 const AdminPage = lazy(() =>
   import('./pages/AdminPage').then((module) => ({ default: module.AdminPage })),
 )
@@ -71,6 +76,10 @@ function App() {
         <Route
           path="/app/organizations/:organizationId"
           element={<ProtectedRoute><OrganizationPage /></ProtectedRoute>}
+        />
+        <Route
+          path="/app/organizations/:organizationId/modules/competitive-intelligence"
+          element={<ProtectedRoute><CompetitiveIntelligencePage /></ProtectedRoute>}
         />
         <Route path="*" element={<AuthenticationRedirect />} />
       </Routes>

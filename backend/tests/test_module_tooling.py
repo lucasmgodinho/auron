@@ -293,7 +293,7 @@ def test_tooling_never_mutates_production_registry(
         name="Isolated Test",
     )
     validate_module_script.validate_module(root=root, key="isolated_test")
-    assert production_module_registry.list() == before == ()
+    assert production_module_registry.list() == before
 
 
 def test_handoff_git_metadata_parsing_is_deterministic(
@@ -341,6 +341,8 @@ def test_handoff_context_excludes_environment_secrets_and_registry_state(
     secret = "must-never-appear-in-handoff-context"
     monkeypatch.setenv("HANDOFF_TEST_SECRET", secret)
     before = production_module_registry.list()
+    handoff_path = REPOSITORY_ROOT / ".ai" / "AURON_HANDOFF.md"
+    handoff_before = handoff_path.read_bytes() if handoff_path.exists() else None
 
     def runner(command: tuple[str, ...], cwd: Path) -> str | None:
         del cwd
@@ -362,9 +364,10 @@ def test_handoff_context_excludes_environment_secrets_and_registry_state(
     assert secret not in serialized
     assert "HANDOFF_TEST_SECRET" not in serialized
     assert context["registry"] == {
-        "production_modules": [],
+        "production_modules": ["competitive_intelligence"],
         "analytics_providers": [],
     }
-    assert production_module_registry.list() == before == ()
-    assert not (REPOSITORY_ROOT / ".ai" / "AURON_HANDOFF.md").exists()
+    assert production_module_registry.list() == before
+    handoff_after = handoff_path.read_bytes() if handoff_path.exists() else None
+    assert handoff_after == handoff_before
     assert os.environ["HANDOFF_TEST_SECRET"] == secret

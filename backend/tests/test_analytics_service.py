@@ -542,7 +542,9 @@ def test_test_only_route_proves_authentication_tenant_and_platform_admin_boundar
 def test_test_providers_and_routes_do_not_enter_production_application(
     client: TestClient,
 ) -> None:
-    assert production_module_registry.list() == ()
+    assert {
+        definition.key for definition in production_module_registry.list()
+    } == {"competitive_intelligence"}
     assert client.get("/health").status_code == 200
     paths = app.openapi()["paths"]
     assert all("analytics" not in path for path in paths)

@@ -461,7 +461,7 @@ def test_malformed_data_point_is_rejected() -> None:
 
 
 def test_production_registry_has_no_analytics_provider() -> None:
-    assert production_module_registry.list() == ()
+    assert production_module_registry.list()
     assert all(
         module.analytics_provider is None
         for module in production_module_registry.list()

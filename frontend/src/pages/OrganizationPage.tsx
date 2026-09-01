@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
 
+import { AccessControlApiError, getOrganizationAccessSummary } from '../api/access-control'
 import { getOrganization, OrganizationApiError, type Organization } from '../api/organizations'
 import { getPlatformAdminStatus } from '../api/platform-admin'
 import { useAuth } from '../auth/useAuth'
@@ -18,6 +19,7 @@ export function OrganizationPage() {
   const requestId = useRef(0)
   const [pageStatus, setPageStatus] = useState<PageStatus>('loading')
   const [organization, setOrganization] = useState<Organization | null>(null)
+  const [canUseCompetitiveIntelligence, setCanUseCompetitiveIntelligence] = useState(false)
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [logoutError, setLogoutError] = useState<string | null>(null)
@@ -33,24 +35,39 @@ export function OrganizationPage() {
     const currentRequestId = ++requestId.current
     setPageStatus('loading')
     setOrganization(null)
+    setCanUseCompetitiveIntelligence(false)
     if (!organizationId) {
       setPageStatus('not-found')
       return
     }
     try {
-      const nextOrganization = await getOrganization(organizationId)
+      const [nextOrganization, access] = await Promise.all([
+        getOrganization(organizationId),
+        getOrganizationAccessSummary(organizationId),
+      ])
       if (requestId.current === currentRequestId) {
         setOrganization(nextOrganization)
+        setCanUseCompetitiveIntelligence(
+          access.enabled_modules.includes('competitive_intelligence')
+          && (
+            access.is_owner
+            || access.permissions.includes('competitive_intelligence.analysis.run')
+          ),
+        )
         setPageStatus('ready')
       }
     } catch (error) {
       if (requestId.current !== currentRequestId) return
-      if (error instanceof OrganizationApiError && error.status === 401) {
+      const errorStatus = error instanceof OrganizationApiError
+        || error instanceof AccessControlApiError
+        ? error.status
+        : null
+      if (errorStatus === 401) {
         await refreshUser()
         if (requestId.current === currentRequestId) setPageStatus('error')
-      } else if (error instanceof OrganizationApiError && error.status === 403) {
+      } else if (errorStatus === 403) {
         setPageStatus('forbidden')
-      } else if (error instanceof OrganizationApiError && (error.status === 404 || error.status === 422)) {
+      } else if (errorStatus === 404 || errorStatus === 422) {
         setPageStatus('not-found')
       } else {
         setPageStatus('error')
@@ -120,9 +137,12 @@ export function OrganizationPage() {
     )
   }
   if (organization === null) return null
+  const competitiveIntelligencePath = canUseCompetitiveIntelligence && organizationId
+    ? `/app/organizations/${organizationId}/modules/competitive-intelligence`
+    : undefined
 
   return (
-    <AppShell user={user} isLoggingOut={isLoggingOut} logoutError={logoutError} onLogout={() => void handleLogout()} isPlatformAdmin={isPlatformAdmin} organizationName={organization.name}>
+    <AppShell user={user} isLoggingOut={isLoggingOut} logoutError={logoutError} onLogout={() => void handleLogout()} isPlatformAdmin={isPlatformAdmin} organizationName={organization.name} competitiveIntelligencePath={competitiveIntelligencePath}>
       <header className="page-header organization-page-header">
         <p className="eyebrow">{t('organizations.home.eyebrow')}</p>
         <h1>{organization.name}</h1>
@@ -134,6 +154,11 @@ export function OrganizationPage() {
           <span className="badge badge-success">Auron</span>
           <h2 id="organization-ready-heading">{t('organizations.home.readyTitle')}</h2>
           <p>{t('organizations.home.readyBody')}</p>
+          {competitiveIntelligencePath ? (
+            <Link className="button button-primary organization-module-link" to={competitiveIntelligencePath}>
+              {t('competitive_intelligence.page.open')}
+            </Link>
+          ) : null}
         </div>
       </section>
     </AppShell>
