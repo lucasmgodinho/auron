@@ -20,6 +20,7 @@ export function OrganizationPage() {
   const [pageStatus, setPageStatus] = useState<PageStatus>('loading')
   const [organization, setOrganization] = useState<Organization | null>(null)
   const [canUseCompetitiveIntelligence, setCanUseCompetitiveIntelligence] = useState(false)
+  const [canViewApplicationLogs, setCanViewApplicationLogs] = useState(false)
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [logoutError, setLogoutError] = useState<string | null>(null)
@@ -36,6 +37,7 @@ export function OrganizationPage() {
     setPageStatus('loading')
     setOrganization(null)
     setCanUseCompetitiveIntelligence(false)
+    setCanViewApplicationLogs(false)
     if (!organizationId) {
       setPageStatus('not-found')
       return
@@ -54,6 +56,7 @@ export function OrganizationPage() {
             || access.permissions.includes('competitive_intelligence.analysis.run')
           ),
         )
+        setCanViewApplicationLogs(['owner', 'admin'].includes(access.membership_role))
         setPageStatus('ready')
       }
     } catch (error) {
@@ -140,9 +143,12 @@ export function OrganizationPage() {
   const competitiveIntelligencePath = canUseCompetitiveIntelligence && organizationId
     ? `/app/organizations/${organizationId}/modules/competitive-intelligence`
     : undefined
+  const applicationLogsPath = canViewApplicationLogs && organizationId
+    ? `/app/organizations/${organizationId}/logs`
+    : undefined
 
   return (
-    <AppShell user={user} isLoggingOut={isLoggingOut} logoutError={logoutError} onLogout={() => void handleLogout()} isPlatformAdmin={isPlatformAdmin} organizationName={organization.name} competitiveIntelligencePath={competitiveIntelligencePath}>
+    <AppShell user={user} isLoggingOut={isLoggingOut} logoutError={logoutError} onLogout={() => void handleLogout()} isPlatformAdmin={isPlatformAdmin} organizationName={organization.name} competitiveIntelligencePath={competitiveIntelligencePath} applicationLogsPath={applicationLogsPath}>
       <header className="page-header organization-page-header">
         <p className="eyebrow">{t('organizations.home.eyebrow')}</p>
         <h1>{organization.name}</h1>
@@ -157,6 +163,11 @@ export function OrganizationPage() {
           {competitiveIntelligencePath ? (
             <Link className="button button-primary organization-module-link" to={competitiveIntelligencePath}>
               {t('competitive_intelligence.page.open')}
+            </Link>
+          ) : null}
+          {applicationLogsPath ? (
+            <Link className="button button-secondary organization-module-link" to={applicationLogsPath}>
+              {t('applicationLogs.page.open')}
             </Link>
           ) : null}
         </div>

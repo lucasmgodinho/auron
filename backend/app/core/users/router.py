@@ -4,6 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.core.application_events.service import record_event
 from app.core.auth.dependencies import get_current_user
 from app.core.users import service
 from app.core.users.model import User
@@ -35,7 +36,7 @@ def update_user(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> User:
     try:
-        return service.update_own_user(
+        user = service.update_own_user(
             session,
             user_id,
             current_user.id,
@@ -45,3 +46,13 @@ def update_user(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND) from error
     except service.UserAccessDeniedError as error:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN) from error
+    record_event(
+        level="info",
+        event="user.profile.updated",
+        category="application",
+        user_id=current_user.id,
+        resource_type="user",
+        resource_id=user.id,
+        status="succeeded",
+    )
+    return user

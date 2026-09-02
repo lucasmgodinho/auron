@@ -363,6 +363,7 @@ def test_effective_permissions_union_entitlement_filter_and_role_behavior(
     ).json()
     assert member_summary == {
         "is_owner": False,
+        "membership_role": "member",
         "enabled_modules": ["operations_test"],
         "permissions": [
             "operations_test.record.delete",

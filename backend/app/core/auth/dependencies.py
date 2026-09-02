@@ -5,6 +5,7 @@ from fastapi import Cookie, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
+from app.core.application_events.context import bind_application_event_user
 from app.core.auth import service
 from app.core.auth.model import AuthSession
 from app.core.users.model import User
@@ -64,6 +65,7 @@ def get_current_authentication(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication required",
         )
+    bind_application_event_user(user.id)
     return CurrentAuthentication(user=user, auth_session=auth_session)
 
 

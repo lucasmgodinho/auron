@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Annotated, Self
+from typing import Annotated, Literal, Self
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
@@ -83,5 +83,6 @@ class PermissionCatalogResponse(BaseModel):
 
 class AccessSummaryResponse(BaseModel):
     is_owner: bool
+    membership_role: Literal["owner", "admin", "member"]
     enabled_modules: list[str]
     permissions: list[str]

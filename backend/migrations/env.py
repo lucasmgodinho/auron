@@ -5,6 +5,7 @@ from sqlalchemy import engine_from_config, pool
 
 from app.config import get_settings
 from app.core.access_control import model as access_control_model  # noqa: F401
+from app.core.application_events import model as application_event_model  # noqa: F401
 from app.core.auth import model as auth_model  # noqa: F401
 from app.core.organization_invitations import model as invitation_model  # noqa: F401
 from app.core.organization_memberships import model as membership_model  # noqa: F401

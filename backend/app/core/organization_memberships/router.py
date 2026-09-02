@@ -4,6 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.core.application_events.service import record_event
 from app.core.auth.dependencies import get_current_user
 from app.core.organization_context.context import OrganizationContext
 from app.core.organization_context.dependencies import get_organization_context
@@ -34,7 +35,7 @@ def create_membership(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> OrganizationMembership:
     try:
-        return service.create_membership(
+        membership = service.create_membership(
             session,
             organization_id=organization_id,
             user_id=payload.user_id,
@@ -52,6 +53,18 @@ def create_membership(
         ) from error
     except service.MembershipAccessDeniedError as error:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN) from error
+    record_event(
+        level="info",
+        event="organization.member.added",
+        category="organization",
+        user_id=current_user.id,
+        organization_id=organization_id,
+        resource_type="organization_membership",
+        resource_id=membership.id,
+        status="succeeded",
+        metadata={"new_role": membership.role},
+    )
+    return membership
 
 
 @router.get(
@@ -94,7 +107,7 @@ def update_membership(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> OrganizationMembership:
     try:
-        return service.update_membership_role(
+        membership = service.update_membership_role(
             session,
             organization_id=organization_id,
             membership_id=membership_id,
@@ -112,3 +125,15 @@ def update_membership(
             status_code=status.HTTP_409_CONFLICT,
             detail="An organization must have at least one owner",
         ) from error
+    record_event(
+        level="info",
+        event="organization.member.role_changed",
+        category="organization",
+        user_id=current_user.id,
+        organization_id=organization_id,
+        resource_type="organization_membership",
+        resource_id=membership.id,
+        status="succeeded",
+        metadata={"new_role": membership.role},
+    )
+    return membership

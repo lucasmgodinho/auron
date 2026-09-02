@@ -1,5 +1,6 @@
 export type OrganizationAccessSummary = {
   is_owner: boolean
+  membership_role: 'owner' | 'admin' | 'member'
   enabled_modules: string[]
   permissions: string[]
 }

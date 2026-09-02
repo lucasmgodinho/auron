@@ -19,6 +19,7 @@ from app.core.access_control.schemas import (
     PermissionDefinitionResponse,
     PermissionReplace,
 )
+from app.core.application_events.service import record_event
 from app.core.module_registry.dependencies import get_module_registry
 from app.core.module_registry.registry import ModuleRegistry
 from app.core.organization_context.context import OrganizationContext
@@ -164,7 +165,7 @@ def replace_access_group_permissions(
     registry: Annotated[ModuleRegistry, Depends(get_module_registry)],
 ) -> AccessGroupDetailResponse:
     try:
-        return _detail_response(
+        details = _detail_response(
             service.replace_access_group_permissions(
                 session,
                 organization_id=context.organization.id,
@@ -180,6 +181,17 @@ def replace_access_group_permissions(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="One or more permission keys are invalid",
         ) from error
+    record_event(
+        level="info",
+        event="access.permissions.changed",
+        category="access",
+        organization_id=context.organization.id,
+        resource_type="organization_access_group",
+        resource_id=access_group_id,
+        status="succeeded",
+        metadata={"permission_count": len(details.permissions)},
+    )
+    return details
 
 
 @router.put(
@@ -195,7 +207,7 @@ def replace_access_group_memberships(
     ],
 ) -> AccessGroupDetailResponse:
     try:
-        return _detail_response(
+        details = _detail_response(
             service.replace_access_group_memberships(
                 session,
                 organization_id=context.organization.id,
@@ -208,6 +220,17 @@ def replace_access_group_memberships(
         service.MembershipAssignmentError,
     ) as error:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND) from error
+    record_event(
+        level="info",
+        event="access.group.memberships_changed",
+        category="access",
+        organization_id=context.organization.id,
+        resource_type="organization_access_group",
+        resource_id=access_group_id,
+        status="succeeded",
+        metadata={"membership_count": len(details.membership_ids)},
+    )
+    return details
 
 
 @router.get(
@@ -262,6 +285,7 @@ def get_access_summary(
     )
     return AccessSummaryResponse(
         is_owner=access.is_owner,
+        membership_role=context.membership.role,
         enabled_modules=list(access.enabled_module_keys),
         permissions=list(access.permission_keys),
     )

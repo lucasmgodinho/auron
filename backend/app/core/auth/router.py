@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from starlette.responses import RedirectResponse
 
 from app.config import get_settings
+from app.core.application_events.service import record_event
 from app.core.auth import google, local, service
 from app.core.auth.dependencies import (
     AUTH_SESSION_COOKIE_NAME,
@@ -162,11 +163,28 @@ def password_login(
             password=payload.password,
         )
     except local.InvalidCredentialsError as error:
+        record_event(
+            level="warning",
+            event="auth.login.failed",
+            category="auth",
+            status="failed",
+            error_code="invalid_credentials",
+            error_message="Invalid credentials",
+            metadata={"authentication_method": "password"},
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password.",
         ) from error
     set_auth_session_cookie(response, raw_session_token)
+    record_event(
+        level="info",
+        event="auth.login.succeeded",
+        category="auth",
+        user_id=user.id,
+        status="succeeded",
+        metadata={"authentication_method": "password"},
+    )
     return user
 
 
@@ -190,6 +208,15 @@ async def google_callback(
     try:
         token = await google_oauth_client.authorize_access_token(request)
     except (HTTPError, JoseError, OAuthError, ValueError) as error:
+        record_event(
+            level="warning",
+            event="auth.login.failed",
+            category="auth",
+            status="failed",
+            error_code="google_authentication_failed",
+            error_message="Google authentication failed",
+            metadata={"authentication_method": "google"},
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Google authentication failed",
@@ -205,6 +232,15 @@ async def google_callback(
     try:
         user = google.resolve_google_user(session, claims)
     except google.GoogleAuthenticationError as error:
+        record_event(
+            level="warning",
+            event="auth.login.failed",
+            category="auth",
+            status="failed",
+            error_code="google_identity_rejected",
+            error_message="Google authentication failed",
+            metadata={"authentication_method": "google"},
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Google authentication failed",
@@ -218,6 +254,14 @@ async def google_callback(
         status_code=status.HTTP_302_FOUND,
     )
     set_auth_session_cookie(response, raw_session_token)
+    record_event(
+        level="info",
+        event="auth.login.succeeded",
+        category="auth",
+        user_id=user.id,
+        status="succeeded",
+        metadata={"authentication_method": "google"},
+    )
     return response
 
 
@@ -315,6 +359,19 @@ def logout(
         str | None, Cookie(alias=AUTH_SESSION_COOKIE_NAME)
     ] = None,
 ) -> None:
+    user_id = None
     if raw_session_token is not None:
+        auth_session = service.resolve_auth_session_from_session_token(
+            session, raw_session_token
+        )
+        user_id = auth_session.user_id if auth_session is not None else None
         service.revoke_session(session, raw_session_token)
     clear_auth_session_cookie(response)
+    if user_id is not None:
+        record_event(
+            level="info",
+            event="auth.logout.succeeded",
+            category="auth",
+            user_id=user_id,
+            status="succeeded",
+        )

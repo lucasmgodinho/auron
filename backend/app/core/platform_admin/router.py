@@ -4,6 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
+from app.core.application_events.service import record_event
 from app.core.module_registry.dependencies import get_module_registry
 from app.core.module_registry.registry import ModuleRegistry
 from app.core.organization_modules import service as module_service
@@ -54,7 +55,18 @@ def create_organization(
     session: Annotated[Session, Depends(get_session)],
     _: Annotated[PlatformAdmin, Depends(get_current_platform_admin)],
 ) -> Organization:
-    return service.provision_organization(session, payload)
+    organization = service.provision_organization(session, payload)
+    record_event(
+        level="info",
+        event="organization.provisioned",
+        category="organization",
+        organization_id=organization.id,
+        resource_type="organization",
+        resource_id=organization.id,
+        status="succeeded",
+        metadata={"invitation_count": len(payload.invitation_emails)},
+    )
+    return organization
 
 
 @router.get("/modules", response_model=list[ModuleResponse])
@@ -120,6 +132,17 @@ def update_organization_module(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND) from error
     except module_service.ModuleNotFoundError as error:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND) from error
+    record_event(
+        level="info",
+        event="module.activated" if enabled else "module.deactivated",
+        category="module",
+        module=definition.key,
+        organization_id=organization_id,
+        resource_type="organization_module",
+        resource_id=definition.key,
+        status="enabled" if enabled else "disabled",
+        metadata={"module_key": definition.key, "enabled": enabled},
+    )
     return OrganizationModuleResponse(
         key=definition.key,
         name_key=definition.name_key,

@@ -19,6 +19,7 @@ from app.core.access_control.model import (
     OrganizationAccessGroupPermission,
     OrganizationMembershipAccessGroup,
 )
+from app.core.application_events.model import ApplicationEvent
 from app.core.auth.model import (
     AuthIdentity,
     AuthSession,
@@ -71,6 +72,7 @@ def db_session(test_engine: Engine) -> Iterator[Session]:
     session = Session(bind=connection, join_transaction_mode="create_savepoint")
 
     try:
+        session.execute(delete(ApplicationEvent))
         session.execute(delete(AuthSession))
         session.execute(delete(EmailVerification))
         session.execute(delete(LocalCredential))
@@ -97,9 +99,25 @@ def client(db_session: Session) -> Iterator[TestClient]:
     def override_get_session() -> Iterator[Session]:
         yield db_session
 
+    def application_event_session_factory() -> Session:
+        return Session(
+            bind=db_session.connection(),
+            join_transaction_mode="create_savepoint",
+        )
+
     app.dependency_overrides[get_session] = override_get_session
+    previous_factory = getattr(
+        app.state,
+        "application_event_session_factory",
+        None,
+    )
+    app.state.application_event_session_factory = application_event_session_factory
     try:
         with TestClient(app) as test_client:
             yield test_client
     finally:
         app.dependency_overrides.pop(get_session, None)
+        if previous_factory is None:
+            del app.state.application_event_session_factory
+        else:
+            app.state.application_event_session_factory = previous_factory

@@ -25,6 +25,11 @@ const AppPage = lazy(() =>
 const OrganizationPage = lazy(() =>
   import('./pages/OrganizationPage').then((module) => ({ default: module.OrganizationPage })),
 )
+const OrganizationLogsPage = lazy(() =>
+  import('./pages/OrganizationLogsPage').then((module) => ({
+    default: module.OrganizationLogsPage,
+  })),
+)
 const CompetitiveIntelligencePage = lazy(() =>
   import('./modules/competitive_intelligence/CompetitiveIntelligencePage').then(
     (module) => ({ default: module.CompetitiveIntelligencePage }),
@@ -76,6 +81,10 @@ function App() {
         <Route
           path="/app/organizations/:organizationId"
           element={<ProtectedRoute><OrganizationPage /></ProtectedRoute>}
+        />
+        <Route
+          path="/app/organizations/:organizationId/logs"
+          element={<ProtectedRoute><OrganizationLogsPage /></ProtectedRoute>}
         />
         <Route
           path="/app/organizations/:organizationId/modules/competitive-intelligence"

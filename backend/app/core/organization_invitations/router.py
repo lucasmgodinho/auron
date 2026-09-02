@@ -4,6 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.core.application_events.service import record_event
 from app.core.auth.dependencies import get_current_user
 from app.core.organization_invitations import service
 from app.core.organization_invitations.schemas import OrganizationInvitationResponse
@@ -33,7 +34,7 @@ def accept_invitation(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> Organization:
     try:
-        return service.accept_invitation(
+        organization = service.accept_invitation(
             session,
             invitation_id=invitation_id,
             current_user=current_user,
@@ -57,3 +58,14 @@ def accept_invitation(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Verified email required",
         ) from error
+    record_event(
+        level="info",
+        event="organization.member.joined",
+        category="organization",
+        user_id=current_user.id,
+        organization_id=organization.id,
+        resource_type="organization_invitation",
+        resource_id=invitation_id,
+        status="succeeded",
+    )
+    return organization

@@ -4,6 +4,7 @@ from uuid import UUID
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.core.application_events.context import bind_application_event_organization
 from app.core.auth.dependencies import get_current_user
 from app.core.organization_context.context import OrganizationContext
 from app.core.organization_memberships import repository as membership_repository
@@ -29,6 +30,7 @@ def get_organization_context(
     if membership is None:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
+    bind_application_event_organization(organization.id)
     return OrganizationContext(
         user=current_user,
         organization=organization,

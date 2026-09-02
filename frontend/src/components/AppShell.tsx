@@ -13,15 +13,17 @@ type AppShellProps = {
   logoutError: string | null
   onLogout: () => void
   isPlatformAdmin?: boolean
-  activePage?: 'overview' | 'admin' | 'account' | 'competitiveIntelligence'
+  activePage?: 'overview' | 'admin' | 'account' | 'competitiveIntelligence' | 'applicationLogs'
   organizationName?: string
   competitiveIntelligencePath?: string
+  applicationLogsPath?: string
 }
 
 type NavigationProps = {
-  activePage: 'overview' | 'admin' | 'account' | 'competitiveIntelligence'
+  activePage: 'overview' | 'admin' | 'account' | 'competitiveIntelligence' | 'applicationLogs'
   isPlatformAdmin: boolean
   competitiveIntelligencePath?: string
+  applicationLogsPath?: string
   onNavigate?: () => void
 }
 
@@ -29,6 +31,7 @@ function Navigation({
   activePage,
   isPlatformAdmin,
   competitiveIntelligencePath,
+  applicationLogsPath,
   onNavigate,
 }: NavigationProps) {
   const { t } = useTranslation()
@@ -53,6 +56,17 @@ function Navigation({
         >
           <span className="nav-icon" aria-hidden="true">◇</span>
           <span>{t('modules.competitive_intelligence.name')}</span>
+        </Link>
+      ) : null}
+      {applicationLogsPath ? (
+        <Link
+          className={`nav-item${activePage === 'applicationLogs' ? ' nav-item-active' : ''}`}
+          to={applicationLogsPath}
+          aria-current={activePage === 'applicationLogs' ? 'page' : undefined}
+          onClick={onNavigate}
+        >
+          <span className="nav-icon" aria-hidden="true">≡</span>
+          <span>{t('applicationLogs.navigation')}</span>
         </Link>
       ) : null}
       {isPlatformAdmin ? (
@@ -80,6 +94,7 @@ export function AppShell({
   activePage = 'overview',
   organizationName,
   competitiveIntelligencePath,
+  applicationLogsPath,
 }: AppShellProps) {
   const { t } = useTranslation()
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
@@ -154,6 +169,8 @@ export function AppShell({
     ? t('common.navigation.account')
     : activePage === 'competitiveIntelligence'
       ? t('modules.competitive_intelligence.name')
+      : activePage === 'applicationLogs'
+        ? t('applicationLogs.navigation')
       : t(activePage === 'admin' ? 'common.navigation.admin' : 'common.navigation.overview')
 
   return (
@@ -168,6 +185,7 @@ export function AppShell({
           activePage={activePage}
           isPlatformAdmin={isPlatformAdmin}
           competitiveIntelligencePath={competitiveIntelligencePath}
+          applicationLogsPath={applicationLogsPath}
         />
         <div className="sidebar-context">
           {organizationName ? (
@@ -300,6 +318,7 @@ export function AppShell({
               activePage={activePage}
               isPlatformAdmin={isPlatformAdmin}
               competitiveIntelligencePath={competitiveIntelligencePath}
+              applicationLogsPath={applicationLogsPath}
               onNavigate={closeDrawer}
             />
             {organizationName ? (
