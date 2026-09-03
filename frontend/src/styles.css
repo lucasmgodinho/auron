@@ -654,6 +654,55 @@ select:focus-visible,
   .application-log-pagination .button { width: 100%; }
 }
 
+.debug-notification {
+  position: fixed;
+  right: var(--space-5);
+  bottom: var(--space-5);
+  z-index: 90;
+  width: min(27rem, calc(100vw - 2 * var(--space-5)));
+  padding: var(--space-4);
+  border: 1px solid var(--info);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+}
+
+.debug-notification-stopped { border-color: var(--danger); }
+.debug-notification-heading { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--space-3); }
+.debug-notification-heading div { display: grid; min-width: 0; }
+.debug-notification-heading span { color: var(--text-muted); font-size: 0.75rem; }
+.debug-notification-heading strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.debug-notification-icon { display: grid; width: 2.25rem; height: 2.25rem; place-items: center; border-radius: var(--radius-sm); background: var(--info-surface); color: var(--info) !important; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-weight: 700; }
+.debug-notification-count { min-width: 1.75rem; padding: 0.125rem var(--space-2); border-radius: 999px; background: var(--surface-secondary); color: var(--text-primary) !important; text-align: center; }
+.debug-notification-location { display: block; margin-top: var(--space-3); overflow: hidden; color: var(--text-muted); font-size: 0.75rem; text-overflow: ellipsis; white-space: nowrap; }
+.debug-notification p { display: -webkit-box; margin: var(--space-2) 0 var(--space-3); overflow: hidden; color: var(--text-secondary); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 0.8125rem; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.debug-notification-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+
+.debug-dialog-layer { position: fixed; inset: 0; z-index: 110; }
+.debug-dialog-overlay { position: absolute; inset: 0; width: 100%; border: 0; background: var(--overlay); cursor: default; }
+.debug-dialog { position: absolute; inset: var(--space-8); display: flex; max-width: 70rem; margin: auto; flex-direction: column; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow-md); }
+.debug-dialog-header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); padding: var(--space-5); border-bottom: 1px solid var(--border); }
+.debug-dialog-header h2, .debug-dialog-header p { margin: 0; }
+.debug-dialog-toolbar { display: flex; flex-wrap: wrap; gap: var(--space-3); padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--border); background: var(--surface-secondary); }
+.debug-entry-list { display: grid; align-content: start; gap: var(--space-3); padding: var(--space-5); overflow: auto; }
+.debug-entry { border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); }
+.debug-entry-stop, .debug-entry-exception { border-color: var(--danger); }
+.debug-entry summary { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); cursor: pointer; }
+.debug-entry summary > span:nth-child(2) { display: grid; min-width: 0; }
+.debug-entry summary code { overflow: hidden; color: var(--text-muted); font-size: 0.75rem; text-overflow: ellipsis; white-space: nowrap; }
+.debug-entry-index { display: grid; width: 1.75rem; height: 1.75rem; place-items: center; border-radius: 999px; background: var(--surface-secondary); font-size: 0.75rem; }
+.debug-entry-type { color: var(--text-muted); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 0.75rem; }
+.debug-entry-body { padding: 0 var(--space-4) var(--space-4); }
+.debug-entry-body pre { max-height: 24rem; margin: var(--space-3) 0; padding: var(--space-4); overflow: auto; border-radius: var(--radius-sm); background: var(--auth-background); color: var(--auth-text); font-size: 0.8125rem; white-space: pre-wrap; word-break: break-word; }
+
+@media (max-width: 640px) {
+  .debug-notification { right: var(--space-3); bottom: var(--space-3); width: calc(100vw - 2 * var(--space-3)); }
+  .debug-dialog { inset: var(--space-3); }
+  .debug-dialog-header, .debug-entry-list { padding: var(--space-4); }
+  .debug-entry summary { grid-template-columns: auto 1fr; }
+  .debug-entry-type { grid-column: 2; }
+}
+
 @media (max-width: 360px) {
   .preference-controls { grid-template-columns: 1fr; }
   .auth-preferences .preference-controls { width: 100%; }

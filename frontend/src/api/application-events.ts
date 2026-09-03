@@ -63,7 +63,7 @@ export async function listApplicationEvents(
   if (filters.userId) query.set('user_id', filters.userId)
   if (filters.requestId) query.set('request_id', filters.requestId)
 
-  const response = await fetch(
+  const response = await auronFetch(
     `/organizations/${encodeURIComponent(organizationId)}/application-events?${query}`,
     { method: 'GET', credentials: 'include' },
   )
@@ -77,7 +77,7 @@ export async function getApplicationEvent(
   organizationId: string,
   eventId: string,
 ): Promise<ApplicationEvent> {
-  const response = await fetch(
+  const response = await auronFetch(
     `/organizations/${encodeURIComponent(organizationId)}/application-events/${encodeURIComponent(eventId)}`,
     { method: 'GET', credentials: 'include' },
   )
@@ -86,3 +86,4 @@ export async function getApplicationEvent(
   }
   return (await response.json()) as ApplicationEvent
 }
+import { auronFetch } from './http'

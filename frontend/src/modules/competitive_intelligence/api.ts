@@ -20,7 +20,7 @@ export async function runCompetitiveAnalysis(
   organizationId: string,
   companyName: string,
 ): Promise<CompetitiveAnalysis> {
-  const response = await fetch(
+  const response = await auronFetch(
     `/organizations/${encodeURIComponent(organizationId)}/modules/competitive-intelligence/analyses`,
     {
       method: "POST",
@@ -46,3 +46,4 @@ export async function runCompetitiveAnalysis(
   }
   return (await response.json()) as CompetitiveAnalysis
 }
+import { auronFetch } from '../../api/http'

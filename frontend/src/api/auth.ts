@@ -25,7 +25,7 @@ async function parseAuthenticatedUser(response: Response): Promise<User> {
 }
 
 export async function getCurrentUser(): Promise<User | null> {
-  const response = await fetch('/auth/me', {
+  const response = await auronFetch('/auth/me', {
     method: 'GET',
     credentials: 'include',
   })
@@ -45,7 +45,7 @@ export function startGoogleLogin(): void {
 }
 
 export async function loginWithPassword(email: string, password: string): Promise<User> {
-  const response = await fetch('/auth/login', {
+  const response = await auronFetch('/auth/login', {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -55,7 +55,7 @@ export async function loginWithPassword(email: string, password: string): Promis
 }
 
 export async function registerLocalAccount(name: string, email: string): Promise<void> {
-  const response = await fetch('/auth/register', {
+  const response = await auronFetch('/auth/register', {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -67,7 +67,7 @@ export async function registerLocalAccount(name: string, email: string): Promise
 }
 
 export async function completeEmailVerification(token: string, password: string): Promise<User> {
-  const response = await fetch('/auth/email-verifications/complete', {
+  const response = await auronFetch('/auth/email-verifications/complete', {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -77,7 +77,7 @@ export async function completeEmailVerification(token: string, password: string)
 }
 
 export async function resendEmailVerification(email: string): Promise<void> {
-  const response = await fetch('/auth/email-verifications/resend', {
+  const response = await auronFetch('/auth/email-verifications/resend', {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -89,7 +89,7 @@ export async function resendEmailVerification(email: string): Promise<void> {
 }
 
 export async function endSession(): Promise<void> {
-  const response = await fetch('/auth/logout', {
+  const response = await auronFetch('/auth/logout', {
     method: 'POST',
     credentials: 'include',
   })
@@ -98,3 +98,4 @@ export async function endSession(): Promise<void> {
     throw new Error('Unable to end the authenticated session')
   }
 }
+import { auronFetch } from './http'

@@ -18,7 +18,7 @@ export class AccessControlApiError extends Error {
 export async function getOrganizationAccessSummary(
   organizationId: string,
 ): Promise<OrganizationAccessSummary> {
-  const response = await fetch(
+  const response = await auronFetch(
     `/organizations/${encodeURIComponent(organizationId)}/access-control/me`,
     {
       method: "GET",
@@ -33,3 +33,4 @@ export async function getOrganizationAccessSummary(
   }
   return (await response.json()) as OrganizationAccessSummary
 }
+import { auronFetch } from './http'

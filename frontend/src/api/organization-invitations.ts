@@ -1,4 +1,5 @@
 import type { Organization } from './organizations'
+import { auronFetch } from './http'
 
 export type OrganizationInvitation = {
   id: string
@@ -18,7 +19,7 @@ export class OrganizationInvitationApiError extends Error {
 }
 
 export async function listMyOrganizationInvitations(): Promise<OrganizationInvitation[]> {
-  const response = await fetch('/organization-invitations/me', {
+  const response = await auronFetch('/organization-invitations/me', {
     method: 'GET',
     credentials: 'include',
   })
@@ -30,7 +31,7 @@ export async function listMyOrganizationInvitations(): Promise<OrganizationInvit
 }
 
 export async function acceptOrganizationInvitation(invitationId: string): Promise<Organization> {
-  const response = await fetch(
+  const response = await auronFetch(
     `/organization-invitations/${encodeURIComponent(invitationId)}/accept`,
     {
       method: 'POST',

@@ -22,7 +22,7 @@ export class PlatformAdminApiError extends Error {
 }
 
 export async function getPlatformAdminStatus(): Promise<boolean> {
-  const response = await fetch('/platform-admin/me', {
+  const response = await auronFetch('/platform-admin/me', {
     method: 'GET',
     credentials: 'include',
   })
@@ -39,7 +39,7 @@ export async function getPlatformAdminStatus(): Promise<boolean> {
 }
 
 export async function listPlatformAdminOrganizations(): Promise<PlatformAdminOrganization[]> {
-  const response = await fetch('/platform-admin/organizations', {
+  const response = await auronFetch('/platform-admin/organizations', {
     method: 'GET',
     credentials: 'include',
   })
@@ -54,7 +54,7 @@ export async function createPlatformAdminOrganization(
   name: string,
   invitationEmails: string[],
 ): Promise<PlatformAdminOrganization> {
-  const response = await fetch('/platform-admin/organizations', {
+  const response = await auronFetch('/platform-admin/organizations', {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -73,7 +73,7 @@ export async function createPlatformAdminOrganization(
 export async function listPlatformAdminOrganizationModules(
   organizationId: string,
 ): Promise<PlatformAdminModule[]> {
-  const response = await fetch(
+  const response = await auronFetch(
     `/platform-admin/organizations/${encodeURIComponent(organizationId)}/modules`,
     { method: 'GET', credentials: 'include' },
   )
@@ -88,7 +88,7 @@ export async function updatePlatformAdminOrganizationModule(
   moduleKey: string,
   enabled: boolean,
 ): Promise<PlatformAdminModule> {
-  const response = await fetch(
+  const response = await auronFetch(
     `/platform-admin/organizations/${encodeURIComponent(organizationId)}/modules/${encodeURIComponent(moduleKey)}`,
     {
       method: 'PUT',
@@ -102,3 +102,4 @@ export async function updatePlatformAdminOrganizationModule(
   }
   return (await response.json()) as PlatformAdminModule
 }
+import { auronFetch } from './http'

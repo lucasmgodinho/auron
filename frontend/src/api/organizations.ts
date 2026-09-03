@@ -16,7 +16,7 @@ export class OrganizationApiError extends Error {
 }
 
 export async function listOrganizations(): Promise<Organization[]> {
-  const response = await fetch('/organizations', {
+  const response = await auronFetch('/organizations', {
     method: 'GET',
     credentials: 'include',
   })
@@ -28,7 +28,7 @@ export async function listOrganizations(): Promise<Organization[]> {
 }
 
 export async function getOrganization(organizationId: string): Promise<Organization> {
-  const response = await fetch(`/organizations/${encodeURIComponent(organizationId)}`, {
+  const response = await auronFetch(`/organizations/${encodeURIComponent(organizationId)}`, {
     method: 'GET',
     credentials: 'include',
   })
@@ -38,3 +38,4 @@ export async function getOrganization(organizationId: string): Promise<Organizat
   }
   return (await response.json()) as Organization
 }
+import { auronFetch } from './http'

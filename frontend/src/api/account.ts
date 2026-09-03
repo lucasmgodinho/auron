@@ -1,4 +1,5 @@
 import type { User } from './auth'
+import { auronFetch } from './http'
 
 export type AccountSettings = {
   user: Pick<User, 'id' | 'email' | 'name' | 'email_verified_at'>
@@ -32,7 +33,7 @@ async function accountError(response: Response, message: string): Promise<Accoun
 }
 
 export async function getAccountSettings(): Promise<AccountSettings> {
-  const response = await fetch('/auth/account', {
+  const response = await auronFetch('/auth/account', {
     method: 'GET',
     credentials: 'include',
   })
@@ -41,7 +42,7 @@ export async function getAccountSettings(): Promise<AccountSettings> {
 }
 
 export async function updateProfile(userId: string, name: string): Promise<User> {
-  const response = await fetch(`/users/${encodeURIComponent(userId)}`, {
+  const response = await auronFetch(`/users/${encodeURIComponent(userId)}`, {
     method: 'PATCH',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -55,7 +56,7 @@ export async function changePassword(
   currentPassword: string,
   newPassword: string,
 ): Promise<void> {
-  const response = await fetch('/auth/password/change', {
+  const response = await auronFetch('/auth/password/change', {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -68,7 +69,7 @@ export async function changePassword(
 }
 
 export async function startPasswordEnrollment(): Promise<void> {
-  const response = await fetch('/auth/password/enrollment/start', {
+  const response = await auronFetch('/auth/password/enrollment/start', {
     method: 'POST',
     credentials: 'include',
   })

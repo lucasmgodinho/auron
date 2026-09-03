@@ -6,6 +6,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import JSONResponse
 
 from app.config import get_settings
+from app.core import debug
 from app.core.access_control.router import router as access_control_router
 from app.core.application_events.middleware import (
     ApplicationEventMiddleware,
@@ -27,6 +28,7 @@ from app.modules.competitive_intelligence.router import (
 
 settings = get_settings()
 app = FastAPI(title="Auron")
+app.add_middleware(debug._DebugMiddleware)
 app.add_middleware(ApplicationEventMiddleware)
 if settings.google_authentication_configured:
     assert settings.oauth_state_secret is not None
@@ -39,6 +41,7 @@ if settings.google_authentication_configured:
         same_site="lax",
         https_only=settings.auth_session_cookie_secure,
     )
+app.add_exception_handler(debug._DebugStop, debug._handle_debug_stop)
 app.include_router(auth_router)
 app.include_router(platform_admin_router)
 app.include_router(invitations_router)
