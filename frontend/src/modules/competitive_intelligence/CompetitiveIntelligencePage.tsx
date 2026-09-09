@@ -15,16 +15,53 @@ import { LoadingState } from "../../components/LoadingState"
 import { usePageMetadata } from "../../hooks/usePageMetadata"
 import {
   CompetitiveIntelligenceApiError,
-  runCompetitiveAnalysis,
+  CompetitiveIntelligenceStreamError,
+  streamCompetitiveAnalysis,
+  type AnalysisEvent,
   type CompetitiveAnalysis,
 } from "./api"
+
+import { AnalysisActivity } from "./AnalysisActivity"
+import { isAnalysisRunCurrent } from "./analysis-run"
 
 const MODULE_KEY = "competitive_intelligence"
 const RUN_PERMISSION = "competitive_intelligence.analysis.run"
 
 type PageStatus = "loading" | "ready" | "forbidden" | "not-found" | "error"
 
-function getAnalysisErrorKey(error: unknown): string {
+function getAnalysisErrorKey(
+  error: unknown,
+): string {
+  if (
+    error
+    instanceof CompetitiveIntelligenceStreamError
+  ) {
+    switch (error.code) {
+      case "invalid_company":
+        return "competitive_intelligence.errors.invalidCompany"
+
+      case "no_search_results":
+        return "competitive_intelligence.errors.noResults"
+
+      case "search_provider_failed":
+        return "competitive_intelligence.errors.search"
+
+      case "model_provider_failed":
+        return "competitive_intelligence.errors.model"
+
+      case "vector_store_failed":
+        return "competitive_intelligence.errors.context"
+
+      case "stream_ended_unexpectedly":
+      case "stream_unavailable":
+      case "invalid_stream_event":
+      case "invalid_stream_response":
+        return "competitive_intelligence.errors.connection"
+
+      default:
+        return "competitive_intelligence.errors.unexpected"
+    }
+  }
   if (!(error instanceof CompetitiveIntelligenceApiError)) {
     return "competitive_intelligence.errors.unexpected"
   }
@@ -54,6 +91,10 @@ export function CompetitiveIntelligencePage() {
   const { organizationId } = useParams<{ organizationId: string }>()
   const { user, logout, refreshUser } = useAuth()
   const requestId = useRef(0)
+  const analysisRunId = useRef(0)
+  const isMounted = useRef(true)
+  const currentOrganizationId = useRef(organizationId)
+  currentOrganizationId.current = organizationId
   const [pageStatus, setPageStatus] = useState<PageStatus>("loading")
   const [organization, setOrganization] = useState<Organization | null>(null)
   const [companyName, setCompanyName] = useState("")
@@ -63,6 +104,8 @@ export function CompetitiveIntelligencePage() {
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [logoutError, setLogoutError] = useState<string | null>(null)
+  const [analysisEvents, setAnalysisEvents] = useState<AnalysisEvent[]>([])
+  const analysisAbortController = useRef<AbortController | null>(null)
 
   usePageMetadata(
     t("competitive_intelligence.meta.title"),
@@ -111,6 +154,25 @@ export function CompetitiveIntelligencePage() {
   }, [organizationId, refreshUser])
 
   useEffect(() => {
+    isMounted.current = true
+    return () => {
+      isMounted.current = false
+      analysisRunId.current += 1
+      analysisAbortController.current?.abort()
+    }
+  }, [])
+
+  useEffect(() => {
+    analysisRunId.current += 1
+    analysisAbortController.current?.abort()
+    analysisAbortController.current = null
+    setIsAnalyzing(false)
+    setAnalysis(null)
+    setAnalysisEvents([])
+    setAnalysisError(null)
+  }, [organizationId])
+
+  useEffect(() => {
     void loadPage()
     return () => { requestId.current += 1 }
   }, [loadPage])
@@ -134,32 +196,98 @@ export function CompetitiveIntelligencePage() {
     }
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(
+    event: FormEvent<HTMLFormElement>,
+  ) {
     event.preventDefault()
+
     if (!organizationId || isAnalyzing) return
+
     const normalizedCompanyName = companyName.trim()
+
     if (normalizedCompanyName.length < 2) {
-      setAnalysisError(t("competitive_intelligence.errors.input"))
+      setAnalysisError(
+        t("competitive_intelligence.errors.input"),
+      )
       return
     }
 
+    analysisAbortController.current?.abort()
+    const controller = new AbortController()
+    const runId = ++analysisRunId.current
+    const runOrganizationId = organizationId
+    analysisAbortController.current = controller
+    const isCurrentRun = () => isAnalysisRunCurrent({
+      mounted: isMounted.current,
+      aborted: controller.signal.aborted,
+      runId,
+      currentRunId: analysisRunId.current,
+      organizationId: runOrganizationId,
+      currentOrganizationId: currentOrganizationId.current,
+    })
+
     setIsAnalyzing(true)
     setAnalysis(null)
+    setAnalysisEvents([])
     setAnalysisError(null)
+
     try {
-      const result = await runCompetitiveAnalysis(
+      await streamCompetitiveAnalysis(
         organizationId,
         normalizedCompanyName,
+        (analysisEvent) => {
+          if (!isCurrentRun()) {
+            return
+          }
+          setAnalysisEvents((currentEvents) => [
+            ...currentEvents,
+            analysisEvent,
+          ])
+
+          if (
+            analysisEvent.type
+            === "analysis_completed"
+          ) {
+            setAnalysis(analysisEvent.data)
+            setCompanyName(
+              analysisEvent.data.company_name,
+            )
+          }
+        },
+        controller.signal,
       )
-      setAnalysis(result)
-      setCompanyName(result.company_name)
-    } catch (error) {
-      if (error instanceof CompetitiveIntelligenceApiError && error.status === 401) {
-        await refreshUser()
+      if (!isCurrentRun()) {
+        return
       }
-      setAnalysisError(t(getAnalysisErrorKey(error)))
+    } catch (error) {
+      if (
+        !isCurrentRun()
+        || (error instanceof DOMException && error.name === "AbortError")
+      ) {
+        return
+      }
+
+      if (
+        error instanceof CompetitiveIntelligenceApiError
+        && error.status === 401
+      ) {
+        await refreshUser()
+        if (!isCurrentRun()) {
+          return
+        }
+      }
+
+      setAnalysisError(
+        t(getAnalysisErrorKey(error)),
+      )
     } finally {
-      setIsAnalyzing(false)
+      if (
+        isCurrentRun()
+        && analysisAbortController.current === controller
+      ) {
+        analysisAbortController.current = null
+        setIsAnalyzing(false)
+      }
     }
   }
 
@@ -188,21 +316,21 @@ export function CompetitiveIntelligencePage() {
   if (pageStatus !== "ready" || organization === null) {
     const copy = pageStatus === "forbidden"
       ? {
-          eyebrow: t("competitive_intelligence.access.deniedEyebrow"),
-          heading: t("competitive_intelligence.access.deniedTitle"),
-          body: t("competitive_intelligence.access.deniedBody"),
-        }
+        eyebrow: t("competitive_intelligence.access.deniedEyebrow"),
+        heading: t("competitive_intelligence.access.deniedTitle"),
+        body: t("competitive_intelligence.access.deniedBody"),
+      }
       : pageStatus === "not-found"
         ? {
-            eyebrow: t("organizations.home.notFoundEyebrow"),
-            heading: t("organizations.home.notFoundTitle"),
-            body: t("organizations.home.notFoundBody"),
-          }
+          eyebrow: t("organizations.home.notFoundEyebrow"),
+          heading: t("organizations.home.notFoundTitle"),
+          body: t("organizations.home.notFoundBody"),
+        }
         : {
-            eyebrow: t("competitive_intelligence.access.errorEyebrow"),
-            heading: t("competitive_intelligence.access.errorTitle"),
-            body: t("competitive_intelligence.access.errorBody"),
-          }
+          eyebrow: t("competitive_intelligence.access.errorEyebrow"),
+          heading: t("competitive_intelligence.access.errorTitle"),
+          body: t("competitive_intelligence.access.errorBody"),
+        }
     return (
       <AppShell
         user={user}
@@ -283,8 +411,11 @@ export function CompetitiveIntelligencePage() {
             </button>
           </div>
         </form>
-        {isAnalyzing ? (
-          <LoadingState label={t("competitive_intelligence.form.loading")} />
+        {analysisEvents.length > 0 ? (
+          <AnalysisActivity
+            events={analysisEvents}
+            isAnalyzing={isAnalyzing}
+          />
         ) : null}
         {analysisError ? (
           <div className="alert alert-danger" role="alert">{analysisError}</div>

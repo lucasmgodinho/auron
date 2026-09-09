@@ -1,4 +1,5 @@
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from uuid import UUID
 
 import chromadb
@@ -8,6 +9,14 @@ from .errors import NoSearchResultsError, VectorStoreError
 
 EMBEDDING_MODEL_NAME = "text-embedding-3-small"
 RETRIEVAL_LIMIT = 10
+
+
+@dataclass(frozen=True, slots=True)
+class ContextRetrievalResult:
+    context: str
+    documents_indexed: int
+    embedding_units_indexed: int
+    embedding_units_retrieved: int
 
 
 class ChromaContextStore:
@@ -31,7 +40,7 @@ class ChromaContextStore:
         execution_id: UUID,
         company_name: str,
         documents: Sequence[Mapping[str, str]],
-    ) -> str:
+    ) -> ContextRetrievalResult:
         valid_documents = [
             document
             for document in documents
@@ -87,7 +96,14 @@ class ChromaContextStore:
             ]
             if not retrieved:
                 raise NoSearchResultsError("No search documents were retrieved")
-            return "\n\n".join(retrieved)
+
+            return ContextRetrievalResult(
+                context="\n\n".join(retrieved),
+                documents_indexed=len(valid_documents),
+                embedding_units_indexed=len(answers),
+                embedding_units_retrieved=len(retrieved),
+            )
+
         except NoSearchResultsError:
             raise
         except Exception as error:

@@ -478,6 +478,21 @@ select:focus-visible,
 .competitive-intelligence-search .button { min-width: 8rem; }
 .competitive-intelligence-form .content-loading { min-height: 8rem; margin-top: var(--space-5); }
 .competitive-intelligence-form .alert { margin-top: var(--space-5); }
+.analysis-activity { margin-top: var(--space-6); padding: var(--space-5); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-secondary); }
+.analysis-activity h3 { margin: 0; font-size: 1rem; }
+.analysis-activity > ol { display: grid; gap: var(--space-3); margin: var(--space-4) 0 0; padding: 0; list-style: none; }
+.analysis-activity > ol > li { min-width: 0; display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); gap: var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--border); }
+.analysis-activity > ol > li:first-child { padding-top: 0; border-top: 0; }
+.analysis-activity time { color: var(--text-muted); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 0.75rem; overflow-wrap: anywhere; }
+.analysis-activity-content { min-width: 0; color: var(--text-secondary); font-size: 0.875rem; line-height: 1.55; overflow-wrap: anywhere; }
+.analysis-activity-content p { margin: 0; }
+.analysis-activity-content details { min-width: 0; }
+.analysis-activity-content summary { color: var(--text-primary); cursor: pointer; font-weight: 700; overflow-wrap: anywhere; }
+.analysis-activity-content ul { margin: var(--space-3) 0 0; padding-left: var(--space-5); }
+.analysis-activity-content li { margin-top: var(--space-2); overflow-wrap: anywhere; }
+.analysis-activity-detail { margin-top: var(--space-2) !important; color: var(--text-muted); }
+.analysis-source-list a { color: var(--action-primary); font-weight: 700; text-decoration: underline; text-decoration-thickness: 0.1em; text-underline-offset: 0.16em; overflow-wrap: anywhere; }
+.analysis-source-list a:hover { color: var(--action-primary-hover); }
 .competitive-intelligence-report { margin-top: var(--space-8); padding: clamp(var(--space-5), 4vw, var(--space-8)); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow-sm); }
 .competitive-intelligence-report header { padding-bottom: var(--space-5); border-bottom: 1px solid var(--border); }
 .competitive-intelligence-report h2 { margin: var(--space-2) 0 0; font-size: clamp(1.5rem, 4vw, 2rem); }
@@ -619,6 +634,7 @@ select:focus-visible,
   .admin-organization-card .button { width: 100%; }
   .competitive-intelligence-search { grid-template-columns: 1fr; }
   .competitive-intelligence-search .button { width: 100%; }
+  .analysis-activity > ol > li { grid-template-columns: 1fr; gap: var(--space-1); }
   .application-log-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .settings-layout { grid-template-columns: 1fr; gap: var(--space-5); margin-top: var(--space-6); }
   .settings-navigation { grid-template-columns: repeat(2, minmax(0, 1fr)); }

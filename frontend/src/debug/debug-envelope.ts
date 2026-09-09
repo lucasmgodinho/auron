@@ -30,8 +30,12 @@ export async function unwrapDebugResponse(
   response: Response,
   capture: (entries: readonly DebugEntry[]) => void,
 ): Promise<Response> {
-  const contentType = response.headers.get('content-type')?.toLowerCase() ?? ''
-  if (!contentType.includes('json') || response.status === 204 || response.status === 304) {
+  const mediaType = response.headers.get('content-type')
+    ?.split(';', 1)[0]
+    ?.trim()
+    .toLowerCase() ?? ''
+  const isJson = mediaType === 'application/json' || mediaType.endsWith('+json')
+  if (!isJson || response.status === 204 || response.status === 304) {
     return response
   }
 

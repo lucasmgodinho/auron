@@ -31,7 +31,13 @@ test('successful responses are unwrapped and captured', async () => {
   const captured: DebugEntry[] = []
   const response = new Response(
     JSON.stringify({ _auron_payload: { result: 'ok' }, _auron_debug: [firstEntry] }),
-    { status: 200, headers: { 'Content-Type': 'application/json', 'X-Test': 'preserved' } },
+    {
+      status: 200,
+      headers: {
+        'Content-Type': 'Application/JSON; charset=utf-8',
+        'X-Test': 'preserved',
+      },
+    },
   )
 
   const unwrapped = await unwrapDebugResponse(response, (entries) => captured.push(...entries))
@@ -45,7 +51,7 @@ test('successful responses are unwrapped and captured', async () => {
 test('failed responses preserve status while being unwrapped', async () => {
   const response = new Response(
     JSON.stringify({ _auron_payload: { detail: 'invalid' }, _auron_debug: [firstEntry] }),
-    { status: 422, headers: { 'Content-Type': 'application/json' } },
+    { status: 422, headers: { 'Content-Type': 'application/problem+json' } },
   )
 
   const unwrapped = await unwrapDebugResponse(response, () => undefined)
@@ -62,6 +68,53 @@ test('normal responses remain the same Response object', async () => {
   })
 
   assert.equal(await unwrapDebugResponse(response, () => undefined), response)
+})
+
+test('NDJSON responses remain open and available for progressive reading', async () => {
+  const encoder = new TextEncoder()
+  const decoder = new TextDecoder()
+  const firstLine = `${JSON.stringify({ type: 'first' })}\n`
+  const secondLine = `${JSON.stringify({ type: 'second' })}\n`
+  let streamController: ReadableStreamDefaultController<Uint8Array> | undefined
+  const response = new Response(
+    new ReadableStream<Uint8Array>({
+      start(controller) {
+        streamController = controller
+        controller.enqueue(encoder.encode(firstLine))
+      },
+    }),
+    { headers: { 'Content-Type': 'application/x-ndjson; charset=utf-8' } },
+  )
+  const unwrapPromise = unwrapDebugResponse(response, () => undefined)
+  let timeout: ReturnType<typeof setTimeout> | undefined
+  const timeoutPromise = new Promise<null>((resolve) => {
+    timeout = setTimeout(() => resolve(null), 100)
+  })
+
+  const unwrapped = await Promise.race([unwrapPromise, timeoutPromise])
+  if (timeout !== undefined) clearTimeout(timeout)
+  if (unwrapped === null) {
+    streamController?.close()
+    await unwrapPromise
+    assert.fail('NDJSON response waited for the stream to close')
+  }
+
+  assert.equal(unwrapped, response)
+  assert.equal(unwrapped.bodyUsed, false)
+  const reader = unwrapped.body?.getReader()
+  assert.ok(reader)
+
+  const firstChunk = await reader.read()
+  assert.equal(firstChunk.done, false)
+  assert.equal(decoder.decode(firstChunk.value), firstLine)
+
+  streamController?.enqueue(encoder.encode(secondLine))
+  const secondChunk = await reader.read()
+  assert.equal(secondChunk.done, false)
+  assert.equal(decoder.decode(secondChunk.value), secondLine)
+
+  streamController?.close()
+  assert.equal((await reader.read()).done, true)
 })
 
 test('the in-memory store consolidates, dismisses, reopens, and clears entries', () => {

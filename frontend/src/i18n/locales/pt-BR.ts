@@ -201,6 +201,22 @@ export const ptBR = {
     },
   },
   competitive_intelligence: {
+    activity: {
+      title: 'Etapas da análise',
+      started: 'Análise iniciada para {{company}}.',
+      questions: '{{count}} perguntas geradas para o setor {{sector}}.',
+      searching: 'Executando pesquisa {{current}} de {{total}}.',
+      searchCompleted: 'Pesquisa {{current}} de {{total}} concluída — {{count}} fontes retornadas pelo Tavily.',
+      searchFailed: 'A pesquisa {{current}} de {{total}} falhou.',
+      answerIndexed: 'A resposta do Tavily foi aceita para indexação temporária.',
+      answerNotIndexed: 'Nenhuma resposta desta pesquisa foi aceita para indexação.',
+      noSources: 'O Tavily não retornou links de fontes válidos para esta pesquisa.',
+      documents: '{{documents}} respostas foram indexadas temporariamente no Chroma como {{units}} unidades de embedding.',
+      rag: '{{count}} de até {{limit}} unidades de resposta foram recuperadas pelo RAG.',
+      report: 'Gerando o relatório para {{company}}.',
+      completed: 'Relatório concluído.',
+      failed: 'A análise foi interrompida.',
+    },
     meta: {
       title: 'Competitive Intelligence',
       description: 'Pesquisa e análise competitiva para a Organização atual.',
@@ -220,6 +236,8 @@ export const ptBR = {
       loading: 'Pesquisando fontes e preparando o relatório…',
     },
     errors: {
+      context: 'Não foi possível preparar o contexto da análise.',
+      connection: 'A conexão foi interrompida durante a análise.',
       input: 'Informe o nome de uma empresa.',
       invalidCompany: 'A empresa informada não pôde ser validada. Confira o nome e tente novamente.',
       search: 'A pesquisa na web falhou. Tente novamente em alguns instantes.',

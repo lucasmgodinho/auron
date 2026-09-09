@@ -201,9 +201,16 @@ Organization. Owners may run it after entitlement succeeds; other memberships re
 permission through an Access Group.
 
 Configure `OPENAI_API_KEY` and `TAVILY_API_KEY` in the backend environment. `OPENAI_BASE_URL` is
-optional. The V1 endpoint runs a synchronous question generation, Tavily search, ephemeral Chroma
-retrieval, and report generation pipeline. Search documents and reports are not persisted, and each
-execution removes its temporary vector collection. The frontend route is
+optional. The synchronous analysis endpoint remains available, while the UI uses
+`POST /organizations/{organization_id}/modules/competitive-intelligence/analyses/stream`. The
+stream is NDJSON: its progress events are transient UI updates and exactly one terminal event
+reports completion or failure.
+
+Each valid Tavily answer is one embedding unit; the pipeline does not perform chunking. Displayed
+source links are the sources returned by Tavily and do not imply that each source page was indexed.
+Chroma uses a new ephemeral collection for every execution and removes it afterward. Search
+answers, events, and reports are not persisted. Durable application events for analysis start,
+completion, and failure remain separate from the transient stream stages. The frontend route is
 `/app/organizations/:organizationId/modules/competitive-intelligence`. Tests replace external
 providers with deterministic fakes and do not call OpenAI or Tavily.
 

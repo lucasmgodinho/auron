@@ -83,6 +83,12 @@ Tavily, embeds retrieved documents in a per-execution ephemeral Chroma collectio
 context, and generates a report. It stores no analysis history or module-owned database rows and
 removes the temporary collection after each execution. It does not expose an AnalyticsProvider.
 
+The same LangGraph workflow supports the existing synchronous endpoint and an NDJSON streaming
+endpoint used by the UI. Custom workflow events describe transient progress from question
+generation through Tavily, ephemeral Chroma retrieval, and report generation; the router maps every
+execution to exactly one public terminal event without exposing provider details. These UI events
+are neither persisted nor mixed with the durable start, completion, and failure application events.
+
 Implemented business modules may optionally expose a code-defined `AnalyticsProvider`. Analytics
 Core discovers those providers only through the Module Registry and orchestrates one source metric
 at a time:

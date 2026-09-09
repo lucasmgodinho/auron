@@ -119,6 +119,22 @@ export const en = {
     },
   },
   competitive_intelligence: {
+    activity: {
+      title: 'Analysis stages',
+      started: 'Analysis started for {{company}}.',
+      questions: '{{count}} questions generated for {{sector}}.',
+      searching: 'Running search {{current}} of {{total}}.',
+      searchCompleted: 'Search {{current}} of {{total}} completed — {{count}} sources returned by Tavily.',
+      searchFailed: 'Search {{current}} of {{total}} failed.',
+      answerIndexed: 'The Tavily answer was accepted for temporary indexing.',
+      answerNotIndexed: 'No answer from this search was accepted for indexing.',
+      noSources: 'Tavily returned no valid source links for this search.',
+      documents: '{{documents}} responses were temporarily indexed in Chroma as {{units}} embedding units.',
+      rag: '{{count}} of up to {{limit}} response units were retrieved by RAG.',
+      report: 'Generating the report for {{company}}.',
+      completed: 'Report completed.',
+      failed: 'The analysis was interrupted.',
+    },
     meta: {
       title: 'Competitive Intelligence',
       description: 'Competitive research and analysis for the current Organization.',
@@ -138,6 +154,8 @@ export const en = {
       loading: 'Searching sources and preparing the report…',
     },
     errors: {
+      context: 'We could not prepare the analysis context.',
+      connection: 'The connection was interrupted during the analysis.',
       input: 'Enter a company name.',
       invalidCompany: 'The company could not be validated. Check the name and try again.',
       search: 'The web search failed. Please try again shortly.',
