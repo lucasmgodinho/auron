@@ -81,6 +81,9 @@ Run backend checks from `backend/`:
 .\.venv\Scripts\python.exe -m ruff check .
 ```
 
+For temporary request-scoped inspection during development, see the
+[debug toolkit guide](docs/DEBUG_TOOLKIT.md).
+
 Integration tests refuse to run if `TEST_DATABASE_URL` is missing or points to the same database as `DATABASE_URL`.
 
 Authentication uses opaque server-side sessions stored in PostgreSQL. Session cookies are
