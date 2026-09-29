@@ -1,0 +1,181 @@
+{
+  "schema_version": "1.0.0",
+  "case_id": "microsoft_competitors",
+  "research_question": "Who are Microsoft's main competitors in the technology sector?",
+  "candidate_set_sha256": "e39067e60d5c415e3e2416b130ae673213457d483b4cf30857397445f228c65d",
+  "chunking_configuration_sha256": "7a5b8d4c89300008d578d1792a88e970a890e143fd68579077374d18873926fe",
+  "annotation_guideline_version": "2.0.0",
+  "annotated_at": "2026-09-25T15:37:52.458173Z",
+  "annotation_method": "human_reviewed_legacy_migration",
+  "notes": "Migrated without relabeling from the existing human-reviewed Microsoft fixture.",
+  "labels": [
+    {
+      "chunk_id": "src_eb6a7fd0e69045dfb3daf0316499044c_chunk_0",
+      "relevance": 0,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_eb6a7fd0e69045dfb3daf0316499044c_chunk_1",
+      "relevance": 0,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_eb6a7fd0e69045dfb3daf0316499044c_chunk_2",
+      "relevance": 1,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_eb6a7fd0e69045dfb3daf0316499044c_chunk_3",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_eb6a7fd0e69045dfb3daf0316499044c_chunk_4",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_eb6a7fd0e69045dfb3daf0316499044c_chunk_5",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_eb6a7fd0e69045dfb3daf0316499044c_chunk_6",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_eb6a7fd0e69045dfb3daf0316499044c_chunk_7",
+      "relevance": 0,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_cab765952a9449de91ea7f7cdf630a26_chunk_0",
+      "relevance": 0,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_cab765952a9449de91ea7f7cdf630a26_chunk_1",
+      "relevance": 1,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_cab765952a9449de91ea7f7cdf630a26_chunk_2",
+      "relevance": 1,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_cab765952a9449de91ea7f7cdf630a26_chunk_3",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_cab765952a9449de91ea7f7cdf630a26_chunk_4",
+      "relevance": 0,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_cab765952a9449de91ea7f7cdf630a26_chunk_5",
+      "relevance": 0,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_cab765952a9449de91ea7f7cdf630a26_chunk_6",
+      "relevance": 0,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b91a6d6ac43c462189d055d3d08a9890_chunk_0",
+      "relevance": 1,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b91a6d6ac43c462189d055d3d08a9890_chunk_1",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b91a6d6ac43c462189d055d3d08a9890_chunk_2",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b91a6d6ac43c462189d055d3d08a9890_chunk_3",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b91a6d6ac43c462189d055d3d08a9890_chunk_4",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b91a6d6ac43c462189d055d3d08a9890_chunk_5",
+      "relevance": 1,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b91a6d6ac43c462189d055d3d08a9890_chunk_6",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b91a6d6ac43c462189d055d3d08a9890_chunk_7",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b91a6d6ac43c462189d055d3d08a9890_chunk_8",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b91a6d6ac43c462189d055d3d08a9890_chunk_9",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b91a6d6ac43c462189d055d3d08a9890_chunk_10",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b91a6d6ac43c462189d055d3d08a9890_chunk_11",
+      "relevance": 1,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b91a6d6ac43c462189d055d3d08a9890_chunk_12",
+      "relevance": 0,
+      "suggested_relevance": null,
+      "review_flag": null
+    }
+  ]
+}

@@ -254,11 +254,32 @@ def test_tavily_search_returns_only_normalized_answer_and_safe_sources(
                 "answer": "  Trusted answer  ",
                 "internal": "must not be exposed",
                 "results": [
-                    {"title": "  Valid source  ", "url": " https://example.com/a "},
-                    {"title": "Unsafe", "url": "javascript:alert(1)"},
-                    {"title": "Credentials", "url": "https://user:secret@example.com"},
-                    {"title": "Malformed", "url": "https://exa mple.com"},
-                    {"title": 42, "url": "https://example.com/ignored"},
+                    {
+                        "title": "  Valid source  ",
+                        "url": " https://example.com/a ",
+                        "content": " Search summary ",
+                        "raw_content": " Full source content ",
+                    },
+                    {
+                        "title": "Unsafe",
+                        "url": "javascript:alert(1)",
+                        "content": "unsafe",
+                    },
+                    {
+                        "title": "Credentials",
+                        "url": "https://user:secret@example.com",
+                        "content": "unsafe",
+                    },
+                    {
+                        "title": "Malformed",
+                        "url": "https://exa mple.com",
+                        "content": "unsafe",
+                    },
+                    {
+                        "title": 42,
+                        "url": "https://example.com/ignored",
+                        "content": "ignored",
+                    },
                 ],
             },
         )
@@ -270,15 +291,22 @@ def test_tavily_search_returns_only_normalized_answer_and_safe_sources(
 
     result = TavilySearchClient(api_key="secret").search("Question")
 
-    assert result == SearchResult(
-        answer="Trusted answer",
-        sources=(SearchSource(title="Valid source", url="https://example.com/a"),),
+    assert result.answer == "Trusted answer"
+    assert result.sources == (
+        SearchSource(title="Valid source", url="https://example.com/a"),
     )
+    assert len(result.documents) == 1
+    assert result.documents[0].title == "Valid source"
+    assert str(result.documents[0].url) == "https://example.com/a"
+    assert result.documents[0].content == "Search summary"
+    assert result.documents[0].raw_content == "Full source content"
     assert captured["json"] == {
         "query": "Question",
         "search_depth": "advanced",
-        "max_results": 2,
+        "max_results": 10,
         "include_answer": True,
+        "include_raw_content": True,
+        "include_published_date": True,
     }
 
 

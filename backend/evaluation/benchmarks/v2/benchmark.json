@@ -1,0 +1,132 @@
+{
+  "schema_version": "1.0.0",
+  "benchmark_id": "competitive_intelligence_v2",
+  "benchmark_version": "2.0.0",
+  "status": "frozen",
+  "description": "Frozen-source V2 baseline for deterministic retrieval metrics and separately identified LLM-judge generation observations.",
+  "cases": [
+    {
+      "case_id": "microsoft_competitors",
+      "research_question": "Who are Microsoft's main competitors in the technology sector?"
+    },
+    {
+      "case_id": "salesforce_crm_competitors",
+      "research_question": "Who are Salesforce's main competitors in the CRM market?"
+    },
+    {
+      "case_id": "nvidia_ai_accelerators",
+      "research_question": "Who are Nvidia's main competitors in the AI accelerator market?"
+    },
+    {
+      "case_id": "slack_enterprise_alternatives",
+      "research_question": "What are the main alternatives to Slack for enterprise collaboration?"
+    },
+    {
+      "case_id": "aws_cloud_competitors",
+      "research_question": "Who are AWS's main competitors in cloud infrastructure services?"
+    }
+  ],
+  "relevance_scale": {
+    "0": "irrelevant",
+    "1": "partially relevant",
+    "2": "highly relevant"
+  },
+  "ks": [
+    1,
+    3,
+    5
+  ],
+  "broad_relevance_threshold": 1,
+  "strict_relevance_threshold": 2,
+  "metric_definitions": {
+    "precision_at_k": "Relevant retrieved chunks divided by K; missing ranks count as non-relevant.",
+    "recall_at_k": "Relevant retrieved chunks divided by all relevant candidates.",
+    "reciprocal_rank": "Inverse rank of the first relevant retrieved chunk for one case.",
+    "mrr": "Macro mean of per-case Reciprocal Rank.",
+    "ndcg_at_k": "Graded nDCG with gain 2^relevance - 1 and log2 rank discount."
+  },
+  "aggregation_policy": {
+    "primary": "macro average across valid cases",
+    "micro": "optional diagnostic weighted by underlying counts",
+    "failed_or_skipped": "excluded from metric means and counted explicitly"
+  },
+  "search_configuration": {
+    "provider": "tavily",
+    "search_depth": "advanced",
+    "max_results": 10,
+    "include_answer": true,
+    "include_raw_content": true,
+    "include_published_date": true
+  },
+  "document_acquisition_configuration": {
+    "primary_candidates": 5,
+    "target_documents": 3,
+    "extract_depth": "advanced",
+    "extract_format": "markdown",
+    "fallback": "search_content"
+  },
+  "normalization_configuration": {
+    "remove_markdown_images": true,
+    "remove_empty_markdown_links": true,
+    "preserve_link_text": true,
+    "trim_trailing_whitespace": true,
+    "collapse_excess_blank_lines": true
+  },
+  "normalization_version": "v2_whitespace_markdown_1",
+  "chunk_size_tokens": 512,
+  "chunk_overlap_tokens": 64,
+  "resolved_tokenizer": "cl100k_base",
+  "embedding_configuration": {
+    "provider": "openai",
+    "model": "text-embedding-3-small",
+    "observed_dimension": 1536
+  },
+  "vector_store_configuration": {
+    "provider": "chroma",
+    "persistence": "ephemeral",
+    "collection_scope": "one isolated disposable collection per case capture",
+    "distance": "cosine distance; lower is more similar"
+  },
+  "top_k": 5,
+  "report_configuration": {
+    "provider": "openai",
+    "model": "gpt-4o-mini",
+    "temperature": 0,
+    "max_retries": 2
+  },
+  "evaluation_configuration": {
+    "provider": "openai",
+    "model": "gpt-4o-mini",
+    "temperature": 0,
+    "max_retries": 2,
+    "llm_judge_metrics": [
+      "citation correctness",
+      "citation coverage",
+      "faithfulness"
+    ]
+  },
+  "prompt_sha256": {
+    "report_system": "acb9564e63b45a83bb0d48060ed10f74fe17fec19bec6f16777eb8eb183b154e",
+    "citation_judge_system": "ed0ae3681cab7d8cf718c11764b6e2d8efb890c2177b37e35111b8287893cfdf",
+    "citation_requirement_system": "6858713e949ee8903c64f8c532c1dcd14a3c2793e48157c54d77b73d127ae0fa",
+    "faithfulness_judge_system": "bd4c29330c2c045fca5c853924db5fee9ca2a70516679e4aaa6c862d0e4db4d2"
+  },
+  "environment": {
+    "python_version": "3.14.7",
+    "dependency_versions": {
+      "chromadb": "1.5.9",
+      "langchain-chroma": "1.0.0",
+      "langchain-openai": "1.6.0",
+      "pydantic": "2.13.5",
+      "tiktoken": "0.14.0"
+    },
+    "requirements_sha256": "470bfdfb6b7b412afced4f5b9a52193b9c1b98246b1206c171ff046530eaaefb"
+  },
+  "git": {
+    "sha": "c6137bc2fa8ed9e5d29b90cb8460d4fab685f7df",
+    "branch": "develop",
+    "working_tree": "dirty"
+  },
+  "created_at": "2026-09-25T18:03:22.596796Z",
+  "frozen_at": "2026-09-28T14:33:07.308119Z"
+}

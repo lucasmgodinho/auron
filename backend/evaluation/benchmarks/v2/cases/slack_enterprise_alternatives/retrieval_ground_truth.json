@@ -1,0 +1,205 @@
+{
+  "schema_version": "1.0.0",
+  "case_id": "slack_enterprise_alternatives",
+  "research_question": "What are the main alternatives to Slack for enterprise collaboration?",
+  "candidate_set_sha256": "c357c64f5e42092609b1d8ac87ca3f1decc95bdfb7127958b52cb42bacc6ca6d",
+  "chunking_configuration_sha256": "7a5b8d4c89300008d578d1792a88e970a890e143fd68579077374d18873926fe",
+  "annotation_guideline_version": "2.0.0",
+  "annotated_at": "2026-09-28T14:15:00Z",
+  "annotation_method": "human_reviewed_manual",
+  "notes": "Set every relevance value to 0, 1, or 2 after human review.",
+  "labels": [
+    {
+      "chunk_id": "src_b6d3854235064fc8846076a0a4847214_chunk_0",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b6d3854235064fc8846076a0a4847214_chunk_1",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b6d3854235064fc8846076a0a4847214_chunk_2",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b6d3854235064fc8846076a0a4847214_chunk_3",
+      "relevance": 1,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b6d3854235064fc8846076a0a4847214_chunk_4",
+      "relevance": 1,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b6d3854235064fc8846076a0a4847214_chunk_5",
+      "relevance": 1,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b6d3854235064fc8846076a0a4847214_chunk_6",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b6d3854235064fc8846076a0a4847214_chunk_7",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b6d3854235064fc8846076a0a4847214_chunk_8",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b6d3854235064fc8846076a0a4847214_chunk_9",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b6d3854235064fc8846076a0a4847214_chunk_10",
+      "relevance": 1,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b6d3854235064fc8846076a0a4847214_chunk_11",
+      "relevance": 0,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b6d3854235064fc8846076a0a4847214_chunk_12",
+      "relevance": 0,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_5afa7052dbd94a8488f1329d89bb14ac_chunk_0",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_5afa7052dbd94a8488f1329d89bb14ac_chunk_1",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_5afa7052dbd94a8488f1329d89bb14ac_chunk_2",
+      "relevance": 1,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_5afa7052dbd94a8488f1329d89bb14ac_chunk_3",
+      "relevance": 1,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_5afa7052dbd94a8488f1329d89bb14ac_chunk_4",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_5afa7052dbd94a8488f1329d89bb14ac_chunk_5",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_5afa7052dbd94a8488f1329d89bb14ac_chunk_6",
+      "relevance": 1,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_5afa7052dbd94a8488f1329d89bb14ac_chunk_7",
+      "relevance": 1,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_5afa7052dbd94a8488f1329d89bb14ac_chunk_8",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_5afa7052dbd94a8488f1329d89bb14ac_chunk_9",
+      "relevance": 0,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b3ad4b0e287047629c8be5b82fa3e0d0_chunk_0",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b3ad4b0e287047629c8be5b82fa3e0d0_chunk_1",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b3ad4b0e287047629c8be5b82fa3e0d0_chunk_2",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b3ad4b0e287047629c8be5b82fa3e0d0_chunk_3",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b3ad4b0e287047629c8be5b82fa3e0d0_chunk_4",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b3ad4b0e287047629c8be5b82fa3e0d0_chunk_5",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b3ad4b0e287047629c8be5b82fa3e0d0_chunk_6",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b3ad4b0e287047629c8be5b82fa3e0d0_chunk_7",
+      "relevance": 2,
+      "suggested_relevance": null,
+      "review_flag": null
+    },
+    {
+      "chunk_id": "src_b3ad4b0e287047629c8be5b82fa3e0d0_chunk_8",
+      "relevance": 0,
+      "suggested_relevance": null,
+      "review_flag": null
+    }
+  ]
+}

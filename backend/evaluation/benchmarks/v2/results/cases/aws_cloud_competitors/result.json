@@ -1,0 +1,1090 @@
+{
+  "schema_version": "1.0.0",
+  "benchmark_id": "competitive_intelligence_v2",
+  "benchmark_version": "2.0.0",
+  "case_id": "aws_cloud_competitors",
+  "research_question": "Who are AWS's main competitors in cloud infrastructure services?",
+  "evaluated_at": "2026-09-28T14:31:37.140396+00:00",
+  "mode": "full",
+  "retrieval": {
+    "metric_type": "deterministic",
+    "broad_relevance": {
+      "threshold": 1,
+      "metrics_at_k": {
+        "1": {
+          "precision": 1.0,
+          "recall": 0.05,
+          "ndcg": 1.0
+        },
+        "3": {
+          "precision": 1.0,
+          "recall": 0.15,
+          "ndcg": 1.0
+        },
+        "5": {
+          "precision": 1.0,
+          "recall": 0.25,
+          "ndcg": 0.9125299483251055
+        }
+      },
+      "reciprocal_rank": 1.0
+    },
+    "strict_relevance": {
+      "threshold": 2,
+      "metrics_at_k": {
+        "1": {
+          "precision": 1.0,
+          "recall": 0.06666666666666667,
+          "ndcg": 1.0
+        },
+        "3": {
+          "precision": 1.0,
+          "recall": 0.2,
+          "ndcg": 1.0
+        },
+        "5": {
+          "precision": 0.8,
+          "recall": 0.26666666666666666,
+          "ndcg": 0.9125299483251055
+        }
+      },
+      "reciprocal_rank": 1.0
+    },
+    "graded_relevance": {
+      "gain": "2^relevance - 1",
+      "ndcg_at_k": {
+        "1": 1.0,
+        "3": 1.0,
+        "5": 0.9125299483251055
+      }
+    },
+    "diagnostics": {
+      "candidate_count": 25,
+      "document_source_count": 3,
+      "relevance_distribution": {
+        "0": 5,
+        "1": 5,
+        "2": 15
+      },
+      "theoretical_recall_ceiling_at_k": {
+        "broad": {
+          "1": 0.05,
+          "3": 0.15,
+          "5": 0.25
+        },
+        "strict": {
+          "1": 0.06666666666666667,
+          "3": 0.2,
+          "5": 0.3333333333333333
+        }
+      },
+      "distinct_sources_in_top_k": 2,
+      "annotation_coverage": 1.0,
+      "broad_relevant_chunks_retrieved": [
+        "src_097737146335470eb2cbaa206a95a40a_chunk_0",
+        "src_ee01cf0005434696ab25e970ea2ad705_chunk_0",
+        "src_ee01cf0005434696ab25e970ea2ad705_chunk_1",
+        "src_ee01cf0005434696ab25e970ea2ad705_chunk_4",
+        "src_ee01cf0005434696ab25e970ea2ad705_chunk_5"
+      ],
+      "broad_relevant_chunks_missed": [
+        "src_097737146335470eb2cbaa206a95a40a_chunk_1",
+        "src_097737146335470eb2cbaa206a95a40a_chunk_2",
+        "src_45d23ecb1b4d4087928b868fe652e613_chunk_0",
+        "src_45d23ecb1b4d4087928b868fe652e613_chunk_1",
+        "src_45d23ecb1b4d4087928b868fe652e613_chunk_10",
+        "src_45d23ecb1b4d4087928b868fe652e613_chunk_2",
+        "src_45d23ecb1b4d4087928b868fe652e613_chunk_3",
+        "src_45d23ecb1b4d4087928b868fe652e613_chunk_4",
+        "src_45d23ecb1b4d4087928b868fe652e613_chunk_5",
+        "src_45d23ecb1b4d4087928b868fe652e613_chunk_6",
+        "src_45d23ecb1b4d4087928b868fe652e613_chunk_7",
+        "src_45d23ecb1b4d4087928b868fe652e613_chunk_8",
+        "src_45d23ecb1b4d4087928b868fe652e613_chunk_9",
+        "src_ee01cf0005434696ab25e970ea2ad705_chunk_3",
+        "src_ee01cf0005434696ab25e970ea2ad705_chunk_6"
+      ],
+      "strict_relevant_chunks_retrieved": [
+        "src_097737146335470eb2cbaa206a95a40a_chunk_0",
+        "src_ee01cf0005434696ab25e970ea2ad705_chunk_0",
+        "src_ee01cf0005434696ab25e970ea2ad705_chunk_4",
+        "src_ee01cf0005434696ab25e970ea2ad705_chunk_5"
+      ],
+      "strict_relevant_chunks_missed": [
+        "src_097737146335470eb2cbaa206a95a40a_chunk_1",
+        "src_45d23ecb1b4d4087928b868fe652e613_chunk_0",
+        "src_45d23ecb1b4d4087928b868fe652e613_chunk_10",
+        "src_45d23ecb1b4d4087928b868fe652e613_chunk_2",
+        "src_45d23ecb1b4d4087928b868fe652e613_chunk_3",
+        "src_45d23ecb1b4d4087928b868fe652e613_chunk_4",
+        "src_45d23ecb1b4d4087928b868fe652e613_chunk_5",
+        "src_45d23ecb1b4d4087928b868fe652e613_chunk_6",
+        "src_45d23ecb1b4d4087928b868fe652e613_chunk_9",
+        "src_ee01cf0005434696ab25e970ea2ad705_chunk_3",
+        "src_ee01cf0005434696ab25e970ea2ad705_chunk_6"
+      ],
+      "frozen_ranking": [
+        {
+          "rank": 1,
+          "evidence_id": "E1",
+          "chunk_id": "src_ee01cf0005434696ab25e970ea2ad705_chunk_4",
+          "source_id": "src_ee01cf0005434696ab25e970ea2ad705",
+          "distance": 0.31414204835891724,
+          "ground_truth_relevance": 2
+        },
+        {
+          "rank": 2,
+          "evidence_id": "E2",
+          "chunk_id": "src_ee01cf0005434696ab25e970ea2ad705_chunk_0",
+          "source_id": "src_ee01cf0005434696ab25e970ea2ad705",
+          "distance": 0.3309575915336609,
+          "ground_truth_relevance": 2
+        },
+        {
+          "rank": 3,
+          "evidence_id": "E3",
+          "chunk_id": "src_097737146335470eb2cbaa206a95a40a_chunk_0",
+          "source_id": "src_097737146335470eb2cbaa206a95a40a",
+          "distance": 0.357674241065979,
+          "ground_truth_relevance": 2
+        },
+        {
+          "rank": 4,
+          "evidence_id": "E4",
+          "chunk_id": "src_ee01cf0005434696ab25e970ea2ad705_chunk_5",
+          "source_id": "src_ee01cf0005434696ab25e970ea2ad705",
+          "distance": 0.37835317850112915,
+          "ground_truth_relevance": 2
+        },
+        {
+          "rank": 5,
+          "evidence_id": "E5",
+          "chunk_id": "src_ee01cf0005434696ab25e970ea2ad705_chunk_1",
+          "source_id": "src_ee01cf0005434696ab25e970ea2ad705",
+          "distance": 0.38465654850006104,
+          "ground_truth_relevance": 1
+        }
+      ]
+    }
+  },
+  "generation": {
+    "deterministic": {
+      "citation_validity": 1.0,
+      "evidence_utilization": 0.6,
+      "available_evidence_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5"
+      ],
+      "cited_evidence_ids": [
+        "E1",
+        "E4",
+        "E5"
+      ]
+    },
+    "llm_judge_observations": {
+      "citation_correctness": {
+        "summary": {
+          "total_claims": 7,
+          "supported": 6,
+          "partially_supported": 1,
+          "unsupported": 0,
+          "supported_rate": 0.8571428571428571,
+          "partially_supported_rate": 0.14285714285714285,
+          "unsupported_rate": 0.0,
+          "total_components": 34,
+          "supported_components": 33,
+          "unsupported_components": 1,
+          "component_support_rate": 0.9705882352941176
+        },
+        "per_claim_assessments": [
+          {
+            "claim": "Microsoft Azure: Competes with AWS by offering a comprehensive suite of cloud services, particularly appealing to enterprises already using Microsoft infrastructure and those in regulated industries requiring compliance with OpenAI models.",
+            "citation_ids": [
+              "E1",
+              "E4"
+            ],
+            "verdict": "supported",
+            "components": [
+              {
+                "component": "Microsoft Azure competes with AWS",
+                "supported": true,
+                "explanation": "The evidence states that Microsoft Azure is one of the two largest direct competitors to AWS, indicating that they compete in the cloud services market."
+              },
+              {
+                "component": "Microsoft Azure offers a comprehensive suite of cloud services",
+                "supported": true,
+                "explanation": "The evidence mentions that Azure offers a comparable breadth of services to AWS, which implies that it provides a comprehensive suite of cloud services."
+              },
+              {
+                "component": "Microsoft Azure is particularly appealing to enterprises already using Microsoft infrastructure",
+                "supported": true,
+                "explanation": "The evidence indicates that Azure surpasses AWS for enterprises already in the Microsoft ecosystem, suggesting it is particularly appealing to those enterprises."
+              },
+              {
+                "component": "Microsoft Azure is appealing to those in regulated industries requiring compliance with OpenAI models",
+                "supported": true,
+                "explanation": "The evidence states that Azure is beneficial for teams using OpenAI models in regulated environments through Azure OpenAI Service, supporting the claim that it appeals to those in regulated industries."
+              }
+            ]
+          },
+          {
+            "claim": "Google Cloud Platform (GCP): Competes directly with AWS, especially in AI/ML workloads, data analytics, and Kubernetes. GCP is noted for its TPU access and Vertex AI, which are significant differentiators.",
+            "citation_ids": [
+              "E1",
+              "E4"
+            ],
+            "verdict": "supported",
+            "components": [
+              {
+                "component": "Google Cloud Platform (GCP) competes directly with AWS",
+                "supported": true,
+                "explanation": "The evidence states that GCP is a direct competitor to AWS in most enterprise segments."
+              },
+              {
+                "component": "GCP competes especially in AI/ML workloads",
+                "supported": true,
+                "explanation": "The evidence indicates that GCP differentiates on AI and ML infrastructure, particularly with TPU access and Vertex AI."
+              },
+              {
+                "component": "GCP competes in data analytics",
+                "supported": true,
+                "explanation": "The evidence mentions that GCP is evaluated as an alternative to AWS for teams building AI training pipelines or Kubernetes-native architectures, which implies data analytics capabilities."
+              },
+              {
+                "component": "GCP competes in Kubernetes",
+                "supported": true,
+                "explanation": "The evidence states that GCP is a commonly evaluated alternative for Kubernetes-native architectures."
+              },
+              {
+                "component": "GCP is noted for its TPU access",
+                "supported": true,
+                "explanation": "The evidence explicitly mentions that GCP differentiates on TPU access."
+              },
+              {
+                "component": "GCP is noted for Vertex AI",
+                "supported": true,
+                "explanation": "The evidence explicitly states that GCP differentiates on Vertex AI."
+              },
+              {
+                "component": "TPU access and Vertex AI are significant differentiators for GCP",
+                "supported": true,
+                "explanation": "The evidence indicates that TPU access and Vertex AI are key differentiators for GCP in the context of AI and ML infrastructure."
+              }
+            ]
+          },
+          {
+            "claim": "Oracle Cloud Infrastructure (OCI): Strongest competitor for Oracle database workloads and bare-metal GPU performance, making it a preferred choice for enterprises with specific database needs.",
+            "citation_ids": [
+              "E1",
+              "E4"
+            ],
+            "verdict": "partially_supported",
+            "components": [
+              {
+                "component": "Oracle Cloud Infrastructure (OCI) is the strongest competitor for Oracle database workloads.",
+                "supported": true,
+                "explanation": "The evidence explicitly states that 'Oracle Cloud Infrastructure is the strongest competitor for Oracle database workloads.' This directly supports the component."
+              },
+              {
+                "component": "Oracle Cloud Infrastructure (OCI) is the strongest competitor for bare-metal GPU performance.",
+                "supported": true,
+                "explanation": "The evidence states that 'Oracle Cloud Infrastructure is the strongest competitor for... bare-metal GPU.' This directly supports the component."
+              },
+              {
+                "component": "Oracle Cloud Infrastructure (OCI) is a preferred choice for enterprises with specific database needs.",
+                "supported": false,
+                "explanation": "The evidence does not provide information about OCI being a preferred choice for enterprises with specific database needs. It only states that OCI is a strong competitor for Oracle database workloads."
+              }
+            ]
+          },
+          {
+            "claim": "DigitalOcean: Competes on simplicity and pricing, targeting developers and small to medium-sized businesses (SMBs) that prefer straightforward pricing models without the complexity of larger hyperscalers.",
+            "citation_ids": [
+              "E1",
+              "E4"
+            ],
+            "verdict": "supported",
+            "components": [
+              {
+                "component": "DigitalOcean competes on simplicity and pricing",
+                "supported": true,
+                "explanation": "The evidence explicitly states that DigitalOcean competes on simplicity and pricing."
+              },
+              {
+                "component": "DigitalOcean targets developers and small to medium-sized businesses (SMBs)",
+                "supported": true,
+                "explanation": "The evidence indicates that DigitalOcean targets developers and SMBs."
+              },
+              {
+                "component": "DigitalOcean offers straightforward pricing models without the complexity of larger hyperscalers",
+                "supported": true,
+                "explanation": "The evidence mentions that DigitalOcean offers simpler pricing and lower costs than AWS, implying straightforward pricing models compared to larger hyperscalers."
+              }
+            ]
+          },
+          {
+            "claim": "CoreWeave: A specialist GPU cloud provider that competes specifically on GPU availability and pricing for AI training workloads, particularly with H100 and H200 GPUs.",
+            "citation_ids": [
+              "E1",
+              "E4"
+            ],
+            "verdict": "supported",
+            "components": [
+              {
+                "component": "CoreWeave is a specialist GPU cloud provider.",
+                "supported": true,
+                "explanation": "The evidence explicitly states that CoreWeave is a specialist GPU cloud provider."
+              },
+              {
+                "component": "CoreWeave competes specifically on GPU availability for AI training workloads.",
+                "supported": true,
+                "explanation": "The evidence indicates that CoreWeave competes specifically on GPU availability for AI training workloads."
+              },
+              {
+                "component": "CoreWeave competes specifically on pricing for AI training workloads.",
+                "supported": true,
+                "explanation": "The evidence mentions that CoreWeave competes on pricing for AI training workloads."
+              },
+              {
+                "component": "CoreWeave offers H100 and H200 GPUs.",
+                "supported": true,
+                "explanation": "The evidence states that CoreWeave offers H100 and H200 GPUs."
+              },
+              {
+                "component": "CoreWeave is particularly focused on AI training workloads.",
+                "supported": true,
+                "explanation": "The evidence specifies that CoreWeave is best for GPU-intensive AI training workloads."
+              }
+            ]
+          },
+          {
+            "claim": "Northflank: Offers a full-stack cloud platform that runs across multiple clouds, providing a unified control plane for developers and enterprises. It supports self-serve BYOC (Bring Your Own Cloud) into various cloud environments, including AWS.",
+            "citation_ids": [
+              "E1",
+              "E4",
+              "E5"
+            ],
+            "verdict": "supported",
+            "components": [
+              {
+                "component": "Northflank offers a full-stack cloud platform.",
+                "supported": true,
+                "explanation": "The evidence states that Northflank is a cloud platform built for the full lifecycle of AI-native software delivery and provides a complete deployment stack."
+              },
+              {
+                "component": "Northflank runs across multiple clouds.",
+                "supported": true,
+                "explanation": "The evidence indicates that Northflank can deploy into any cloud via self-serve BYOC and runs on its own managed infrastructure across multiple regions."
+              },
+              {
+                "component": "Northflank provides a unified control plane for developers and enterprises.",
+                "supported": true,
+                "explanation": "The evidence describes Northflank as providing a unified control plane that manages workloads across all cloud accounts simultaneously."
+              },
+              {
+                "component": "Northflank supports self-serve BYOC (Bring Your Own Cloud) into various cloud environments, including AWS.",
+                "supported": true,
+                "explanation": "The evidence explicitly states that Northflank supports self-serve BYOC into AWS and other cloud environments."
+              },
+              {
+                "component": "Northflank provides a unified control plane for developers and enterprises.",
+                "supported": true,
+                "explanation": "The evidence describes Northflank as a unified control plane that manages workloads across all cloud accounts."
+              },
+              {
+                "component": "Northflank supports self-serve BYOC into various cloud environments, including AWS.",
+                "supported": true,
+                "explanation": "The evidence confirms that Northflank allows self-serve BYOC into AWS and other cloud environments."
+              }
+            ]
+          },
+          {
+            "claim": "AWS remains the dominant player in the cloud infrastructure market, but it is not the best fit for every workload. Competitors like Azure and GCP offer specific advantages for enterprises and AI workloads, respectively. DigitalOcean provides a cost-effective alternative for smaller businesses, while CoreWeave specializes in GPU resources for AI training. Northflank serves as a versatile platform that can manage workloads across various cloud providers, enhancing operational efficiency.",
+            "citation_ids": [
+              "E1",
+              "E4",
+              "E5"
+            ],
+            "verdict": "supported",
+            "components": [
+              {
+                "component": "AWS remains the dominant player in the cloud infrastructure market.",
+                "supported": true,
+                "explanation": "The evidence states that AWS remains the largest and most mature cloud provider, indicating its dominant position in the market."
+              },
+              {
+                "component": "AWS is not the best fit for every workload.",
+                "supported": true,
+                "explanation": "The evidence mentions that no single cloud serves all enterprise needs, implying that AWS may not be the best fit for every workload."
+              },
+              {
+                "component": "Competitors like Azure and GCP offer specific advantages for enterprises and AI workloads, respectively.",
+                "supported": true,
+                "explanation": "The evidence explicitly states that Azure surpasses AWS for enterprises already in the Microsoft ecosystem and that GCP differentiates on AI and ML infrastructure, indicating specific advantages for those workloads."
+              },
+              {
+                "component": "DigitalOcean provides a cost-effective alternative for smaller businesses.",
+                "supported": true,
+                "explanation": "The evidence states that DigitalOcean offers simpler pricing and lower costs than AWS for standard compute, making it a cost-effective alternative for smaller businesses."
+              },
+              {
+                "component": "CoreWeave specializes in GPU resources for AI training.",
+                "supported": true,
+                "explanation": "The evidence describes CoreWeave as a specialist GPU cloud provider that offers strong availability for GPU-intensive AI training workloads, confirming its specialization."
+              },
+              {
+                "component": "Northflank serves as a versatile platform that can manage workloads across various cloud providers, enhancing operational efficiency.",
+                "supported": true,
+                "explanation": "The evidence describes Northflank as a unified control plane that runs across multiple cloud providers, managing workloads and enhancing operational efficiency."
+              }
+            ]
+          }
+        ]
+      },
+      "citation_coverage": {
+        "coverage": 0.5833333333333334,
+        "citation_required_claims": 12,
+        "cited_required_claims": 7,
+        "uncited_required_claims": 5,
+        "per_claim_assessments": [
+          {
+            "claim": "AWS is the largest cloud provider, but it faces significant competition from several key players in the cloud infrastructure services market. Each competitor has its own strengths and target markets, making them viable alternatives to AWS for specific workloads.",
+            "citation_ids": [],
+            "requires_citation": true,
+            "explanation": "The claim makes factual assertions about AWS being the largest cloud provider and discusses competition from other key players in the cloud infrastructure services market. These statements involve specific market positions and competitive relationships, which require supporting evidence."
+          },
+          {
+            "claim": "**Microsoft Azure**: Competes with AWS by offering a comprehensive suite of cloud services, particularly appealing to enterprises already using Microsoft infrastructure and those in regulated industries requiring compliance with OpenAI models. [E1][E4]",
+            "citation_ids": [
+              "E1",
+              "E4"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes factual assertions about Microsoft Azure's competitive position relative to AWS, its offerings, and its appeal to specific customer segments. These assertions involve specific companies, products, and market dynamics, which require supporting evidence."
+          },
+          {
+            "claim": "**Google Cloud Platform (GCP)**: Competes directly with AWS, especially in AI/ML workloads, data analytics, and Kubernetes. GCP is noted for its TPU access and Vertex AI, which are significant differentiators. [E1][E4]",
+            "citation_ids": [
+              "E1",
+              "E4"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes several factual assertions about Google Cloud Platform (GCP), including its competitive relationship with AWS, its focus on AI/ML workloads, data analytics, and Kubernetes, as well as specific product features like TPU access and Vertex AI. These assertions require supporting evidence to verify their accuracy."
+          },
+          {
+            "claim": "**Oracle Cloud Infrastructure (OCI)**: Strongest competitor for Oracle database workloads and bare-metal GPU performance, making it a preferred choice for enterprises with specific database needs. [E1][E4]",
+            "citation_ids": [
+              "E1",
+              "E4"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes factual assertions about Oracle Cloud Infrastructure (OCI) being the 'strongest competitor' for Oracle database workloads and its 'bare-metal GPU performance.' These statements involve comparisons between OCI and other competitors, as well as specific claims about its performance and suitability for enterprises, which require supporting evidence."
+          },
+          {
+            "claim": "**DigitalOcean**: Competes on simplicity and pricing, targeting developers and small to medium-sized businesses (SMBs) that prefer straightforward pricing models without the complexity of larger hyperscalers. [E1][E4]",
+            "citation_ids": [
+              "E1",
+              "E4"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes factual assertions about DigitalOcean's competitive strategy, target market, and pricing model. These are verifiable statements about the company's positioning in the market, which require supporting evidence."
+          },
+          {
+            "claim": "**CoreWeave**: A specialist GPU cloud provider that competes specifically on GPU availability and pricing for AI training workloads, particularly with H100 and H200 GPUs. [E1][E4]",
+            "citation_ids": [
+              "E1",
+              "E4"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes factual assertions about CoreWeave, including its identity as a GPU cloud provider, its competitive focus on GPU availability and pricing, and specific products (H100 and H200 GPUs) related to AI training workloads. These assertions require supporting evidence to verify their accuracy."
+          },
+          {
+            "claim": "**Northflank**: Offers a full-stack cloud platform that runs across multiple clouds, providing a unified control plane for developers and enterprises. It supports self-serve BYOC (Bring Your Own Cloud) into various cloud environments, including AWS. [E1][E4][E5]",
+            "citation_ids": [
+              "E1",
+              "E4",
+              "E5"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes factual assertions about Northflank's offerings, specifically detailing its full-stack cloud platform, its capabilities (such as supporting BYOC), and its compatibility with various cloud environments like AWS. These assertions about the company's products and services require supporting evidence."
+          },
+          {
+            "claim": "**AI and Machine Learning**: GCP and CoreWeave are strong competitors in this area, with GCP offering advanced AI/ML infrastructure and CoreWeave focusing on GPU availability for AI training.",
+            "citation_ids": [],
+            "requires_citation": true,
+            "explanation": "The claim makes factual assertions about the competitive relationship between GCP (Google Cloud Platform) and CoreWeave in the AI and Machine Learning sector, specifically mentioning their offerings and focus areas. These assertions require supporting evidence to verify the claims about their capabilities and market positioning."
+          },
+          {
+            "claim": "**Enterprise Solutions**: Azure and OCI are key players, with Azure catering to enterprises in the Microsoft ecosystem and OCI focusing on Oracle database workloads.",
+            "citation_ids": [],
+            "requires_citation": true,
+            "explanation": "The claim makes factual assertions about Azure and OCI as key players in the enterprise solutions market, specifies their target audiences (Microsoft ecosystem for Azure and Oracle database workloads for OCI), and describes their focus areas. These assertions require supporting evidence to verify their accuracy."
+          },
+          {
+            "claim": "**Simplicity and Cost**: DigitalOcean stands out for its straightforward pricing and user-friendly interface, appealing to developers and SMBs.",
+            "citation_ids": [],
+            "requires_citation": true,
+            "explanation": "The claim makes factual assertions about DigitalOcean's pricing and user interface, as well as its appeal to specific groups (developers and SMBs). These assertions require supporting evidence to verify their accuracy."
+          },
+          {
+            "claim": "**Unified Cloud Management**: Northflank provides a platform that integrates multiple cloud services, allowing for easier management and deployment across different environments.",
+            "citation_ids": [],
+            "requires_citation": true,
+            "explanation": "The claim makes a factual assertion about Northflank's platform, specifically that it integrates multiple cloud services for management and deployment. This is a concrete fact about a company's capabilities and offerings, which requires supporting evidence."
+          },
+          {
+            "claim": "AWS remains the dominant player in the cloud infrastructure market, but it is not the best fit for every workload. Competitors like Azure and GCP offer specific advantages for enterprises and AI workloads, respectively. DigitalOcean provides a cost-effective alternative for smaller businesses, while CoreWeave specializes in GPU resources for AI training. Northflank serves as a versatile platform that can manage workloads across various cloud providers, enhancing operational efficiency. [E1][E4][E5]",
+            "citation_ids": [
+              "E1",
+              "E4",
+              "E5"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes several factual assertions about the competitive landscape of the cloud infrastructure market, including specific companies (AWS, Azure, GCP, DigitalOcean, CoreWeave, Northflank) and their respective positions, advantages, and specializations. These assertions require supporting evidence to verify their accuracy and provide context for the claims made about each company's offerings and market position."
+          }
+        ]
+      },
+      "faithfulness": {
+        "summary": {
+          "total_claims": 12,
+          "faithful": 11,
+          "partially_faithful": 1,
+          "unfaithful": 0,
+          "faithful_rate": 0.9166666666666666,
+          "partially_faithful_rate": 0.08333333333333333,
+          "unfaithful_rate": 0.0,
+          "total_components": 46,
+          "supported_components": 45,
+          "unsupported_components": 1,
+          "component_support_rate": 0.9782608695652174
+        },
+        "per_claim_assessments": [
+          {
+            "claim": "AWS is the largest cloud provider, but it faces significant competition from several key players in the cloud infrastructure services market. Each competitor has its own strengths and target markets, making them viable alternatives to AWS for specific workloads.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "AWS is the largest cloud provider.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence explicitly states that AWS is the largest cloud provider in the world by a significant margin."
+              },
+              {
+                "component": "AWS faces significant competition from several key players in the cloud infrastructure services market.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E3",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence discusses various competitors to AWS, indicating that it faces significant competition in the cloud services market."
+              },
+              {
+                "component": "Each competitor has its own strengths and target markets.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence outlines the strengths and target markets of various competitors, such as Northflank, Azure, GCP, and others."
+              },
+              {
+                "component": "Competitors are viable alternatives to AWS for specific workloads.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence mentions that different cloud providers are better suited for specific workloads, indicating that they are viable alternatives to AWS."
+              }
+            ]
+          },
+          {
+            "claim": "Microsoft Azure: Competes with AWS by offering a comprehensive suite of cloud services, particularly appealing to enterprises already using Microsoft infrastructure and those in regulated industries requiring compliance with OpenAI models.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Microsoft Azure competes with AWS",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence states that Microsoft Azure is a direct competitor to AWS, highlighting its strengths in the enterprise market."
+              },
+              {
+                "component": "Microsoft Azure offers a comprehensive suite of cloud services",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence indicates that Azure provides a comprehensive suite of cloud services, comparable to AWS."
+              },
+              {
+                "component": "Microsoft Azure is particularly appealing to enterprises already using Microsoft infrastructure",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence explicitly mentions that Azure is best for enterprises with existing Microsoft infrastructure."
+              },
+              {
+                "component": "Microsoft Azure is appealing to those in regulated industries requiring compliance with OpenAI models",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence states that Azure is suitable for regulated industries that require compliance with OpenAI models."
+              }
+            ]
+          },
+          {
+            "claim": "Google Cloud Platform (GCP): Competes directly with AWS, especially in AI/ML workloads, data analytics, and Kubernetes. GCP is noted for its TPU access and Vertex AI, which are significant differentiators.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Google Cloud Platform (GCP) competes directly with AWS",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence states that GCP is a direct competitor to AWS, particularly in enterprise segments."
+              },
+              {
+                "component": "GCP competes especially in AI/ML workloads",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence indicates that GCP is noted for its AI/ML infrastructure, specifically mentioning TPU access and Vertex AI."
+              },
+              {
+                "component": "GCP competes in data analytics",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence supports that GCP is recognized for its capabilities in data analytics."
+              },
+              {
+                "component": "GCP competes in Kubernetes",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence mentions that GCP is a competitor in Kubernetes workloads."
+              },
+              {
+                "component": "GCP is noted for its TPU access and Vertex AI",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence explicitly states that TPU access and Vertex AI are significant differentiators for GCP."
+              },
+              {
+                "component": "TPU access and Vertex AI are significant differentiators for GCP",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence confirms that TPU access and Vertex AI are genuine differentiators for GCP."
+              }
+            ]
+          },
+          {
+            "claim": "Oracle Cloud Infrastructure (OCI): Strongest competitor for Oracle database workloads and bare-metal GPU performance, making it a preferred choice for enterprises with specific database needs.",
+            "verdict": "partially_faithful",
+            "components": [
+              {
+                "component": "Oracle Cloud Infrastructure (OCI) is the strongest competitor for Oracle database workloads.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence explicitly states that OCI is the strongest competitor for Oracle database workloads."
+              },
+              {
+                "component": "OCI is the strongest competitor for bare-metal GPU performance.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence explicitly states that OCI is the strongest competitor for bare-metal GPU performance."
+              },
+              {
+                "component": "OCI is a preferred choice for enterprises with specific database needs.",
+                "supported": false,
+                "supporting_evidence_ids": [],
+                "explanation": "The evidence does not provide explicit support that OCI is a preferred choice for enterprises with specific database needs; it only states that it is strong for Oracle database workloads."
+              }
+            ]
+          },
+          {
+            "claim": "DigitalOcean: Competes on simplicity and pricing, targeting developers and small to medium-sized businesses (SMBs) that prefer straightforward pricing models without the complexity of larger hyperscalers.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "DigitalOcean competes on simplicity and pricing",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence explicitly states that DigitalOcean competes on simplicity and pricing, particularly for developers and SMBs."
+              },
+              {
+                "component": "DigitalOcean targets developers and small to medium-sized businesses (SMBs)",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence indicates that DigitalOcean is best for developers and SMBs, confirming the target audience of the claim."
+              },
+              {
+                "component": "DigitalOcean offers straightforward pricing models without the complexity of larger hyperscalers",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence supports that DigitalOcean provides simpler pricing and is less complex compared to larger hyperscalers like AWS."
+              }
+            ]
+          },
+          {
+            "claim": "CoreWeave: A specialist GPU cloud provider that competes specifically on GPU availability and pricing for AI training workloads, particularly with H100 and H200 GPUs.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "CoreWeave is a specialist GPU cloud provider.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence explicitly states that CoreWeave is a specialist GPU cloud provider."
+              },
+              {
+                "component": "CoreWeave competes specifically on GPU availability and pricing for AI training workloads.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence indicates that CoreWeave competes on GPU availability and pricing specifically for AI training workloads."
+              },
+              {
+                "component": "CoreWeave offers H100 and H200 GPUs.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence mentions that CoreWeave offers H100 and H200 GPUs, particularly highlighting their availability."
+              }
+            ]
+          },
+          {
+            "claim": "Northflank: Offers a full-stack cloud platform that runs across multiple clouds, providing a unified control plane for developers and enterprises. It supports self-serve BYOC (Bring Your Own Cloud) into various cloud environments, including AWS.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Northflank offers a full-stack cloud platform.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence states that Northflank is a full-stack cloud platform available as a managed cloud across multiple regions or through self-serve BYOC."
+              },
+              {
+                "component": "Northflank runs across multiple clouds.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence indicates that Northflank can deploy into various cloud environments, including AWS, GCP, Azure, and others."
+              },
+              {
+                "component": "Northflank provides a unified control plane for developers and enterprises.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence describes Northflank as a unified control plane that manages workloads across multiple cloud environments."
+              },
+              {
+                "component": "Northflank supports self-serve BYOC (Bring Your Own Cloud).",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence explicitly mentions that Northflank supports self-serve BYOC into various cloud environments."
+              },
+              {
+                "component": "Northflank supports various cloud environments, including AWS.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence lists AWS as one of the cloud environments into which Northflank can deploy workloads."
+              }
+            ]
+          },
+          {
+            "claim": "AI and Machine Learning: GCP and CoreWeave are strong competitors in this area, with GCP offering advanced AI/ML infrastructure and CoreWeave focusing on GPU availability for AI training.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "GCP offers advanced AI/ML infrastructure.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence states that GCP differentiates on AI and ML infrastructure, particularly with TPU access and Vertex AI, which supports the claim that GCP offers advanced AI/ML infrastructure."
+              },
+              {
+                "component": "CoreWeave focuses on GPU availability for AI training.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence indicates that CoreWeave is a specialist GPU cloud provider that offers strong availability of GPUs (H100 and H200) specifically for AI training workloads, supporting the claim."
+              },
+              {
+                "component": "GCP and CoreWeave are strong competitors in AI and Machine Learning.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence identifies GCP and CoreWeave as direct competitors in the AI and ML space, with GCP being noted for its AI/ML infrastructure and CoreWeave for its GPU availability."
+              }
+            ]
+          },
+          {
+            "claim": "Enterprise Solutions: Azure and OCI are key players, with Azure catering to enterprises in the Microsoft ecosystem and OCI focusing on Oracle database workloads.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Azure is a key player in enterprise solutions.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence states that Azure is best for enterprises with existing Microsoft infrastructure and is a key player in the cloud services market."
+              },
+              {
+                "component": "Azure caters to enterprises in the Microsoft ecosystem.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence explicitly mentions that Azure is best for enterprises with existing Microsoft infrastructure, indicating its focus on the Microsoft ecosystem."
+              },
+              {
+                "component": "OCI is a key player in enterprise solutions.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence identifies OCI as a strong competitor for Oracle database workloads, indicating its role as a key player in enterprise solutions."
+              },
+              {
+                "component": "OCI focuses on Oracle database workloads.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence states that OCI is best for Oracle database workloads, directly supporting this component of the claim."
+              }
+            ]
+          },
+          {
+            "claim": "Simplicity and Cost: DigitalOcean stands out for its straightforward pricing and user-friendly interface, appealing to developers and SMBs.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "DigitalOcean stands out for its straightforward pricing",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence states that DigitalOcean offers simpler pricing and lower costs than AWS for standard compute, which supports the claim of straightforward pricing."
+              },
+              {
+                "component": "DigitalOcean has a user-friendly interface",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2"
+                ],
+                "explanation": "The evidence mentions that DigitalOcean is best for developers and SMBs that need a clean interface without hyperscaler complexity, indicating a user-friendly interface."
+              },
+              {
+                "component": "DigitalOcean appeals to developers and SMBs",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence explicitly states that DigitalOcean is best for developers and SMBs, directly supporting this component of the claim."
+              }
+            ]
+          },
+          {
+            "claim": "Unified Cloud Management: Northflank provides a platform that integrates multiple cloud services, allowing for easier management and deployment across different environments.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Northflank provides a platform that integrates multiple cloud services",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence states that Northflank is a unified control plane that runs across multiple cloud providers, allowing for integration and management of workloads across AWS, GCP, Azure, Oracle, CoreWeave, and others."
+              },
+              {
+                "component": "allowing for easier management and deployment across different environments",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence indicates that Northflank provides a complete deployment stack and a unified control plane, which facilitates easier management and deployment of workloads across various cloud environments."
+              }
+            ]
+          },
+          {
+            "claim": "AWS remains the dominant player in the cloud infrastructure market, but it is not the best fit for every workload. Competitors like Azure and GCP offer specific advantages for enterprises and AI workloads, respectively. DigitalOcean provides a cost-effective alternative for smaller businesses, while CoreWeave specializes in GPU resources for AI training. Northflank serves as a versatile platform that can manage workloads across various cloud providers, enhancing operational efficiency.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "AWS remains the dominant player in the cloud infrastructure market.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence states that AWS is the largest cloud provider in the world by a significant margin and is recognized as a dominant force in the cloud services market."
+              },
+              {
+                "component": "AWS is not the best fit for every workload.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E5"
+                ],
+                "explanation": "The evidence explicitly mentions that AWS may not be the right answer for every workload, indicating that it has limitations depending on specific needs."
+              },
+              {
+                "component": "Competitors like Azure and GCP offer specific advantages for enterprises and AI workloads, respectively.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence supports that Azure is better for enterprises already in the Microsoft ecosystem and that GCP offers advantages for AI workloads, particularly with its TPU infrastructure."
+              },
+              {
+                "component": "DigitalOcean provides a cost-effective alternative for smaller businesses.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence states that DigitalOcean competes on simplicity and pricing for developers and SMBs, indicating it is a cost-effective alternative."
+              },
+              {
+                "component": "CoreWeave specializes in GPU resources for AI training.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence indicates that CoreWeave is a specialist GPU cloud provider that offers strong availability for AI training workloads."
+              },
+              {
+                "component": "Northflank serves as a versatile platform that can manage workloads across various cloud providers, enhancing operational efficiency.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence describes Northflank as a unified control plane that can manage workloads across multiple cloud providers, which enhances operational efficiency."
+              }
+            ]
+          }
+        ]
+      },
+      "correctness_vs_faithfulness": {
+        "citation_correctness_component_support_rate": 0.9705882352941176,
+        "faithfulness_component_support_rate": 0.9782608695652174,
+        "interpretation": "Citation correctness judges only cited evidence; faithfulness judges all retrieved evidence. They are reported separately and are not a quality score."
+      }
+    }
+  }
+}

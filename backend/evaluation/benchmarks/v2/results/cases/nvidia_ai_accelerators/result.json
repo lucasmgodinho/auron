@@ -1,0 +1,1202 @@
+{
+  "schema_version": "1.0.0",
+  "benchmark_id": "competitive_intelligence_v2",
+  "benchmark_version": "2.0.0",
+  "case_id": "nvidia_ai_accelerators",
+  "research_question": "Who are Nvidia's main competitors in the AI accelerator market?",
+  "evaluated_at": "2026-09-28T14:27:53.622483+00:00",
+  "mode": "full",
+  "retrieval": {
+    "metric_type": "deterministic",
+    "broad_relevance": {
+      "threshold": 1,
+      "metrics_at_k": {
+        "1": {
+          "precision": 1.0,
+          "recall": 0.07142857142857142,
+          "ndcg": 1.0
+        },
+        "3": {
+          "precision": 1.0,
+          "recall": 0.21428571428571427,
+          "ndcg": 1.0
+        },
+        "5": {
+          "precision": 1.0,
+          "recall": 0.35714285714285715,
+          "ndcg": 1.0
+        }
+      },
+      "reciprocal_rank": 1.0
+    },
+    "strict_relevance": {
+      "threshold": 2,
+      "metrics_at_k": {
+        "1": {
+          "precision": 1.0,
+          "recall": 0.14285714285714285,
+          "ndcg": 1.0
+        },
+        "3": {
+          "precision": 1.0,
+          "recall": 0.42857142857142855,
+          "ndcg": 1.0
+        },
+        "5": {
+          "precision": 1.0,
+          "recall": 0.7142857142857143,
+          "ndcg": 1.0
+        }
+      },
+      "reciprocal_rank": 1.0
+    },
+    "graded_relevance": {
+      "gain": "2^relevance - 1",
+      "ndcg_at_k": {
+        "1": 1.0,
+        "3": 1.0,
+        "5": 1.0
+      }
+    },
+    "diagnostics": {
+      "candidate_count": 29,
+      "document_source_count": 3,
+      "relevance_distribution": {
+        "0": 15,
+        "1": 7,
+        "2": 7
+      },
+      "theoretical_recall_ceiling_at_k": {
+        "broad": {
+          "1": 0.07142857142857142,
+          "3": 0.21428571428571427,
+          "5": 0.35714285714285715
+        },
+        "strict": {
+          "1": 0.14285714285714285,
+          "3": 0.42857142857142855,
+          "5": 0.7142857142857143
+        }
+      },
+      "distinct_sources_in_top_k": 3,
+      "annotation_coverage": 1.0,
+      "broad_relevant_chunks_retrieved": [
+        "src_0c2673325697473598d9ee8014c25779_chunk_0",
+        "src_0c2673325697473598d9ee8014c25779_chunk_2",
+        "src_0c2673325697473598d9ee8014c25779_chunk_3",
+        "src_1374d1a5c5894fd8ab669ec5fe069c81_chunk_8",
+        "src_db21f8527e4148938835741728d3fb8b_chunk_1"
+      ],
+      "broad_relevant_chunks_missed": [
+        "src_0c2673325697473598d9ee8014c25779_chunk_1",
+        "src_1374d1a5c5894fd8ab669ec5fe069c81_chunk_12",
+        "src_1374d1a5c5894fd8ab669ec5fe069c81_chunk_13",
+        "src_1374d1a5c5894fd8ab669ec5fe069c81_chunk_5",
+        "src_1374d1a5c5894fd8ab669ec5fe069c81_chunk_7",
+        "src_1374d1a5c5894fd8ab669ec5fe069c81_chunk_9",
+        "src_db21f8527e4148938835741728d3fb8b_chunk_0",
+        "src_db21f8527e4148938835741728d3fb8b_chunk_2",
+        "src_db21f8527e4148938835741728d3fb8b_chunk_3"
+      ],
+      "strict_relevant_chunks_retrieved": [
+        "src_0c2673325697473598d9ee8014c25779_chunk_0",
+        "src_0c2673325697473598d9ee8014c25779_chunk_2",
+        "src_0c2673325697473598d9ee8014c25779_chunk_3",
+        "src_1374d1a5c5894fd8ab669ec5fe069c81_chunk_8",
+        "src_db21f8527e4148938835741728d3fb8b_chunk_1"
+      ],
+      "strict_relevant_chunks_missed": [
+        "src_0c2673325697473598d9ee8014c25779_chunk_1",
+        "src_db21f8527e4148938835741728d3fb8b_chunk_2"
+      ],
+      "frozen_ranking": [
+        {
+          "rank": 1,
+          "evidence_id": "E1",
+          "chunk_id": "src_0c2673325697473598d9ee8014c25779_chunk_0",
+          "source_id": "src_0c2673325697473598d9ee8014c25779",
+          "distance": 0.2473769187927246,
+          "ground_truth_relevance": 2
+        },
+        {
+          "rank": 2,
+          "evidence_id": "E2",
+          "chunk_id": "src_1374d1a5c5894fd8ab669ec5fe069c81_chunk_8",
+          "source_id": "src_1374d1a5c5894fd8ab669ec5fe069c81",
+          "distance": 0.25840938091278076,
+          "ground_truth_relevance": 2
+        },
+        {
+          "rank": 3,
+          "evidence_id": "E3",
+          "chunk_id": "src_db21f8527e4148938835741728d3fb8b_chunk_1",
+          "source_id": "src_db21f8527e4148938835741728d3fb8b",
+          "distance": 0.2825574278831482,
+          "ground_truth_relevance": 2
+        },
+        {
+          "rank": 4,
+          "evidence_id": "E4",
+          "chunk_id": "src_0c2673325697473598d9ee8014c25779_chunk_3",
+          "source_id": "src_0c2673325697473598d9ee8014c25779",
+          "distance": 0.3017617464065552,
+          "ground_truth_relevance": 2
+        },
+        {
+          "rank": 5,
+          "evidence_id": "E5",
+          "chunk_id": "src_0c2673325697473598d9ee8014c25779_chunk_2",
+          "source_id": "src_0c2673325697473598d9ee8014c25779",
+          "distance": 0.32010990381240845,
+          "ground_truth_relevance": 2
+        }
+      ]
+    }
+  },
+  "generation": {
+    "deterministic": {
+      "citation_validity": 1.0,
+      "evidence_utilization": 0.8,
+      "available_evidence_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5"
+      ],
+      "cited_evidence_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "E4"
+      ]
+    },
+    "llm_judge_observations": {
+      "citation_correctness": {
+        "summary": {
+          "total_claims": 14,
+          "supported": 10,
+          "partially_supported": 4,
+          "unsupported": 0,
+          "supported_rate": 0.7142857142857143,
+          "partially_supported_rate": 0.2857142857142857,
+          "unsupported_rate": 0.0,
+          "total_components": 35,
+          "supported_components": 31,
+          "unsupported_components": 4,
+          "component_support_rate": 0.8857142857142857
+        },
+        "per_claim_assessments": [
+          {
+            "claim": "AMD (Advanced Micro Devices): Competes in the AI training accelerator segment with its Instinct MI series AI accelerators, although its market share remains a small fraction of Nvidia's.",
+            "citation_ids": [
+              "E1",
+              "E3",
+              "E4"
+            ],
+            "verdict": "supported",
+            "components": [
+              {
+                "component": "AMD competes in the AI training accelerator segment with its Instinct MI series AI accelerators",
+                "supported": true,
+                "explanation": "The evidence states that AMD's Instinct accelerators target training and inference for large models, indicating that AMD competes in the AI training accelerator segment."
+              },
+              {
+                "component": "AMD's market share remains a small fraction of Nvidia's",
+                "supported": true,
+                "explanation": "The evidence indicates that AMD's AI revenue is much smaller than Nvidia's data center business and describes AMD as only a small fraction of Nvidia's current AI scale, supporting the claim about AMD's market share."
+              }
+            ]
+          },
+          {
+            "claim": "Intel: Competes in the AI accelerator market, primarily through its Habana Labs division, but poses a lesser threat compared to AMD.",
+            "citation_ids": [
+              "E3",
+              "E4"
+            ],
+            "verdict": "partially_supported",
+            "components": [
+              {
+                "component": "Intel competes in the AI accelerator market primarily through its Habana Labs division.",
+                "supported": false,
+                "explanation": "The evidence does not mention Intel's Habana Labs division or its specific role in the AI accelerator market."
+              },
+              {
+                "component": "Intel poses a lesser threat compared to AMD in the AI accelerator market.",
+                "supported": true,
+                "explanation": "The evidence explicitly states that Intel's threat level is lower than AMD’s in AI accelerators."
+              }
+            ]
+          },
+          {
+            "claim": "Broadcom: Engages in the custom ASIC market, providing custom AI accelerators, and is noted for its significant market capitalization.",
+            "citation_ids": [
+              "E1",
+              "E4"
+            ],
+            "verdict": "supported",
+            "components": [
+              {
+                "component": "Broadcom engages in the custom ASIC market",
+                "supported": true,
+                "explanation": "The evidence states that Broadcom operates in the 'Custom ASIC / Networking' subsector, indicating its engagement in the custom ASIC market."
+              },
+              {
+                "component": "Broadcom provides custom AI accelerators",
+                "supported": true,
+                "explanation": "The evidence mentions that Broadcom is gaining ground in custom AI accelerators, specifically noting 'Custom AI accelerators (Google TPU)' as part of its product line."
+              },
+              {
+                "component": "Broadcom is noted for its significant market capitalization",
+                "supported": true,
+                "explanation": "The evidence lists Broadcom's market capitalization as $1.96 trillion, which qualifies as significant."
+              }
+            ]
+          },
+          {
+            "claim": "Google: Develops proprietary AI chips (TPU) for its internal workloads and public-cloud services, contributing to competition against Nvidia.",
+            "citation_ids": [
+              "E2",
+              "E4"
+            ],
+            "verdict": "supported",
+            "components": [
+              {
+                "component": "Google develops proprietary AI chips (TPU) for its internal workloads",
+                "supported": true,
+                "explanation": "The evidence states that Google deploys home-grown devices, specifically mentioning TPU, for internal workloads."
+              },
+              {
+                "component": "Google develops proprietary AI chips (TPU) for public-cloud services",
+                "supported": true,
+                "explanation": "The evidence indicates that Google uses TPU for public-cloud tenants, supporting the claim that it develops these chips for public-cloud services."
+              },
+              {
+                "component": "Google's AI chips contribute to competition against Nvidia",
+                "supported": true,
+                "explanation": "The evidence mentions that Google, along with other companies, is subtly eroding Nvidia's dominance in the market, indicating that Google's AI chips contribute to competition against Nvidia."
+              }
+            ]
+          },
+          {
+            "claim": "Amazon: Utilizes its custom-designed AI chips (Trainium) for internal workloads and public-cloud offerings, competing with Nvidia in the AI accelerator space.",
+            "citation_ids": [
+              "E2",
+              "E4"
+            ],
+            "verdict": "supported",
+            "components": [
+              {
+                "component": "Amazon utilizes custom-designed AI chips (Trainium) for internal workloads.",
+                "supported": true,
+                "explanation": "The evidence states that Google, Amazon, and Microsoft each deploy home-grown devices, including Amazon's Trainium, for internal workloads."
+              },
+              {
+                "component": "Amazon utilizes custom-designed AI chips (Trainium) for public-cloud offerings.",
+                "supported": true,
+                "explanation": "The evidence indicates that Amazon uses its Trainium chips for public-cloud tenants, supporting the claim that it is utilized for public-cloud offerings."
+              },
+              {
+                "component": "Amazon competes with Nvidia in the AI accelerator space.",
+                "supported": true,
+                "explanation": "The evidence mentions that hyperscalers like Amazon compete through custom-designed silicon for their own data centers, indicating competition with Nvidia in the AI accelerator market."
+              }
+            ]
+          },
+          {
+            "claim": "Microsoft: Also develops in-house AI chips (Maia) for its data centers, competing with Nvidia's offerings.",
+            "citation_ids": [
+              "E2",
+              "E4"
+            ],
+            "verdict": "supported",
+            "components": [
+              {
+                "component": "Microsoft develops in-house AI chips (Maia) for its data centers",
+                "supported": true,
+                "explanation": "The evidence states that Microsoft deploys home-grown devices, including Maia, for internal workloads and public-cloud tenants."
+              },
+              {
+                "component": "Microsoft competes with Nvidia's offerings",
+                "supported": true,
+                "explanation": "The evidence indicates that Microsoft, along with Google and Amazon, competes with Nvidia by allocating a portion of their AI compute to proprietary chips, implying competition in the AI chip market."
+              }
+            ]
+          },
+          {
+            "claim": "Specialist Companies: Groq, Cerebras, and Graphcore focus on niche architectures for specific AI workloads, representing a different competitive angle in the market.",
+            "citation_ids": [
+              "E2"
+            ],
+            "verdict": "partially_supported",
+            "components": [
+              {
+                "component": "Groq, Cerebras, and Graphcore focus on niche architectures for specific AI workloads.",
+                "supported": true,
+                "explanation": "The evidence explicitly states that specialists such as Groq, Cerebras, and Graphcore focus on niche architectures tailored to specific workloads like transformer inference, wafer-scale training, or sparse-tensor workloads."
+              },
+              {
+                "component": "This represents a different competitive angle in the market.",
+                "supported": false,
+                "explanation": "The evidence does not provide information on how the focus of Groq, Cerebras, and Graphcore on niche architectures constitutes a different competitive angle in the market compared to other companies."
+              }
+            ]
+          },
+          {
+            "claim": "AI Training Accelerators: AMD and Intel are direct competitors in this area, with AMD's Instinct series being a notable product.",
+            "citation_ids": [
+              "E1",
+              "E3"
+            ],
+            "verdict": "supported",
+            "components": [
+              {
+                "component": "AMD and Intel are direct competitors in AI training accelerators.",
+                "supported": true,
+                "explanation": "The evidence states that AMD and Intel are traditional chipmakers and are recognized as competitors of Nvidia, specifically mentioning AMD as the main direct competitor in the AI accelerator space."
+              },
+              {
+                "component": "AMD's Instinct series is a notable product in AI training accelerators.",
+                "supported": true,
+                "explanation": "The evidence explicitly mentions AMD's Instinct accelerators targeting training and inference for large models, indicating that it is a significant product in the AI training accelerator market."
+              }
+            ]
+          },
+          {
+            "claim": "Custom ASICs: Broadcom is a key player in this segment, providing custom AI accelerators.",
+            "citation_ids": [
+              "E1",
+              "E4"
+            ],
+            "verdict": "supported",
+            "components": [
+              {
+                "component": "Broadcom is a key player in the custom ASIC segment",
+                "supported": true,
+                "explanation": "The evidence states that Broadcom is a major competitor in the semiconductor space and specifically mentions its involvement in custom ASICs."
+              },
+              {
+                "component": "Broadcom provides custom AI accelerators",
+                "supported": true,
+                "explanation": "The evidence explicitly states that Broadcom offers custom AI accelerators, specifically mentioning Google TPU as a product line."
+              }
+            ]
+          },
+          {
+            "claim": "Proprietary AI Chips: Google, Amazon, and Microsoft are developing their own chips for internal and cloud-based AI workloads, which directly competes with Nvidia's offerings.",
+            "citation_ids": [
+              "E2",
+              "E4"
+            ],
+            "verdict": "supported",
+            "components": [
+              {
+                "component": "Google is developing its own chips for internal and cloud-based AI workloads.",
+                "supported": true,
+                "explanation": "The evidence states that Google deploys home-grown devices (TPU) for internal workloads and public-cloud tenants, indicating that they are developing their own chips for these purposes."
+              },
+              {
+                "component": "Amazon is developing its own chips for internal and cloud-based AI workloads.",
+                "supported": true,
+                "explanation": "The evidence mentions that Amazon uses proprietary chips (Trainium) for its AI compute, which supports the claim that Amazon is developing its own chips for internal and cloud-based AI workloads."
+              },
+              {
+                "component": "Microsoft is developing its own chips for internal and cloud-based AI workloads.",
+                "supported": true,
+                "explanation": "The evidence indicates that Microsoft allocates a portion of its AI compute to proprietary chips (Maia), supporting the claim that Microsoft is developing its own chips for these workloads."
+              },
+              {
+                "component": "Google, Amazon, and Microsoft are directly competing with Nvidia's offerings.",
+                "supported": true,
+                "explanation": "The evidence states that Google, Amazon, and Microsoft are competing through custom-designed silicon for their own data centers, which implies direct competition with Nvidia's offerings."
+              }
+            ]
+          },
+          {
+            "claim": "Niche Architectures: Companies like Groq, Cerebras, and Graphcore are targeting specific AI workloads, which adds diversity to the competitive landscape.",
+            "citation_ids": [
+              "E2"
+            ],
+            "verdict": "partially_supported",
+            "components": [
+              {
+                "component": "Companies like Groq, Cerebras, and Graphcore are targeting specific AI workloads.",
+                "supported": true,
+                "explanation": "The evidence explicitly states that specialists such as Groq, Cerebras, and Graphcore focus on niche architectures tailored to specific workloads, confirming that they target specific AI workloads."
+              },
+              {
+                "component": "This adds diversity to the competitive landscape.",
+                "supported": false,
+                "explanation": "The evidence does not provide information or implications regarding the overall diversity of the competitive landscape as a result of these companies targeting specific AI workloads."
+              }
+            ]
+          },
+          {
+            "claim": "Nvidia holds approximately 86% of the AI GPU market, with AMD and Intel having single-digit shares in the AI training accelerator segment.",
+            "citation_ids": [
+              "E1",
+              "E4"
+            ],
+            "verdict": "supported",
+            "components": [
+              {
+                "component": "Nvidia holds approximately 86% of the AI GPU market.",
+                "supported": true,
+                "explanation": "The evidence explicitly states that Nvidia holds roughly 86% of the AI GPU market."
+              },
+              {
+                "component": "AMD and Intel have single-digit shares in the AI training accelerator segment.",
+                "supported": true,
+                "explanation": "The evidence indicates that AMD and Intel have single-digit shares in the AI training accelerator segment."
+              }
+            ]
+          },
+          {
+            "claim": "Custom silicon from hyperscalers like Google, Amazon, and Microsoft is gradually eroding Nvidia's dominance in certain areas.",
+            "citation_ids": [
+              "E2",
+              "E4"
+            ],
+            "verdict": "partially_supported",
+            "components": [
+              {
+                "component": "Custom silicon from hyperscalers like Google, Amazon, and Microsoft is gradually eroding Nvidia's dominance.",
+                "supported": true,
+                "explanation": "The evidence states that Google, Amazon, and Microsoft deploy home-grown devices which are subtly eroding merchant GPU dominance, indicating that their custom silicon is impacting Nvidia's market position."
+              },
+              {
+                "component": "Nvidia's dominance is being eroded in certain areas.",
+                "supported": true,
+                "explanation": "The evidence implies that the deployment of custom silicon by hyperscalers is affecting Nvidia's dominance, suggesting that it is being eroded in specific areas, particularly in AI compute."
+              },
+              {
+                "component": "The erosion of Nvidia's dominance is gradual.",
+                "supported": false,
+                "explanation": "The evidence does not specify the rate at which Nvidia's dominance is being eroded, nor does it explicitly state that this erosion is gradual."
+              }
+            ]
+          },
+          {
+            "claim": "Specialist companies are emerging as competitors by focusing on specific AI workloads, indicating a shift towards more tailored solutions in the market.",
+            "citation_ids": [
+              "E2"
+            ],
+            "verdict": "supported",
+            "components": [
+              {
+                "component": "Specialist companies are emerging as competitors in the AI market.",
+                "supported": true,
+                "explanation": "The evidence mentions specialist companies such as Groq, Cerebras, and Graphcore that focus on niche architectures, indicating their role as competitors in the AI market."
+              },
+              {
+                "component": "Specialist companies focus on specific AI workloads.",
+                "supported": true,
+                "explanation": "The evidence states that these specialist companies focus on niche architectures tailored to specific tasks like transformer inference and wafer-scale training, which supports the claim that they focus on specific AI workloads."
+              },
+              {
+                "component": "There is a shift towards more tailored solutions in the AI market.",
+                "supported": true,
+                "explanation": "The evidence discusses how competitive pressure is shifting toward holistic solutions that bundle hardware and software, which implies a trend towards more tailored solutions in the market."
+              }
+            ]
+          }
+        ]
+      },
+      "citation_coverage": {
+        "coverage": 0.875,
+        "citation_required_claims": 16,
+        "cited_required_claims": 14,
+        "uncited_required_claims": 2,
+        "per_claim_assessments": [
+          {
+            "claim": "Nvidia dominates the AI accelerator market, holding a significant share of the AI GPU segment. However, it faces competition from several key players, including traditional chipmakers and hyperscalers developing custom silicon.",
+            "citation_ids": [],
+            "requires_citation": true,
+            "explanation": "The claim makes factual assertions about Nvidia's market position in the AI accelerator market, specifically stating that it dominates the market and holds a significant share of the AI GPU segment. Additionally, it mentions competition from other key players, which also requires supporting evidence to verify the competitive landscape. Therefore, a citation is necessary to substantiate these claims."
+          },
+          {
+            "claim": "**AMD (Advanced Micro Devices)**: Competes in the AI training accelerator segment with its Instinct MI series AI accelerators, although its market share remains a small fraction of Nvidia's. [E1][E3][E4]",
+            "citation_ids": [
+              "E1",
+              "E3",
+              "E4"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes factual assertions about AMD's involvement in the AI training accelerator segment, specifically mentioning its Instinct MI series AI accelerators and comparing its market share to Nvidia's. These assertions about company capabilities, product offerings, and market share require supporting evidence."
+          },
+          {
+            "claim": "**Intel**: Competes in the AI accelerator market, primarily through its Habana Labs division, but poses a lesser threat compared to AMD. [E3][E4]",
+            "citation_ids": [
+              "E3",
+              "E4"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes factual assertions about Intel's competitive position in the AI accelerator market, its division (Habana Labs), and a comparison of its threat level to AMD. These assertions require supporting evidence to verify their accuracy."
+          },
+          {
+            "claim": "**Broadcom**: Engages in the custom ASIC market, providing custom AI accelerators, and is noted for its significant market capitalization. [E1][E4]",
+            "citation_ids": [
+              "E1",
+              "E4"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes factual assertions about Broadcom's involvement in the custom ASIC market, its provision of custom AI accelerators, and its significant market capitalization. Each of these points pertains to verifiable information about the company, its products, and its financial standing, which necessitates supporting evidence."
+          },
+          {
+            "claim": "**Google**: Develops proprietary AI chips (TPU) for its internal workloads and public-cloud services, contributing to competition against Nvidia. [E2][E4]",
+            "citation_ids": [
+              "E2",
+              "E4"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes factual assertions about Google's development of proprietary AI chips (TPU), their use for internal workloads and public-cloud services, and their competitive relationship with Nvidia. These are verifiable facts about companies, products, and competitive dynamics that require supporting evidence."
+          },
+          {
+            "claim": "**Amazon**: Utilizes its custom-designed AI chips (Trainium) for internal workloads and public-cloud offerings, competing with Nvidia in the AI accelerator space. [E2][E4]",
+            "citation_ids": [
+              "E2",
+              "E4"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes factual assertions about Amazon's use of custom-designed AI chips (Trainium) for specific purposes, as well as its competitive relationship with Nvidia in the AI accelerator market. These assertions require supporting evidence to verify their accuracy."
+          },
+          {
+            "claim": "**Microsoft**: Also develops in-house AI chips (Maia) for its data centers, competing with Nvidia's offerings. [E2][E4]",
+            "citation_ids": [
+              "E2",
+              "E4"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes a factual assertion about Microsoft's development of in-house AI chips (Maia) and its competitive relationship with Nvidia's offerings. This involves specific information about companies, products, and competitive dynamics, which requires supporting evidence."
+          },
+          {
+            "claim": "**Specialist Companies**: Groq, Cerebras, and Graphcore focus on niche architectures for specific AI workloads, representing a different competitive angle in the market. [E2]",
+            "citation_ids": [
+              "E2"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes factual assertions about specific companies (Groq, Cerebras, and Graphcore) and their focus on niche architectures for AI workloads, which involves competitive relationships and market positioning. Therefore, it requires supporting evidence."
+          },
+          {
+            "claim": "Nvidia's competitors are primarily focused on:",
+            "citation_ids": [],
+            "requires_citation": true,
+            "explanation": "The claim makes a factual assertion about Nvidia's competitors and their focus, which requires supporting evidence to substantiate the statement."
+          },
+          {
+            "claim": "**AI Training Accelerators**: AMD and Intel are direct competitors in this area, with AMD's Instinct series being a notable product. [E1][E3]",
+            "citation_ids": [
+              "E1",
+              "E3"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes factual assertions about the competitive relationship between AMD and Intel in the AI training accelerators market, as well as specific information about AMD's Instinct series being a notable product. These assertions require supporting evidence to verify their accuracy."
+          },
+          {
+            "claim": "**Custom ASICs**: Broadcom is a key player in this segment, providing custom AI accelerators. [E1][E4]",
+            "citation_ids": [
+              "E1",
+              "E4"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes a factual assertion about Broadcom's role in the market for custom ASICs and specifically mentions that they provide custom AI accelerators. This requires supporting evidence to verify the accuracy of the statement regarding Broadcom's capabilities and market position."
+          },
+          {
+            "claim": "**Proprietary AI Chips**: Google, Amazon, and Microsoft are developing their own chips for internal and cloud-based AI workloads, which directly competes with Nvidia's offerings. [E2][E4]",
+            "citation_ids": [
+              "E2",
+              "E4"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes factual assertions about specific companies (Google, Amazon, Microsoft, Nvidia) and their activities related to developing proprietary AI chips for internal and cloud-based AI workloads. It also asserts a competitive relationship between these companies and Nvidia, which requires supporting evidence."
+          },
+          {
+            "claim": "**Niche Architectures**: Companies like Groq, Cerebras, and Graphcore are targeting specific AI workloads, which adds diversity to the competitive landscape. [E2]",
+            "citation_ids": [
+              "E2"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes a factual assertion about specific companies (Groq, Cerebras, and Graphcore) and their focus on targeting specific AI workloads, which relates to their competitive positioning in the market. This requires supporting evidence to verify the accuracy of the statement."
+          },
+          {
+            "claim": "Nvidia holds approximately 86% of the AI GPU market, with AMD and Intel having single-digit shares in the AI training accelerator segment. [E1][E4]",
+            "citation_ids": [
+              "E1",
+              "E4"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes specific factual assertions about market shares of Nvidia, AMD, and Intel in the AI GPU market, which requires supporting evidence to verify these figures."
+          },
+          {
+            "claim": "Custom silicon from hyperscalers like Google, Amazon, and Microsoft is gradually eroding Nvidia's dominance in certain areas. [E2][E4]",
+            "citation_ids": [
+              "E2",
+              "E4"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes a factual assertion about the competitive dynamics in the technology industry, specifically regarding the impact of custom silicon from hyperscalers on Nvidia's market position. This involves specific companies (Google, Amazon, Microsoft, and Nvidia) and their competitive relationships, which necessitates supporting evidence."
+          },
+          {
+            "claim": "Specialist companies are emerging as competitors by focusing on specific AI workloads, indicating a shift towards more tailored solutions in the market. [E2]",
+            "citation_ids": [
+              "E2"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes a factual assertion about the emergence of specialist companies as competitors in the AI market, which involves specific market dynamics and trends. This requires supporting evidence to substantiate the statement about the shift towards tailored solutions."
+          }
+        ]
+      },
+      "faithfulness": {
+        "summary": {
+          "total_claims": 16,
+          "faithful": 14,
+          "partially_faithful": 2,
+          "unfaithful": 0,
+          "faithful_rate": 0.875,
+          "partially_faithful_rate": 0.125,
+          "unfaithful_rate": 0.0,
+          "total_components": 47,
+          "supported_components": 45,
+          "unsupported_components": 2,
+          "component_support_rate": 0.9574468085106383
+        },
+        "per_claim_assessments": [
+          {
+            "claim": "Nvidia dominates the AI accelerator market, holding a significant share of the AI GPU segment. However, it faces competition from several key players, including traditional chipmakers and hyperscalers developing custom silicon.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Nvidia dominates the AI accelerator market",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence states that Nvidia holds an estimated 86% share of the AI GPU market, indicating its dominance in the AI accelerator market."
+              },
+              {
+                "component": "Nvidia holds a significant share of the AI GPU segment",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence explicitly mentions that Nvidia holds approximately 86% of the AI GPU market, which qualifies as a significant share."
+              },
+              {
+                "component": "Nvidia faces competition from several key players",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3",
+                  "E4"
+                ],
+                "explanation": "The evidence identifies multiple competitors of Nvidia, including AMD, Intel, Google, Amazon, and Microsoft, indicating that Nvidia faces competition from several key players."
+              },
+              {
+                "component": "These competitors include traditional chipmakers and hyperscalers developing custom silicon",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3",
+                  "E4"
+                ],
+                "explanation": "The evidence specifies that traditional chipmakers like AMD and Intel, as well as hyperscalers like Google, Amazon, and Microsoft, are developing custom silicon, thus supporting this component of the claim."
+              }
+            ]
+          },
+          {
+            "claim": "AMD (Advanced Micro Devices): Competes in the AI training accelerator segment with its Instinct MI series AI accelerators, although its market share remains a small fraction of Nvidia's.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "AMD competes in the AI training accelerator segment with its Instinct MI series AI accelerators.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E3",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence states that AMD's Instinct accelerators target training and inference for large models, indicating that AMD competes in the AI training accelerator segment."
+              },
+              {
+                "component": "AMD's market share remains a small fraction of Nvidia's.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E3",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence indicates that AMD's AI revenue is much smaller than Nvidia's, describing AMD's market share as a small fraction of Nvidia's, which supports this component."
+              }
+            ]
+          },
+          {
+            "claim": "Intel: Competes in the AI accelerator market, primarily through its Habana Labs division, but poses a lesser threat compared to AMD.",
+            "verdict": "partially_faithful",
+            "components": [
+              {
+                "component": "Intel competes in the AI accelerator market primarily through its Habana Labs division.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2"
+                ],
+                "explanation": "The evidence states that Intel Corporation (Habana Labs Ltd.) is listed as one of the industry leaders in AI accelerators, indicating that Intel competes in this market."
+              },
+              {
+                "component": "Intel poses a lesser threat compared to AMD in the AI accelerator market.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E3"
+                ],
+                "explanation": "The evidence explicitly states that Intel's threat level is lower than AMD’s in AI accelerators, supporting the claim that Intel poses a lesser threat compared to AMD."
+              },
+              {
+                "component": "AMD is a significant competitor in the AI accelerator market.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E3"
+                ],
+                "explanation": "The evidence indicates that AMD is a main direct competitor to Nvidia and is actively competing in the AI accelerator market, particularly with its Instinct series."
+              },
+              {
+                "component": "Intel's market share in the AI accelerator market is smaller than AMD's.",
+                "supported": false,
+                "supporting_evidence_ids": [],
+                "explanation": "The evidence does not provide specific information about the market shares of Intel and AMD in the AI accelerator market, thus this component cannot be evaluated as supported."
+              }
+            ]
+          },
+          {
+            "claim": "Broadcom: Engages in the custom ASIC market, providing custom AI accelerators, and is noted for its significant market capitalization.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Broadcom engages in the custom ASIC market",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E4"
+                ],
+                "explanation": "The evidence states that Broadcom operates in the custom ASIC market, specifically mentioning its involvement in custom AI accelerators."
+              },
+              {
+                "component": "Broadcom provides custom AI accelerators",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E4"
+                ],
+                "explanation": "The evidence explicitly mentions that Broadcom provides custom AI accelerators, including Google TPU."
+              },
+              {
+                "component": "Broadcom is noted for its significant market capitalization",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E4"
+                ],
+                "explanation": "The evidence indicates that Broadcom has a market capitalization of $1.96 trillion, which qualifies as significant."
+              }
+            ]
+          },
+          {
+            "claim": "Google: Develops proprietary AI chips (TPU) for its internal workloads and public-cloud services, contributing to competition against Nvidia.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Google develops proprietary AI chips (TPU)",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence explicitly states that Google deploys home-grown devices, including TPU, for internal workloads and public-cloud tenants."
+              },
+              {
+                "component": "Google's AI chips contribute to competition against Nvidia",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence indicates that Google, along with other companies, is competing against Nvidia by using proprietary chips, which implies that their AI chips contribute to competition."
+              },
+              {
+                "component": "Google's AI chips are used for internal workloads and public-cloud services",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence confirms that Google uses its TPU chips for both internal workloads and public-cloud services."
+              }
+            ]
+          },
+          {
+            "claim": "Amazon: Utilizes its custom-designed AI chips (Trainium) for internal workloads and public-cloud offerings, competing with Nvidia in the AI accelerator space.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Amazon utilizes custom-designed AI chips (Trainium) for internal workloads.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence states that Amazon deploys home-grown devices, including Trainium, for internal workloads."
+              },
+              {
+                "component": "Amazon utilizes custom-designed AI chips (Trainium) for public-cloud offerings.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence indicates that Amazon uses its proprietary chips, including Trainium, for public-cloud tenants."
+              },
+              {
+                "component": "Amazon competes with Nvidia in the AI accelerator space.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence mentions that Amazon is among the companies developing in-house AI chips, which positions it as a competitor to Nvidia in the AI accelerator market."
+              }
+            ]
+          },
+          {
+            "claim": "Microsoft: Also develops in-house AI chips (Maia) for its data centers, competing with Nvidia's offerings.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Microsoft develops in-house AI chips (Maia) for its data centers",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence explicitly states that Microsoft deploys home-grown devices, including Maia, for internal workloads and public-cloud tenants."
+              },
+              {
+                "component": "Microsoft competes with Nvidia's offerings",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E4"
+                ],
+                "explanation": "The evidence indicates that Microsoft is among the hyperscalers that compete with Nvidia through custom-designed silicon for their own data centers."
+              }
+            ]
+          },
+          {
+            "claim": "Specialist Companies: Groq, Cerebras, and Graphcore focus on niche architectures for specific AI workloads, representing a different competitive angle in the market.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Groq, Cerebras, and Graphcore focus on niche architectures for specific AI workloads",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2"
+                ],
+                "explanation": "The evidence explicitly states that specialists such as Groq, Cerebras, and Graphcore focus on niche architectures tailored to specific AI workloads."
+              },
+              {
+                "component": "These companies represent a different competitive angle in the market",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2"
+                ],
+                "explanation": "The evidence implies that by focusing on niche architectures, these companies are taking a different competitive approach compared to larger players like Nvidia."
+              }
+            ]
+          },
+          {
+            "claim": "Nvidia's competitors are primarily focused on:",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Nvidia's competitors are primarily focused on AI accelerators.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence discusses Nvidia's competitors, including AMD and Intel, and their focus on AI accelerators, indicating that this is a primary area of competition."
+              },
+              {
+                "component": "Nvidia's competitors include AMD, Intel, Google, Amazon, and Microsoft.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence explicitly lists AMD, Intel, Google, Amazon, and Microsoft as competitors of Nvidia in the AI accelerator market."
+              },
+              {
+                "component": "Nvidia holds a dominant share of the AI GPU market.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence states that Nvidia holds approximately 86% of the AI GPU market, confirming its dominant position."
+              },
+              {
+                "component": "Nvidia's competitors are developing in-house AI chips.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence mentions that companies like Google, Amazon, and Microsoft are developing their own AI chips, indicating that competitors are indeed focusing on in-house solutions."
+              },
+              {
+                "component": "Nvidia's competitors are gaining ground in custom AI accelerators.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence indicates that competitors like Broadcom and AMD are making progress in custom AI accelerators, suggesting they are gaining ground in this area."
+              }
+            ]
+          },
+          {
+            "claim": "AI Training Accelerators: AMD and Intel are direct competitors in this area, with AMD's Instinct series being a notable product.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "AMD and Intel are direct competitors in AI training accelerators.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E3",
+                  "E4"
+                ],
+                "explanation": "The evidence explicitly states that AMD and Intel are considered direct competitors of Nvidia in the AI training accelerator segment."
+              },
+              {
+                "component": "AMD's Instinct series is a notable product in AI training accelerators.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E3",
+                  "E4"
+                ],
+                "explanation": "The evidence mentions AMD's Instinct series as a product that targets training and inference for large models, indicating its significance in the AI training accelerator market."
+              }
+            ]
+          },
+          {
+            "claim": "Custom ASICs: Broadcom is a key player in this segment, providing custom AI accelerators.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Broadcom is a key player in the custom ASIC segment.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence identifies Broadcom as a significant competitor in the custom ASIC market, specifically mentioning its market capitalization and its involvement in custom AI accelerators."
+              },
+              {
+                "component": "Broadcom provides custom AI accelerators.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence explicitly states that Broadcom is involved in providing custom AI accelerators, confirming this component of the claim."
+              }
+            ]
+          },
+          {
+            "claim": "Proprietary AI Chips: Google, Amazon, and Microsoft are developing their own chips for internal and cloud-based AI workloads, which directly competes with Nvidia's offerings.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Google is developing its own chips for internal and cloud-based AI workloads.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "Evidence E2 states that Google deploys home-grown devices for internal workloads, which implies they are developing their own chips. Evidence E4 also mentions Google allocating a portion of their AI compute to proprietary chips."
+              },
+              {
+                "component": "Amazon is developing its own chips for internal and cloud-based AI workloads.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "Evidence E2 indicates that Amazon deploys home-grown devices for internal workloads, suggesting they are developing their own chips. Evidence E4 supports this by stating Amazon allocates a portion of their AI compute to proprietary chips."
+              },
+              {
+                "component": "Microsoft is developing its own chips for internal and cloud-based AI workloads.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "Evidence E2 mentions that Microsoft deploys home-grown devices for internal workloads, indicating they are developing their own chips. Evidence E4 also states that Microsoft allocates a portion of their AI compute to proprietary chips."
+              },
+              {
+                "component": "Google, Amazon, and Microsoft are developing their chips which directly competes with Nvidia's offerings.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "Evidence E2 and E4 both indicate that Google, Amazon, and Microsoft are developing their own chips for internal workloads, which implies competition with Nvidia's offerings."
+              }
+            ]
+          },
+          {
+            "claim": "Niche Architectures: Companies like Groq, Cerebras, and Graphcore are targeting specific AI workloads, which adds diversity to the competitive landscape.",
+            "verdict": "partially_faithful",
+            "components": [
+              {
+                "component": "Companies like Groq, Cerebras, and Graphcore are targeting specific AI workloads",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2"
+                ],
+                "explanation": "The evidence explicitly states that specialists such as Groq, Cerebras, and Graphcore focus on niche architectures tailored to specific AI workloads."
+              },
+              {
+                "component": "which adds diversity to the competitive landscape",
+                "supported": false,
+                "supporting_evidence_ids": [],
+                "explanation": "The evidence does not provide support for the claim that targeting specific AI workloads adds diversity to the competitive landscape."
+              }
+            ]
+          },
+          {
+            "claim": "Nvidia holds approximately 86% of the AI GPU market, with AMD and Intel having single-digit shares in the AI training accelerator segment.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Nvidia holds approximately 86% of the AI GPU market",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence explicitly states that Nvidia holds roughly 86% of the AI GPU market."
+              },
+              {
+                "component": "AMD and Intel having single-digit shares in the AI training accelerator segment",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1"
+                ],
+                "explanation": "The evidence indicates that AMD and Intel have single-digit shares in the AI training accelerator segment."
+              }
+            ]
+          },
+          {
+            "claim": "Custom silicon from hyperscalers like Google, Amazon, and Microsoft is gradually eroding Nvidia's dominance in certain areas.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Custom silicon from hyperscalers like Google, Amazon, and Microsoft is gradually eroding Nvidia's dominance.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence indicates that Google, Amazon, and Microsoft are deploying their own custom silicon (TPU, Trainium, and Maia) for internal workloads and public-cloud tenants, which is described as subtly eroding Nvidia's dominance in the GPU market."
+              },
+              {
+                "component": "Nvidia's dominance is being eroded in certain areas.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence supports the notion that Nvidia's dominance is being challenged by the rise of custom silicon from hyperscalers, indicating a shift in competitive dynamics."
+              },
+              {
+                "component": "Hyperscalers like Google, Amazon, and Microsoft are developing in-house AI chips.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E4"
+                ],
+                "explanation": "The evidence explicitly states that Google, Amazon, and Microsoft are developing in-house AI chips, confirming their involvement in creating custom silicon."
+              },
+              {
+                "component": "Nvidia's market share is decreasing due to competition from custom silicon.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence suggests that while Nvidia's market share may decrease modestly due to the rise of custom ASICs and competition from AMD, its absolute revenue continues to grow, indicating a complex competitive landscape."
+              }
+            ]
+          },
+          {
+            "claim": "Specialist companies are emerging as competitors by focusing on specific AI workloads, indicating a shift towards more tailored solutions in the market.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Specialist companies are emerging as competitors in the AI market.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2"
+                ],
+                "explanation": "The evidence mentions that specialist companies such as Groq, Cerebras, and Graphcore focus on niche architectures tailored to specific AI workloads, indicating their emergence as competitors."
+              },
+              {
+                "component": "These companies focus on specific AI workloads.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2"
+                ],
+                "explanation": "The evidence explicitly states that specialist companies focus on niche architectures tailored to transformer inference, wafer-scale training, or sparse-tensor workloads."
+              },
+              {
+                "component": "There is a shift towards more tailored solutions in the market.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2"
+                ],
+                "explanation": "The evidence discusses competitive pressure shifting toward holistic solutions that bundle hardware, orchestration software, and service layers, which implies a trend towards more tailored solutions."
+              }
+            ]
+          }
+        ]
+      },
+      "correctness_vs_faithfulness": {
+        "citation_correctness_component_support_rate": 0.8857142857142857,
+        "faithfulness_component_support_rate": 0.9574468085106383,
+        "interpretation": "Citation correctness judges only cited evidence; faithfulness judges all retrieved evidence. They are reported separately and are not a quality score."
+      }
+    }
+  }
+}

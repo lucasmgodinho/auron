@@ -13,3 +13,4 @@ pydantic-settings==2.15.0
 sqlalchemy==2.0.51
 psycopg[binary]==3.3.4
 uvicorn[standard]==0.52.1
+langchain-chroma==1.0.0

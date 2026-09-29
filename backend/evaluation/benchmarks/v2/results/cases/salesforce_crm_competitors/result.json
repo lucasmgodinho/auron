@@ -1,0 +1,1313 @@
+{
+  "schema_version": "1.0.0",
+  "benchmark_id": "competitive_intelligence_v2",
+  "benchmark_version": "2.0.0",
+  "case_id": "salesforce_crm_competitors",
+  "research_question": "Who are Salesforce's main competitors in the CRM market?",
+  "evaluated_at": "2026-09-28T14:26:10.160212+00:00",
+  "mode": "full",
+  "retrieval": {
+    "metric_type": "deterministic",
+    "broad_relevance": {
+      "threshold": 1,
+      "metrics_at_k": {
+        "1": {
+          "precision": 1.0,
+          "recall": 0.058823529411764705,
+          "ndcg": 1.0
+        },
+        "3": {
+          "precision": 1.0,
+          "recall": 0.17647058823529413,
+          "ndcg": 1.0
+        },
+        "5": {
+          "precision": 0.8,
+          "recall": 0.23529411764705882,
+          "ndcg": 0.8539316501572934
+        }
+      },
+      "reciprocal_rank": 1.0
+    },
+    "strict_relevance": {
+      "threshold": 2,
+      "metrics_at_k": {
+        "1": {
+          "precision": 1.0,
+          "recall": 0.07142857142857142,
+          "ndcg": 1.0
+        },
+        "3": {
+          "precision": 1.0,
+          "recall": 0.21428571428571427,
+          "ndcg": 1.0
+        },
+        "5": {
+          "precision": 0.8,
+          "recall": 0.2857142857142857,
+          "ndcg": 0.8539316501572934
+        }
+      },
+      "reciprocal_rank": 1.0
+    },
+    "graded_relevance": {
+      "gain": "2^relevance - 1",
+      "ndcg_at_k": {
+        "1": 1.0,
+        "3": 1.0,
+        "5": 0.8539316501572934
+      }
+    },
+    "diagnostics": {
+      "candidate_count": 23,
+      "document_source_count": 3,
+      "relevance_distribution": {
+        "0": 6,
+        "1": 3,
+        "2": 14
+      },
+      "theoretical_recall_ceiling_at_k": {
+        "broad": {
+          "1": 0.058823529411764705,
+          "3": 0.17647058823529413,
+          "5": 0.29411764705882354
+        },
+        "strict": {
+          "1": 0.07142857142857142,
+          "3": 0.21428571428571427,
+          "5": 0.35714285714285715
+        }
+      },
+      "distinct_sources_in_top_k": 2,
+      "annotation_coverage": 1.0,
+      "broad_relevant_chunks_retrieved": [
+        "src_06ec42cf0e084a24ae7896713e9300a2_chunk_1",
+        "src_d215ab2dae5b46e39a1c3b3e0808549a_chunk_0",
+        "src_d215ab2dae5b46e39a1c3b3e0808549a_chunk_1",
+        "src_d215ab2dae5b46e39a1c3b3e0808549a_chunk_2"
+      ],
+      "broad_relevant_chunks_missed": [
+        "src_06ec42cf0e084a24ae7896713e9300a2_chunk_10",
+        "src_06ec42cf0e084a24ae7896713e9300a2_chunk_2",
+        "src_06ec42cf0e084a24ae7896713e9300a2_chunk_3",
+        "src_06ec42cf0e084a24ae7896713e9300a2_chunk_4",
+        "src_06ec42cf0e084a24ae7896713e9300a2_chunk_5",
+        "src_06ec42cf0e084a24ae7896713e9300a2_chunk_6",
+        "src_06ec42cf0e084a24ae7896713e9300a2_chunk_7",
+        "src_06ec42cf0e084a24ae7896713e9300a2_chunk_8",
+        "src_06ec42cf0e084a24ae7896713e9300a2_chunk_9",
+        "src_2291a8ead8c64dbbb69df9d751978caa_chunk_0",
+        "src_2291a8ead8c64dbbb69df9d751978caa_chunk_1",
+        "src_2291a8ead8c64dbbb69df9d751978caa_chunk_2",
+        "src_d215ab2dae5b46e39a1c3b3e0808549a_chunk_3"
+      ],
+      "strict_relevant_chunks_retrieved": [
+        "src_06ec42cf0e084a24ae7896713e9300a2_chunk_1",
+        "src_d215ab2dae5b46e39a1c3b3e0808549a_chunk_0",
+        "src_d215ab2dae5b46e39a1c3b3e0808549a_chunk_1",
+        "src_d215ab2dae5b46e39a1c3b3e0808549a_chunk_2"
+      ],
+      "strict_relevant_chunks_missed": [
+        "src_06ec42cf0e084a24ae7896713e9300a2_chunk_10",
+        "src_06ec42cf0e084a24ae7896713e9300a2_chunk_2",
+        "src_06ec42cf0e084a24ae7896713e9300a2_chunk_3",
+        "src_06ec42cf0e084a24ae7896713e9300a2_chunk_4",
+        "src_06ec42cf0e084a24ae7896713e9300a2_chunk_5",
+        "src_06ec42cf0e084a24ae7896713e9300a2_chunk_6",
+        "src_06ec42cf0e084a24ae7896713e9300a2_chunk_7",
+        "src_06ec42cf0e084a24ae7896713e9300a2_chunk_8",
+        "src_06ec42cf0e084a24ae7896713e9300a2_chunk_9",
+        "src_2291a8ead8c64dbbb69df9d751978caa_chunk_2"
+      ],
+      "frozen_ranking": [
+        {
+          "rank": 1,
+          "evidence_id": "E1",
+          "chunk_id": "src_d215ab2dae5b46e39a1c3b3e0808549a_chunk_2",
+          "source_id": "src_d215ab2dae5b46e39a1c3b3e0808549a",
+          "distance": 0.25595659017562866,
+          "ground_truth_relevance": 2
+        },
+        {
+          "rank": 2,
+          "evidence_id": "E2",
+          "chunk_id": "src_d215ab2dae5b46e39a1c3b3e0808549a_chunk_1",
+          "source_id": "src_d215ab2dae5b46e39a1c3b3e0808549a",
+          "distance": 0.26674675941467285,
+          "ground_truth_relevance": 2
+        },
+        {
+          "rank": 3,
+          "evidence_id": "E3",
+          "chunk_id": "src_d215ab2dae5b46e39a1c3b3e0808549a_chunk_0",
+          "source_id": "src_d215ab2dae5b46e39a1c3b3e0808549a",
+          "distance": 0.27307969331741333,
+          "ground_truth_relevance": 2
+        },
+        {
+          "rank": 4,
+          "evidence_id": "E4",
+          "chunk_id": "src_06ec42cf0e084a24ae7896713e9300a2_chunk_0",
+          "source_id": "src_06ec42cf0e084a24ae7896713e9300a2",
+          "distance": 0.2790338397026062,
+          "ground_truth_relevance": 0
+        },
+        {
+          "rank": 5,
+          "evidence_id": "E5",
+          "chunk_id": "src_06ec42cf0e084a24ae7896713e9300a2_chunk_1",
+          "source_id": "src_06ec42cf0e084a24ae7896713e9300a2",
+          "distance": 0.3179978132247925,
+          "ground_truth_relevance": 2
+        }
+      ]
+    }
+  },
+  "generation": {
+    "deterministic": {
+      "citation_validity": 1.0,
+      "evidence_utilization": 0.6,
+      "available_evidence_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5"
+      ],
+      "cited_evidence_ids": [
+        "E1",
+        "E3",
+        "E4"
+      ]
+    },
+    "llm_judge_observations": {
+      "citation_correctness": {
+        "summary": {
+          "total_claims": 12,
+          "supported": 12,
+          "partially_supported": 0,
+          "unsupported": 0,
+          "supported_rate": 1.0,
+          "partially_supported_rate": 0.0,
+          "unsupported_rate": 0.0,
+          "total_components": 36,
+          "supported_components": 36,
+          "unsupported_components": 0,
+          "component_support_rate": 1.0
+        },
+        "per_claim_assessments": [
+          {
+            "claim": "Oracle Corporation (ORCL): Competes in cloud applications for CRM, ERP, and industry solutions, explicitly identifying Salesforce as a major competitor.",
+            "citation_ids": [
+              "E1",
+              "E3"
+            ],
+            "verdict": "supported",
+            "components": [
+              {
+                "component": "Oracle Corporation competes in cloud applications for CRM",
+                "supported": true,
+                "explanation": "The evidence explicitly states that Oracle Corporation offers Oracle Cloud Apps, which include CRM among other applications, indicating that it competes in this area."
+              },
+              {
+                "component": "Oracle Corporation competes in cloud applications for ERP",
+                "supported": true,
+                "explanation": "The evidence mentions that Oracle's offerings include ERP as part of its cloud applications, supporting the claim that it competes in this area."
+              },
+              {
+                "component": "Oracle Corporation competes in cloud applications for industry solutions",
+                "supported": true,
+                "explanation": "The evidence indicates that Oracle provides industry solutions as part of its cloud applications, thus supporting the claim."
+              },
+              {
+                "component": "Oracle Corporation explicitly identifies Salesforce as a major competitor",
+                "supported": true,
+                "explanation": "The evidence explicitly states that Oracle lists Salesforce as a major competitor, directly supporting this component of the claim."
+              }
+            ]
+          },
+          {
+            "claim": "Microsoft Corporation (MSFT): Offers Dynamics 365, which overlaps with Salesforce in CRM and ERP, positioning itself as a strong competitor through integrated business applications and cloud services.",
+            "citation_ids": [
+              "E1",
+              "E3"
+            ],
+            "verdict": "supported",
+            "components": [
+              {
+                "component": "Microsoft Corporation (MSFT) offers Dynamics 365",
+                "supported": true,
+                "explanation": "The evidence explicitly states that Microsoft Corporation (MSFT) offers Dynamics 365."
+              },
+              {
+                "component": "Dynamics 365 overlaps with Salesforce in CRM and ERP",
+                "supported": true,
+                "explanation": "The evidence confirms that Microsoft’s Dynamics 365 suite directly overlaps with Salesforce in CRM and ERP."
+              },
+              {
+                "component": "Microsoft positions itself as a strong competitor through integrated business applications and cloud services",
+                "supported": true,
+                "explanation": "The evidence indicates that Microsoft competes through integrated business applications and cloud services (specifically mentioning Azure), supporting the claim of positioning as a strong competitor."
+              }
+            ]
+          },
+          {
+            "claim": "Adobe Inc. (ADBE): Competes in the marketing automation and digital experience space, integrating its Experience Platform with tools that target marketing professionals.",
+            "citation_ids": [
+              "E1",
+              "E3"
+            ],
+            "verdict": "supported",
+            "components": [
+              {
+                "component": "Adobe Inc. (ADBE) competes in the marketing automation space",
+                "supported": true,
+                "explanation": "The evidence explicitly states that Adobe competes in the marketing automation space."
+              },
+              {
+                "component": "Adobe Inc. (ADBE) competes in the digital experience space",
+                "supported": true,
+                "explanation": "The evidence explicitly states that Adobe competes in the digital experience space."
+              },
+              {
+                "component": "Adobe integrates its Experience Platform with tools that target marketing professionals",
+                "supported": true,
+                "explanation": "The evidence states that Adobe integrates its Experience Platform with creative and analytics tools, targeting marketing professionals."
+              }
+            ]
+          },
+          {
+            "claim": "ServiceNow, Inc. (NOW): Lists Salesforce as a competitor in enterprise application software, particularly in CRM, emphasizing workflow automation and AI-enabled orchestration.",
+            "citation_ids": [
+              "E1",
+              "E3"
+            ],
+            "verdict": "supported",
+            "components": [
+              {
+                "component": "ServiceNow, Inc. (NOW) lists Salesforce as a competitor in enterprise application software.",
+                "supported": true,
+                "explanation": "The evidence explicitly states that ServiceNow lists Salesforce as a competitor in enterprise application software."
+              },
+              {
+                "component": "ServiceNow, Inc. (NOW) lists Salesforce as a competitor particularly in CRM.",
+                "supported": true,
+                "explanation": "The evidence specifies that ServiceNow lists Salesforce as a competitor particularly in CRM."
+              },
+              {
+                "component": "ServiceNow, Inc. (NOW) emphasizes workflow automation and AI-enabled orchestration.",
+                "supported": true,
+                "explanation": "The evidence indicates that ServiceNow emphasizes workflow automation and AI-enabled orchestration in its competitive positioning against Salesforce."
+              }
+            ]
+          },
+          {
+            "claim": "Workday, Inc. (WDAY): Competes in enterprise software, with some overlap in CRM, while primarily focusing on HCM and financial management.",
+            "citation_ids": [
+              "E1",
+              "E3"
+            ],
+            "verdict": "supported",
+            "components": [
+              {
+                "component": "Workday, Inc. (WDAY) competes in enterprise software",
+                "supported": true,
+                "explanation": "The evidence states that Workday is listed as a competitor in enterprise application software, indicating its involvement in the enterprise software market."
+              },
+              {
+                "component": "Workday, Inc. (WDAY) has some overlap in CRM",
+                "supported": true,
+                "explanation": "The evidence explicitly mentions that Workday has some overlap in CRM, confirming this component of the claim."
+              },
+              {
+                "component": "Workday, Inc. (WDAY) primarily focuses on HCM and financial management",
+                "supported": true,
+                "explanation": "The evidence states that Workday focuses on HCM (Human Capital Management) and financial management, directly supporting this component of the claim."
+              }
+            ]
+          },
+          {
+            "claim": "Intuit Inc. (INTU): Competes indirectly through business software offerings like Mailchimp and QuickBooks, but does not directly compete in the CRM platform space.",
+            "citation_ids": [
+              "E1",
+              "E3"
+            ],
+            "verdict": "supported",
+            "components": [
+              {
+                "component": "Intuit Inc. competes indirectly through business software offerings like Mailchimp and QuickBooks.",
+                "supported": true,
+                "explanation": "The evidence states that Intuit's competition with Salesforce is indirect, mainly through business software offerings like Mailchimp and QuickBooks."
+              },
+              {
+                "component": "Intuit Inc. does not directly compete in the CRM platform space.",
+                "supported": true,
+                "explanation": "The evidence explicitly states that Intuit does not directly compete in the CRM platform space."
+              }
+            ]
+          },
+          {
+            "claim": "Snowflake Inc. (SNOW): Competes in data management and analytics, with some overlap in data integration, but does not position itself directly against Salesforce’s CRM platform.",
+            "citation_ids": [
+              "E1",
+              "E3"
+            ],
+            "verdict": "supported",
+            "components": [
+              {
+                "component": "Snowflake Inc. (SNOW) competes in data management and analytics.",
+                "supported": true,
+                "explanation": "The evidence states that Snowflake’s AI Data Cloud competes in data management and analytics."
+              },
+              {
+                "component": "Snowflake Inc. (SNOW) has some overlap in data integration.",
+                "supported": true,
+                "explanation": "The evidence mentions that Snowflake has some overlap in data integration."
+              },
+              {
+                "component": "Snowflake Inc. (SNOW) does not position itself directly against Salesforce’s CRM platform.",
+                "supported": true,
+                "explanation": "The evidence explicitly states that there is no direct competition between Snowflake and Salesforce’s CRM platform."
+              }
+            ]
+          },
+          {
+            "claim": "MongoDB, Inc. (MDB): Competes in the database software market, with some overlap in cloud and data integration, but does not directly position itself against Salesforce.",
+            "citation_ids": [
+              "E1",
+              "E3"
+            ],
+            "verdict": "supported",
+            "components": [
+              {
+                "component": "MongoDB, Inc. (MDB) competes in the database software market.",
+                "supported": true,
+                "explanation": "The evidence explicitly states that MongoDB competes in the database software market."
+              },
+              {
+                "component": "MongoDB, Inc. (MDB) has some overlap in cloud and data integration.",
+                "supported": true,
+                "explanation": "The evidence mentions that MongoDB has some overlap in cloud and data integration."
+              },
+              {
+                "component": "MongoDB, Inc. (MDB) does not directly position itself against Salesforce.",
+                "supported": true,
+                "explanation": "The evidence confirms that MongoDB does not directly position itself against Salesforce."
+              }
+            ]
+          },
+          {
+            "claim": "Salesforce faces direct competition from Oracle and ServiceNow, which explicitly list it as a competitor in the CRM space.",
+            "citation_ids": [
+              "E1",
+              "E3"
+            ],
+            "verdict": "supported",
+            "components": [
+              {
+                "component": "Salesforce faces direct competition from Oracle.",
+                "supported": true,
+                "explanation": "The evidence explicitly states that Oracle lists Salesforce as a major competitor in the CRM space."
+              },
+              {
+                "component": "Salesforce faces direct competition from ServiceNow.",
+                "supported": true,
+                "explanation": "The evidence explicitly states that ServiceNow lists Salesforce as a competitor in enterprise application software, particularly in CRM."
+              },
+              {
+                "component": "Oracle explicitly lists Salesforce as a competitor in the CRM space.",
+                "supported": true,
+                "explanation": "The evidence indicates that Oracle explicitly lists Salesforce as a major competitor in the CRM space."
+              },
+              {
+                "component": "ServiceNow explicitly lists Salesforce as a competitor in the CRM space.",
+                "supported": true,
+                "explanation": "The evidence indicates that ServiceNow lists Salesforce as a competitor in enterprise application software, which includes CRM."
+              }
+            ]
+          },
+          {
+            "claim": "Microsoft Dynamics 365 is highlighted as a close rival, offering integrated solutions that overlap significantly with Salesforce's offerings.",
+            "citation_ids": [
+              "E1",
+              "E4"
+            ],
+            "verdict": "supported",
+            "components": [
+              {
+                "component": "Microsoft Dynamics 365 is highlighted as a close rival to Salesforce.",
+                "supported": true,
+                "explanation": "The evidence states that Microsoft’s Dynamics 365 suite directly overlaps with Salesforce in CRM and ERP, indicating that it is a competitor."
+              },
+              {
+                "component": "Microsoft Dynamics 365 offers integrated solutions that overlap significantly with Salesforce's offerings.",
+                "supported": true,
+                "explanation": "The evidence explicitly mentions that Dynamics 365 overlaps with Salesforce in CRM and ERP, which supports the claim of offering integrated solutions that overlap significantly."
+              }
+            ]
+          },
+          {
+            "claim": "Adobe, while primarily focused on marketing automation, competes in areas that intersect with Salesforce's capabilities.",
+            "citation_ids": [
+              "E1",
+              "E3"
+            ],
+            "verdict": "supported",
+            "components": [
+              {
+                "component": "Adobe is primarily focused on marketing automation.",
+                "supported": true,
+                "explanation": "The evidence states that Adobe competes in the marketing automation and digital experience space, indicating a primary focus on marketing automation."
+              },
+              {
+                "component": "Adobe competes in areas that intersect with Salesforce's capabilities.",
+                "supported": true,
+                "explanation": "The evidence explicitly mentions that Adobe offers overlapping solutions in CRM, marketing, and business process automation, which indicates that Adobe competes in areas that intersect with Salesforce's capabilities."
+              }
+            ]
+          },
+          {
+            "claim": "Intuit, Snowflake, and MongoDB represent indirect competition, focusing on adjacent markets rather than direct CRM solutions.",
+            "citation_ids": [
+              "E1",
+              "E3"
+            ],
+            "verdict": "supported",
+            "components": [
+              {
+                "component": "Intuit represents indirect competition with Salesforce.",
+                "supported": true,
+                "explanation": "The evidence states that Intuit's competition with Salesforce is indirect, mainly through business software offerings like Mailchimp and QuickBooks, confirming the claim."
+              },
+              {
+                "component": "Snowflake represents indirect competition with Salesforce.",
+                "supported": true,
+                "explanation": "The evidence indicates that Snowflake competes in data management and analytics, with no explicit direct competition with Salesforce’s CRM platform, supporting the claim of indirect competition."
+              },
+              {
+                "component": "MongoDB represents indirect competition with Salesforce.",
+                "supported": true,
+                "explanation": "The evidence mentions that MongoDB competes in the database software market and does not directly position itself against Salesforce, which supports the claim of indirect competition."
+              },
+              {
+                "component": "Intuit, Snowflake, and MongoDB focus on adjacent markets rather than direct CRM solutions.",
+                "supported": true,
+                "explanation": "The evidence describes Intuit, Snowflake, and MongoDB as competing in areas that do not directly overlap with Salesforce's CRM solutions, indicating they focus on adjacent markets."
+              }
+            ]
+          }
+        ]
+      },
+      "citation_coverage": {
+        "coverage": 0.7058823529411765,
+        "citation_required_claims": 17,
+        "cited_required_claims": 12,
+        "uncited_required_claims": 5,
+        "per_claim_assessments": [
+          {
+            "claim": "Salesforce operates in a highly competitive CRM market, facing challenges from both specialized CRM providers and broader enterprise software companies. The landscape is dynamic, with several key players vying for market share.",
+            "citation_ids": [],
+            "requires_citation": true,
+            "explanation": "The claim makes factual assertions about Salesforce's position in the CRM market, the competitive landscape, and the presence of other key players. These statements involve specific information about companies, market dynamics, and competition, which require supporting evidence."
+          },
+          {
+            "claim": "**Oracle Corporation (ORCL)**: Competes in cloud applications for CRM, ERP, and industry solutions, explicitly identifying Salesforce as a major competitor. [E1][E3]",
+            "citation_ids": [
+              "E1",
+              "E3"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes factual assertions about Oracle Corporation's competitive landscape, specifically mentioning its competition in cloud applications for CRM, ERP, and industry solutions, as well as identifying Salesforce as a major competitor. These assertions require supporting evidence to verify their accuracy."
+          },
+          {
+            "claim": "**Microsoft Corporation (MSFT)**: Offers Dynamics 365, which overlaps with Salesforce in CRM and ERP, positioning itself as a strong competitor through integrated business applications and cloud services. [E1][E3]",
+            "citation_ids": [
+              "E1",
+              "E3"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes factual assertions about Microsoft Corporation, its product Dynamics 365, its competitive relationship with Salesforce, and its positioning in the market. These assertions require supporting evidence to verify their accuracy."
+          },
+          {
+            "claim": "**Adobe Inc. (ADBE)**: Competes in the marketing automation and digital experience space, integrating its Experience Platform with tools that target marketing professionals. [E1][E3]",
+            "citation_ids": [
+              "E1",
+              "E3"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes factual assertions about Adobe Inc., specifically regarding its competitive position in the marketing automation and digital experience space, as well as details about its Experience Platform and its target audience. These assertions require supporting evidence to verify their accuracy."
+          },
+          {
+            "claim": "**ServiceNow, Inc. (NOW)**: Lists Salesforce as a competitor in enterprise application software, particularly in CRM, emphasizing workflow automation and AI-enabled orchestration. [E1][E3]",
+            "citation_ids": [
+              "E1",
+              "E3"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes a factual assertion about ServiceNow, Inc. and its competitive relationship with Salesforce in the context of enterprise application software and CRM. It specifies that ServiceNow lists Salesforce as a competitor and discusses specific areas of focus such as workflow automation and AI-enabled orchestration, which are verifiable facts about the companies and their market positions. Therefore, a citation is required to support this claim."
+          },
+          {
+            "claim": "**Workday, Inc. (WDAY)**: Competes in enterprise software, with some overlap in CRM, while primarily focusing on HCM and financial management. [E1][E3]",
+            "citation_ids": [
+              "E1",
+              "E3"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes factual assertions about Workday, Inc., including its competitive landscape in enterprise software, its overlap in CRM, and its primary focus areas of HCM and financial management. These assertions require supporting evidence to verify their accuracy."
+          },
+          {
+            "claim": "**Intuit Inc. (INTU)**: Competes indirectly through business software offerings like Mailchimp and QuickBooks, but does not directly compete in the CRM platform space. [E1][E3]",
+            "citation_ids": [
+              "E1",
+              "E3"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes factual assertions about Intuit Inc.'s competitive relationships and its position in the CRM platform space, which requires supporting evidence to verify the accuracy of these statements."
+          },
+          {
+            "claim": "**Snowflake Inc. (SNOW)**: Competes in data management and analytics, with some overlap in data integration, but does not position itself directly against Salesforce’s CRM platform. [E1][E3]",
+            "citation_ids": [
+              "E1",
+              "E3"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes factual assertions about Snowflake Inc.'s competitive positioning in the data management and analytics market, its overlap with data integration, and its relationship with Salesforce's CRM platform. These assertions require supporting evidence to verify their accuracy."
+          },
+          {
+            "claim": "**MongoDB, Inc. (MDB)**: Competes in the database software market, with some overlap in cloud and data integration, but does not directly position itself against Salesforce. [E1][E3]",
+            "citation_ids": [
+              "E1",
+              "E3"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes factual assertions about MongoDB, Inc.'s market position, its competition in the database software market, and its relationship with Salesforce. These assertions require supporting evidence to verify their accuracy."
+          },
+          {
+            "claim": "Salesforce's competitors span various areas including:",
+            "citation_ids": [],
+            "requires_citation": true,
+            "explanation": "The claim makes a factual assertion about Salesforce's competitors, which involves identifying specific companies or organizations that compete with Salesforce. This requires supporting evidence to substantiate the claim."
+          },
+          {
+            "claim": "**CRM and ERP Solutions**: Oracle, Microsoft, and ServiceNow.",
+            "citation_ids": [],
+            "requires_citation": true,
+            "explanation": "The claim lists specific companies (Oracle, Microsoft, and ServiceNow) in relation to CRM and ERP solutions, which makes a factual assertion about their involvement in these markets. Therefore, it requires supporting evidence."
+          },
+          {
+            "claim": "**Marketing Automation**: Adobe.",
+            "citation_ids": [],
+            "requires_citation": true,
+            "explanation": "The claim makes a factual assertion about Adobe's involvement in marketing automation, which is a specific product or service offering. Therefore, it requires supporting evidence to substantiate this assertion."
+          },
+          {
+            "claim": "**Enterprise Software**: Workday.",
+            "citation_ids": [],
+            "requires_citation": false,
+            "explanation": "The claim is a heading or label that identifies a category (Enterprise Software) and a specific company (Workday). It does not make a factual assertion about the external world that requires supporting evidence."
+          },
+          {
+            "claim": "**Business Software**: Intuit.",
+            "citation_ids": [],
+            "requires_citation": true,
+            "explanation": "The claim makes a factual assertion about a company, Intuit, which is a specific entity in the business software industry. Therefore, it requires supporting evidence to verify the claim."
+          },
+          {
+            "claim": "**Data Management and Analytics**: Snowflake and MongoDB.",
+            "citation_ids": [],
+            "requires_citation": false,
+            "explanation": "The claim is a heading or section label that introduces a topic rather than making a factual assertion about the external world. It does not provide specific information about companies, products, or any verifiable facts that would require supporting evidence."
+          },
+          {
+            "claim": "Salesforce faces direct competition from Oracle and ServiceNow, which explicitly list it as a competitor in the CRM space. [E1][E3]",
+            "citation_ids": [
+              "E1",
+              "E3"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes a factual assertion about Salesforce's competitive relationships, specifically naming Oracle and ServiceNow as direct competitors in the CRM space. This requires supporting evidence to verify the accuracy of the statement."
+          },
+          {
+            "claim": "Microsoft Dynamics 365 is highlighted as a close rival, offering integrated solutions that overlap significantly with Salesforce's offerings. [E1][E4]",
+            "citation_ids": [
+              "E1",
+              "E4"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes a factual assertion about Microsoft Dynamics 365 being a close rival to Salesforce and describes the nature of their offerings as overlapping significantly. This involves specific information about companies, their products, and competitive relationships, which requires supporting evidence."
+          },
+          {
+            "claim": "Adobe, while primarily focused on marketing automation, competes in areas that intersect with Salesforce's capabilities. [E1][E3]",
+            "citation_ids": [
+              "E1",
+              "E3"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes a factual assertion about Adobe's focus on marketing automation and its competitive relationship with Salesforce, which requires supporting evidence to verify the accuracy of these statements."
+          },
+          {
+            "claim": "Intuit, Snowflake, and MongoDB represent indirect competition, focusing on adjacent markets rather than direct CRM solutions. [E1][E3]",
+            "citation_ids": [
+              "E1",
+              "E3"
+            ],
+            "requires_citation": true,
+            "explanation": "The claim makes a factual assertion about the competitive relationships between Intuit, Snowflake, and MongoDB, specifically stating that they represent indirect competition and focus on adjacent markets rather than direct CRM solutions. This requires supporting evidence to verify the nature of their competition and market focus."
+          }
+        ]
+      },
+      "faithfulness": {
+        "summary": {
+          "total_claims": 19,
+          "faithful": 19,
+          "partially_faithful": 0,
+          "unfaithful": 0,
+          "faithful_rate": 1.0,
+          "partially_faithful_rate": 0.0,
+          "unfaithful_rate": 0.0,
+          "total_components": 52,
+          "supported_components": 52,
+          "unsupported_components": 0,
+          "component_support_rate": 1.0
+        },
+        "per_claim_assessments": [
+          {
+            "claim": "Salesforce operates in a highly competitive CRM market, facing challenges from both specialized CRM providers and broader enterprise software companies. The landscape is dynamic, with several key players vying for market share.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Salesforce operates in a highly competitive CRM market",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence explicitly states that Salesforce operates in a highly competitive and rapidly evolving enterprise software landscape, with numerous companies vying for leadership in CRM."
+              },
+              {
+                "component": "Salesforce faces challenges from both specialized CRM providers and broader enterprise software companies",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence mentions that Salesforce faces competition from both specialized CRM providers and broader enterprise software giants, indicating the challenges it encounters."
+              },
+              {
+                "component": "The landscape is dynamic, with several key players vying for market share",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence describes the competitive landscape as dynamic and fragmented, with numerous companies competing for market share, which supports this component of the claim."
+              }
+            ]
+          },
+          {
+            "claim": "Oracle Corporation (ORCL): Competes in cloud applications for CRM, ERP, and industry solutions, explicitly identifying Salesforce as a major competitor.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Oracle Corporation (ORCL) competes in cloud applications for CRM, ERP, and industry solutions.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence explicitly states that Oracle competes in cloud applications for CRM, ERP, and industry solutions."
+              },
+              {
+                "component": "Oracle Corporation (ORCL) explicitly identifies Salesforce as a major competitor.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence clearly mentions that Oracle explicitly identifies Salesforce as a major competitor."
+              }
+            ]
+          },
+          {
+            "claim": "Microsoft Corporation (MSFT): Offers Dynamics 365, which overlaps with Salesforce in CRM and ERP, positioning itself as a strong competitor through integrated business applications and cloud services.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Microsoft Corporation (MSFT) offers Dynamics 365",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence explicitly states that Microsoft Corporation offers Dynamics 365, which is mentioned in multiple sources."
+              },
+              {
+                "component": "Dynamics 365 overlaps with Salesforce in CRM and ERP",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence clearly indicates that Dynamics 365 overlaps with Salesforce in the areas of CRM and ERP."
+              },
+              {
+                "component": "Microsoft positions itself as a strong competitor through integrated business applications and cloud services",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence supports that Microsoft competes through integrated business applications and cloud services, particularly highlighting its offerings like Azure and Microsoft 365."
+              }
+            ]
+          },
+          {
+            "claim": "Adobe Inc. (ADBE): Competes in the marketing automation and digital experience space, integrating its Experience Platform with tools that target marketing professionals.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Adobe Inc. (ADBE) competes in the marketing automation and digital experience space",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence explicitly states that Adobe competes in the marketing automation and digital experience space."
+              },
+              {
+                "component": "Adobe integrates its Experience Platform with tools that target marketing professionals",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence mentions that Adobe integrates its Experience Platform with creative and analytics tools, which are relevant for marketing professionals."
+              }
+            ]
+          },
+          {
+            "claim": "ServiceNow, Inc. (NOW): Lists Salesforce as a competitor in enterprise application software, particularly in CRM, emphasizing workflow automation and AI-enabled orchestration.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "ServiceNow, Inc. (NOW) lists Salesforce as a competitor in enterprise application software",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2"
+                ],
+                "explanation": "Both E1 and E2 explicitly state that ServiceNow lists Salesforce as a competitor in enterprise application software."
+              },
+              {
+                "component": "ServiceNow emphasizes workflow automation and AI-enabled orchestration",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2"
+                ],
+                "explanation": "E1 and E2 both mention that ServiceNow emphasizes workflow automation and AI-enabled orchestration in relation to its competition with Salesforce."
+              },
+              {
+                "component": "This competition is particularly in CRM",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2"
+                ],
+                "explanation": "E1 and E2 specify that the competition between ServiceNow and Salesforce is particularly in CRM."
+              }
+            ]
+          },
+          {
+            "claim": "Workday, Inc. (WDAY): Competes in enterprise software, with some overlap in CRM, while primarily focusing on HCM and financial management.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Workday, Inc. (WDAY) competes in enterprise software",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence states that Workday competes in enterprise software, confirming this component of the claim."
+              },
+              {
+                "component": "Workday, Inc. (WDAY) has some overlap in CRM",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence mentions that Workday has some overlap in CRM, supporting this component of the claim."
+              },
+              {
+                "component": "Workday, Inc. (WDAY) primarily focuses on HCM and financial management",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence explicitly states that Workday focuses on HCM and financial management, thus supporting this component of the claim."
+              }
+            ]
+          },
+          {
+            "claim": "Intuit Inc. (INTU): Competes indirectly through business software offerings like Mailchimp and QuickBooks, but does not directly compete in the CRM platform space.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Intuit Inc. (INTU) competes indirectly through business software offerings like Mailchimp and QuickBooks.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2"
+                ],
+                "explanation": "The evidence explicitly states that Intuit competes indirectly through business software offerings like Mailchimp and QuickBooks."
+              },
+              {
+                "component": "Intuit Inc. (INTU) does not directly compete in the CRM platform space.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2"
+                ],
+                "explanation": "The evidence confirms that Intuit does not directly compete in the CRM platform space."
+              }
+            ]
+          },
+          {
+            "claim": "Snowflake Inc. (SNOW): Competes in data management and analytics, with some overlap in data integration, but does not position itself directly against Salesforce’s CRM platform.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Snowflake Inc. (SNOW) competes in data management and analytics.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence states that Snowflake's AI Data Cloud competes in data management and analytics."
+              },
+              {
+                "component": "Snowflake Inc. (SNOW) has some overlap in data integration.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence mentions that Snowflake has some overlap in data integration."
+              },
+              {
+                "component": "Snowflake Inc. (SNOW) does not position itself directly against Salesforce’s CRM platform.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence explicitly states that there is no direct competition between Snowflake and Salesforce's CRM platform."
+              }
+            ]
+          },
+          {
+            "claim": "MongoDB, Inc. (MDB): Competes in the database software market, with some overlap in cloud and data integration, but does not directly position itself against Salesforce.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "MongoDB, Inc. (MDB) competes in the database software market",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence explicitly states that MongoDB competes in the database software market."
+              },
+              {
+                "component": "MongoDB, Inc. (MDB) has some overlap in cloud and data integration",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence mentions that MongoDB has some overlap with CRM platforms via cloud and data integration."
+              },
+              {
+                "component": "MongoDB, Inc. (MDB) does not directly position itself against Salesforce",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence clearly states that MongoDB does not directly position itself against Salesforce."
+              }
+            ]
+          },
+          {
+            "claim": "Salesforce's competitors span various areas including:",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Salesforce's competitors span various areas.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence lists various competitors of Salesforce across different areas such as CRM, ERP, marketing automation, and data management, indicating that Salesforce's competitors indeed span various areas."
+              }
+            ]
+          },
+          {
+            "claim": "CRM and ERP Solutions: Oracle, Microsoft, and ServiceNow.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "CRM and ERP Solutions",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence discusses CRM and ERP solutions, specifically mentioning Oracle, Microsoft, and ServiceNow as competitors in these areas."
+              },
+              {
+                "component": "Oracle offers CRM and ERP solutions",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence explicitly states that Oracle provides cloud applications for CRM and ERP, identifying it as a major competitor to Salesforce."
+              },
+              {
+                "component": "Microsoft offers CRM and ERP solutions",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3",
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence indicates that Microsoft’s Dynamics 365 suite includes both CRM and ERP functionalities, positioning it as a direct competitor to Salesforce."
+              },
+              {
+                "component": "ServiceNow offers CRM solutions",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence mentions that ServiceNow lists Salesforce as a competitor in enterprise application software, particularly in CRM."
+              }
+            ]
+          },
+          {
+            "claim": "Marketing Automation: Adobe.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Adobe competes in the marketing automation space.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence explicitly states that Adobe competes in the marketing automation and digital experience space, integrating its Experience Platform with creative and analytics tools."
+              },
+              {
+                "component": "Adobe integrates its Experience Platform with creative and analytics tools.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence mentions that Adobe integrates its Experience Platform with creative and analytics tools, which supports this component."
+              },
+              {
+                "component": "Adobe targets marketing professionals.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence indicates that Adobe's differentiation is its broad solution set and embedded AI, specifically targeting marketing professionals."
+              }
+            ]
+          },
+          {
+            "claim": "Enterprise Software: Workday.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Workday is an enterprise software company.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence explicitly mentions Workday as a company that competes in the enterprise software space."
+              },
+              {
+                "component": "Workday focuses on HCM and financial management.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence states that Workday focuses on HCM (Human Capital Management) and financial management."
+              },
+              {
+                "component": "Workday competes with Salesforce.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence identifies Workday as a competitor to Salesforce in the enterprise software market."
+              },
+              {
+                "component": "Workday's primary competitors are Oracle and SAP.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence states that Workday's primary competitors are Oracle and SAP."
+              },
+              {
+                "component": "Workday also acknowledges competition from Microsoft and ServiceNow.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence mentions that Workday acknowledges competition from Microsoft and ServiceNow."
+              }
+            ]
+          },
+          {
+            "claim": "Business Software: Intuit.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Intuit is a business software company.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence identifies Intuit Inc. as a business software company, listing its products such as QuickBooks and Mailchimp."
+              },
+              {
+                "component": "Intuit competes with Salesforce.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence states that Intuit competes with Salesforce, although it specifies that this competition is indirect."
+              },
+              {
+                "component": "Intuit does not directly compete in the CRM platform space.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2"
+                ],
+                "explanation": "The evidence explicitly mentions that Intuit does not directly compete in the CRM platform space."
+              }
+            ]
+          },
+          {
+            "claim": "Data Management and Analytics: Snowflake and MongoDB.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Snowflake competes in data management and analytics.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence states that Snowflake's AI Data Cloud competes in data management and analytics, confirming this component."
+              },
+              {
+                "component": "MongoDB competes in data management and analytics.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence indicates that MongoDB competes in the database software market and has some overlap with cloud and data integration, which supports its competition in data management and analytics."
+              }
+            ]
+          },
+          {
+            "claim": "Salesforce faces direct competition from Oracle and ServiceNow, which explicitly list it as a competitor in the CRM space.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Salesforce faces direct competition from Oracle.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "Both E2 and E3 explicitly state that Oracle identifies Salesforce as a major competitor in the CRM space."
+              },
+              {
+                "component": "Salesforce faces direct competition from ServiceNow.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "E1, E2, and E3 all mention that ServiceNow lists Salesforce as a competitor in the CRM space."
+              },
+              {
+                "component": "Oracle explicitly lists Salesforce as a competitor in the CRM space.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "E2 and E3 confirm that Oracle explicitly identifies Salesforce as a major competitor in cloud applications for CRM."
+              },
+              {
+                "component": "ServiceNow explicitly lists Salesforce as a competitor in the CRM space.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2"
+                ],
+                "explanation": "E1 and E2 both state that ServiceNow lists Salesforce as a competitor in enterprise application software, particularly in CRM."
+              }
+            ]
+          },
+          {
+            "claim": "Microsoft Dynamics 365 is highlighted as a close rival, offering integrated solutions that overlap significantly with Salesforce's offerings.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Microsoft Dynamics 365 is highlighted as a close rival to Salesforce.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E4",
+                  "E5"
+                ],
+                "explanation": "The evidence explicitly states that Microsoft Dynamics 365 is often considered the closest rival to Salesforce, indicating a competitive relationship."
+              },
+              {
+                "component": "Microsoft Dynamics 365 offers integrated solutions that overlap significantly with Salesforce's offerings.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence indicates that Microsoft’s Dynamics 365 suite directly overlaps with Salesforce in CRM and ERP, supporting the claim of significant overlap in offerings."
+              }
+            ]
+          },
+          {
+            "claim": "Adobe, while primarily focused on marketing automation, competes in areas that intersect with Salesforce's capabilities.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Adobe is primarily focused on marketing automation.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2"
+                ],
+                "explanation": "The evidence states that Adobe competes in the marketing automation and digital experience space, indicating its primary focus on marketing automation."
+              },
+              {
+                "component": "Adobe competes in areas that intersect with Salesforce's capabilities.",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence explicitly mentions that Adobe competes with Salesforce, particularly in marketing solutions, which indicates an intersection of capabilities."
+              }
+            ]
+          },
+          {
+            "claim": "Intuit, Snowflake, and MongoDB represent indirect competition, focusing on adjacent markets rather than direct CRM solutions.",
+            "verdict": "faithful",
+            "components": [
+              {
+                "component": "Intuit, Snowflake, and MongoDB represent indirect competition",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence states that Intuit competes indirectly with Salesforce through business software offerings and that Snowflake and MongoDB do not directly compete with Salesforce's CRM platform, indicating they represent indirect competition."
+              },
+              {
+                "component": "focusing on adjacent markets rather than direct CRM solutions",
+                "supported": true,
+                "supporting_evidence_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "explanation": "The evidence specifies that Intuit's competition is through business software offerings like Mailchimp and QuickBooks, while Snowflake and MongoDB focus on data management and analytics, which are adjacent markets to CRM solutions."
+              }
+            ]
+          }
+        ]
+      },
+      "correctness_vs_faithfulness": {
+        "citation_correctness_component_support_rate": 1.0,
+        "faithfulness_component_support_rate": 1.0,
+        "interpretation": "Citation correctness judges only cited evidence; faithfulness judges all retrieved evidence. They are reported separately and are not a quality score."
+      }
+    }
+  }
+}

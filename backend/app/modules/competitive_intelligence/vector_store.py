@@ -1,14 +1,97 @@
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import chromadb
+from langchain_chroma import Chroma
+from langchain_core.documents import Document
 from langchain_openai import OpenAIEmbeddings
 
+from .embeddings import get_embeddings
 from .errors import NoSearchResultsError, VectorStoreError
+from .evidence import EvidenceChunk, RetrievedEvidence
 
 EMBEDDING_MODEL_NAME = "text-embedding-3-small"
 RETRIEVAL_LIMIT = 10
+COLLECTION_NAME_PREFIX = "competitive_intelligence"
+
+
+def create_vector_store(*, collection_name: str | None = None) -> Chroma:
+    """Create a disposable Chroma collection isolated from every other run."""
+
+    client = chromadb.EphemeralClient()
+    resolved_name = collection_name or f"{COLLECTION_NAME_PREFIX}_{uuid4().hex}"
+    return Chroma(
+        client=client,
+        collection_name=resolved_name,
+        embedding_function=get_embeddings(),
+        collection_configuration={
+            "hnsw": {
+                "space": "cosine",
+            }
+        },
+    )
+
+
+def index_chunks(
+    vector_store: Chroma,
+    chunks: list[EvidenceChunk],
+) -> None:
+    documents = []
+
+    ids = []
+
+    for chunk in chunks:
+        documents.append(
+            Document(
+                page_content=chunk.text,
+                metadata={
+                    "chunk_id": chunk.chunk_id,
+                    "source_id": chunk.source_id,
+                    "research_query": chunk.research_query,
+                    "chunk_index": chunk.chunk_index,
+                    "token_count": chunk.token_count,
+                },
+            )
+        )
+
+        ids.append(chunk.chunk_id)
+
+    vector_store.add_documents(
+        documents=documents,
+        ids=ids,
+    )
+
+
+def retrieve_evidence(
+    vector_store: Chroma,
+    query: str,
+    *,
+    top_k: int = 5,
+) -> list[RetrievedEvidence]:
+    results = vector_store.similarity_search_with_score(
+        query=query,
+        k=top_k,
+    )
+
+    retrieved: list[RetrievedEvidence] = []
+
+    for rank, (document, distance) in enumerate(
+        results,
+        start=1,
+    ):
+        retrieved.append(
+            RetrievedEvidence(
+                chunk_id=document.metadata["chunk_id"],
+                source_id=document.metadata["source_id"],
+                text=document.page_content,
+                query=query,
+                distance=distance,
+                rank=rank,
+            )
+        )
+
+    return retrieved
 
 
 @dataclass(frozen=True, slots=True)
@@ -41,11 +124,7 @@ class ChromaContextStore:
         company_name: str,
         documents: Sequence[Mapping[str, str]],
     ) -> ContextRetrievalResult:
-        valid_documents = [
-            document
-            for document in documents
-            if document.get("answer", "").strip()
-        ]
+        valid_documents = [document for document in documents if document.get("answer", "").strip()]
         if not valid_documents:
             raise NoSearchResultsError("No valid search documents were produced")
 
