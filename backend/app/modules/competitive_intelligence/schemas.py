@@ -1,7 +1,11 @@
 from datetime import UTC, datetime
 from typing import Annotated, Any, Literal
+from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, StringConstraints
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+
+from .evidence import SourceProvenance
+from .model import AnalysisRunStatus
 
 CompanyName = Annotated[
     str,
@@ -16,9 +20,72 @@ class CompetitiveAnalysisRequest(BaseModel):
 
 
 class CompetitiveAnalysisResponse(BaseModel):
+    run_id: UUID
     company_name: str
     sector: str
     report: str
+
+
+class AnalysisRunSummary(BaseModel):
+    id: UUID
+    organization_id: UUID
+    requested_by_user_id: UUID
+    company_name: str
+    sector: str | None
+    pipeline_version: str
+    status: AnalysisRunStatus
+    created_at: datetime
+    started_at: datetime | None
+    completed_at: datetime | None
+    error_code: str | None
+    error_message: str | None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AnalysisRunSourceResponse(BaseModel):
+    id: UUID
+    source_key: str
+    title: str
+    url: str
+    domain: str
+    research_query: str
+    provider_result_id: str | None
+    provider_score: float | None
+    provider_rank: int | None
+    content_source: str | None
+    published_date: datetime | None
+    retrieved_at: datetime
+    provenance: list[SourceProvenance]
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AnalysisRunEvidenceResponse(BaseModel):
+    evidence_id: str
+    source_id: UUID
+    chunk_id: str
+    text: str
+    query: str
+    distance: float
+    rank: int
+    retrieval_rank: int
+    cited: bool
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AnalysisRunDetail(AnalysisRunSummary):
+    report: str | None
+    sources: list[AnalysisRunSourceResponse] = Field(default_factory=list)
+    evidence: list[AnalysisRunEvidenceResponse] = Field(default_factory=list)
+
+
+class AnalysisRunPage(BaseModel):
+    items: list[AnalysisRunSummary]
+    total: int
+    limit: int
+    offset: int
 
 
 AnalysisEventType = Literal[

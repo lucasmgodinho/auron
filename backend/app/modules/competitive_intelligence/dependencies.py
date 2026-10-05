@@ -1,14 +1,28 @@
+from collections.abc import Callable
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
+from sqlalchemy.orm import Session
 
 from app.config import Settings, get_settings
+from app.database import SessionLocal
 
 from .question_generation import OpenAIQuestionGenerator
 from .report_generation import OpenAIReportGenerator
 from .search import TavilySearchClient
+from .service import AnalysisRunService
 from .vector_store import ChromaEvidenceStore
 from .workflow import CompetitiveIntelligenceWorkflow
+
+
+def get_analysis_run_session_factory() -> Callable[[], Session]:
+    return SessionLocal
+
+
+def get_analysis_run_service(
+    session_factory: Annotated[Callable[[], Session], Depends(get_analysis_run_session_factory)],
+) -> AnalysisRunService:
+    return AnalysisRunService(session_factory)
 
 
 def get_competitive_intelligence_workflow(
@@ -27,9 +41,7 @@ def get_competitive_intelligence_workflow(
             api_key=openai_api_key,
             base_url=base_url,
         ),
-        search_client=TavilySearchClient(
-            api_key=settings.tavily_api_key.get_secret_value()
-        ),
+        search_client=TavilySearchClient(api_key=settings.tavily_api_key.get_secret_value()),
         context_store=ChromaEvidenceStore(
             api_key=openai_api_key,
             base_url=base_url,

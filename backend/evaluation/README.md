@@ -11,6 +11,11 @@ disposes of its tenant/execution-isolated collection; it does not read these fix
 evaluation judges. Benchmark captures use isolated single-question cases and reuse their one query
 embedding for both observed dimensionality and retrieval.
 
+Live production analyses now persist tenant-owned runs, reports, source metadata, and retrieved
+evidence excerpts in PostgreSQL through the module service. Benchmark scripts continue to operate
+on their existing versioned files and do not create `CompetitiveAnalysisRun` rows or persist graph
+state. Neither stored benchmark artifacts nor benchmark metrics are production run history.
+
 Frozen V2 data records the historical capture configuration (including `include_answer: true`),
 even though current live Tavily acquisition disables answer generation. The captured content,
 ground truth, reports, and metrics remain unchanged. Recapturing with changed acquisition semantics

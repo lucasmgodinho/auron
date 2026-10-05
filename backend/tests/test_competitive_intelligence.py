@@ -79,16 +79,23 @@ class StubWorkflow:
         )
 
     def stream_analysis(
-        self, *, organization_id: UUID, company_name: str
+        self, *, organization_id: UUID, company_name: str, run_id=None, on_completed=None,
     ) -> Iterator[AnalysisEvent]:
         self.stream_calls.append((organization_id, company_name))
         events = self.stream_events or [
             create_analysis_event("analysis_started", {"company_name": company_name}),
         ]
-        yield from events
-        if self.stream_error is not None:
-            raise self.stream_error
+        for event in events:
+            if event.type == "analysis_completed" and on_completed is not None:
+                on_completed(CompetitiveAnalysisResult(**event.data))
+            yield event
+        if self.stream_error is not None or self.error is not None:
+            raise self.stream_error or self.error
         if self.stream_events is None:
+            if on_completed is not None:
+                on_completed(CompetitiveAnalysisResult(
+                    company_name=company_name, sector="Automotive", report="# Competitive report",
+                ))
             yield create_analysis_event(
                 "analysis_completed",
                 {
@@ -386,7 +393,7 @@ def test_analysis_requires_entitlement_and_uses_validated_organization(
         json={"company_name": "Tesla"},
     )
     assert denied.status_code == 403
-    assert stub_workflow.calls == []
+    assert stub_workflow.stream_calls == []
 
     enable_module(db_session, organization.id)
     allowed = client.post(
@@ -395,11 +402,12 @@ def test_analysis_requires_entitlement_and_uses_validated_organization(
     )
     assert allowed.status_code == 200
     assert allowed.json() == {
+        "run_id": allowed.json()["run_id"],
         "company_name": "Tesla",
         "sector": "Automotive",
         "report": "# Competitive report",
     }
-    assert stub_workflow.calls == [(organization.id, "Tesla")]
+    assert stub_workflow.stream_calls == [(organization.id, "Tesla")]
 
 
 def test_stream_requires_authentication_entitlement_and_uses_validated_organization(
@@ -488,7 +496,7 @@ def test_member_requires_explicit_permission(
         json={"company_name": "Tesla"},
     )
     assert response.status_code == 200
-    assert stub_workflow.calls == [(organization.id, "Tesla")]
+    assert stub_workflow.stream_calls == [(organization.id, "Tesla")]
 
 
 def test_stream_member_requires_explicit_permission(
@@ -564,7 +572,7 @@ def test_cross_organization_request_never_invokes_workflow(
         json={"company_name": "Tesla"},
     )
     assert response.status_code == 403
-    assert stub_workflow.calls == []
+    assert stub_workflow.stream_calls == []
 
 
 def test_cross_organization_stream_never_invokes_workflow(
@@ -616,7 +624,7 @@ def test_analysis_request_validation_rejects_invalid_payloads(
 
     response = client.post(analysis_path(organization.id), json=payload)
     assert response.status_code == 422
-    assert stub_workflow.calls == []
+    assert stub_workflow.stream_calls == []
 
 
 @pytest.mark.parametrize(
@@ -770,7 +778,7 @@ def test_stream_maps_failures_to_one_safe_terminal_event(
         {
             "type": "analysis_failed",
             "occurred_at": terminal_events[0]["occurred_at"],
-            "data": {"code": expected_code},
+            "data": {"code": expected_code, "run_id": response.headers["X-Analysis-Run-ID"]},
         }
     ]
     assert events[-1] == terminal_events[0]
@@ -823,7 +831,9 @@ def test_stream_stops_after_first_terminal_and_supplies_missing_terminal(
     )
     events = parse_ndjson(response.text)
     assert events[-1]["type"] == "analysis_failed"
-    assert events[-1]["data"] == {"code": "unexpected_error"}
+    assert events[-1]["data"] == {
+        "code": "unexpected_error", "run_id": response.headers["X-Analysis-Run-ID"],
+    }
 
 
 def test_stream_records_durable_started_completed_and_failed_events(

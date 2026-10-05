@@ -1,5 +1,7 @@
 import os
 from collections.abc import Iterator
+from contextlib import contextmanager
+from threading import RLock
 
 import pytest
 from fastapi.testclient import TestClient
@@ -34,6 +36,8 @@ from app.core.platform_admin.model import PlatformAdmin
 from app.core.users.model import User
 from app.database import get_session
 from app.main import app
+from app.modules.competitive_intelligence.dependencies import get_analysis_run_session_factory
+from app.modules.competitive_intelligence.model import CompetitiveAnalysisRun
 
 
 def _database_target(database_url: str) -> tuple[str, int, str | None]:
@@ -54,9 +58,7 @@ def test_engine() -> Iterator[Engine]:
             "TEST_DATABASE_URL must be explicitly configured for database integration tests"
         )
     if _database_target(test_database_url) == _database_target(settings.database_url):
-        raise RuntimeError(
-            "TEST_DATABASE_URL must point to a different database than DATABASE_URL"
-        )
+        raise RuntimeError("TEST_DATABASE_URL must point to a different database than DATABASE_URL")
 
     engine = create_engine(test_database_url)
     try:
@@ -72,6 +74,7 @@ def db_session(test_engine: Engine) -> Iterator[Session]:
     session = Session(bind=connection, join_transaction_mode="create_savepoint")
 
     try:
+        session.execute(delete(CompetitiveAnalysisRun))
         session.execute(delete(ApplicationEvent))
         session.execute(delete(AuthSession))
         session.execute(delete(EmailVerification))
@@ -99,13 +102,25 @@ def client(db_session: Session) -> Iterator[TestClient]:
     def override_get_session() -> Iterator[Session]:
         yield db_session
 
-    def application_event_session_factory() -> Session:
-        return Session(
-            bind=db_session.connection(),
-            join_transaction_mode="create_savepoint",
-        )
+    # Streaming lifecycle writes and request audit writes can overlap. They use
+    # separate connections in production, but share one rollback connection here.
+    database_lock = RLock()
+
+    @contextmanager
+    def application_event_session_factory():
+        with (
+            database_lock,
+            Session(
+                bind=db_session.connection(),
+                join_transaction_mode="create_savepoint",
+            ) as session,
+        ):
+            yield session
 
     app.dependency_overrides[get_session] = override_get_session
+    app.dependency_overrides[get_analysis_run_session_factory] = lambda: (
+        application_event_session_factory
+    )
     previous_factory = getattr(
         app.state,
         "application_event_session_factory",
@@ -117,6 +132,7 @@ def client(db_session: Session) -> Iterator[TestClient]:
             yield test_client
     finally:
         app.dependency_overrides.pop(get_session, None)
+        app.dependency_overrides.pop(get_analysis_run_session_factory, None)
         if previous_factory is None:
             del app.state.application_event_session_factory
         else:

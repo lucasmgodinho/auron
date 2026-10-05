@@ -14,6 +14,7 @@ from app.core.organizations import model as organization_model  # noqa: F401
 from app.core.platform_admin import model as platform_admin_model  # noqa: F401
 from app.core.users import model as user_model  # noqa: F401
 from app.database import Base
+from app.modules.competitive_intelligence import model as ci_model  # noqa: F401
 
 config = context.config
 config.set_main_option("sqlalchemy.url", get_settings().database_url.replace("%", "%%"))

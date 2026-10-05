@@ -110,6 +110,7 @@ class ContextRetrievalResult:
     documents_indexed: int
     embedding_units_indexed: int
     embedding_units_retrieved: int
+    evidence: tuple[RetrievedEvidence, ...] = ()
 
 
 class ChromaEvidenceStore:
@@ -153,6 +154,7 @@ class ChromaEvidenceStore:
                 documents_indexed=len({chunk.source_id for chunk in chunks}),
                 embedding_units_indexed=len(chunks),
                 embedding_units_retrieved=len(retrieved),
+                evidence=tuple(retrieved),
             )
         except NoSearchResultsError:
             raise

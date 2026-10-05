@@ -220,11 +220,41 @@ LLM call produces a report using that context and `[E1]` evidence citations; unk
 are rejected. Progress events retain their stage names, with source/document/chunk/evidence counts;
 `search_completed.documents_selected` replaces the legacy `answer_indexed` flag.
 
-Chroma removes the collection after retrieval, including failures. Documents, transient events,
-and reports are not persisted. Durable application events for analysis start,
-completion, and failure remain separate from the transient stream stages. The frontend route is
+Chroma removes the collection after retrieval, including failures. Every admitted analysis now
+creates a tenant-owned `CompetitiveAnalysisRun`, independently of LangGraph state, with its
+requesting User, company/sector, pipeline version, timestamps, report, and safe failure details.
+The lifecycle is `pending -> running -> completed | failed | cancelled`. Each transition commits
+in a short database transaction; provider calls do not hold a run transaction. Completion stores
+the report, source metadata/provenance, and the unique evidence excerpts supplied to the report
+atomically. Evidence retains `[E1]` IDs, source associations, retrieval query/distance/rank, context
+order, and whether the report actually cited it. Full pages, search summaries, embeddings, and
+transient UI events are not stored. Durable application events for analysis start, completion,
+and failure link to the run and remain separate from the transient stream stages. The frontend route is
 `/app/organizations/:organizationId/modules/competitive-intelligence`. Tests replace external
 providers with deterministic fakes and do not call OpenAI or Tavily.
+
+Under `/organizations/{organization_id}/modules/competitive-intelligence/analyses`:
+
+- `POST /` runs synchronously and returns `run_id` with the existing report fields.
+- `POST /stream` preserves NDJSON stages and adds `run_id` to every event plus an
+  `X-Analysis-Run-ID` response header. Synchronous execution errors also return that header.
+- `GET /` lists recent run summaries, newest first, with `limit` (default 25, maximum 100),
+  `offset`, and a total count.
+- `GET /{run_id}` returns the run, report, sources, and evidence; foreign-tenant IDs return 404.
+
+All endpoints require current Organization membership, module entitlement, and the existing
+`competitive_intelligence.analysis.run` permission (owner bypass applies only after entitlement).
+History is Organization-owned and shared with authorized members; the requester is audit metadata,
+not a separate private ownership boundary. Reading history does not require provider configuration.
+Access, request-schema, and configuration rejections before admission do not create a run.
+
+Execution remains inside the request, with no worker, resumable job, or LangGraph checkpoint.
+Handled provider/domain/unexpected errors persist `failed` before returning a terminal result.
+Closing the streaming response cancels an active run, including disconnects before the first event;
+completed/failed runs are never overwritten. Cancellation is cooperative while a synchronous
+provider call is in flight. Hard process termination or database unavailability can prevent the
+final transaction; automatic orphan-run recovery remains deferred, and such runs need operational
+reconciliation. Deploy the new Alembic migration before starting this backend version.
 
 Benchmark/evaluation tooling is separate from production execution. It reuses the same document
 processing, vector-store retrieval, context builder, and grounded report functions with frozen

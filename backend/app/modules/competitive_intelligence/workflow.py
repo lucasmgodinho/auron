@@ -1,4 +1,4 @@
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from typing import TypedDict
 from uuid import UUID, uuid4
@@ -12,7 +12,7 @@ from .errors import (
     NoSearchResultsError,
     SearchProviderError,
 )
-from .evidence import SourceDocument
+from .evidence import RetrievedEvidence, SourceDocument
 from .question_generation import OpenAIQuestionGenerator
 from .report_generation import OpenAIReportGenerator
 from .schemas import AnalysisEvent, create_analysis_event
@@ -30,6 +30,7 @@ class CompetitiveAnalysisState(TypedDict, total=False):
     documents_selected: int
     searches_executed: int
     context: str
+    retrieved_evidence: tuple[RetrievedEvidence, ...]
     report: str
 
 
@@ -38,6 +39,7 @@ class CompetitiveAnalysisResult:
     company_name: str
     sector: str
     report: str
+    evidence: tuple[RetrievedEvidence, ...] = ()
 
 
 class CompetitiveIntelligenceWorkflow:
@@ -67,13 +69,18 @@ class CompetitiveIntelligenceWorkflow:
         self._graph = graph.compile()
 
     def analyze(
-        self, *, organization_id: UUID, company_name: str
+        self,
+        *,
+        organization_id: UUID,
+        company_name: str,
+        run_id: UUID | None = None,
     ) -> CompetitiveAnalysisResult:
-        result = self._graph.invoke(self._initial_state(organization_id, company_name))
+        result = self._graph.invoke(self._initial_state(organization_id, company_name, run_id))
         return CompetitiveAnalysisResult(
             company_name=result["company_name"],
             sector=result["sector"],
             report=result["report"],
+            evidence=result["retrieved_evidence"],
         )
 
     def stream_analysis(
@@ -81,24 +88,46 @@ class CompetitiveIntelligenceWorkflow:
         *,
         organization_id: UUID,
         company_name: str,
+        run_id: UUID | None = None,
+        on_completed: Callable[[CompetitiveAnalysisResult], None] | None = None,
     ) -> Iterator[AnalysisEvent]:
+        completion_event = None
         for part in self._graph.stream(
-            self._initial_state(organization_id, company_name),
-            stream_mode="custom",
+            self._initial_state(organization_id, company_name, run_id),
+            stream_mode=["custom", "values"],
             version="v2",
         ):
-            if not isinstance(part, dict) or part.get("type") != "custom":
+            if not isinstance(part, dict):
                 continue
-            yield AnalysisEvent.model_validate(part.get("data"))
+            if part.get("type") == "custom":
+                event = AnalysisEvent.model_validate(part.get("data"))
+                if event.type == "analysis_completed":
+                    completion_event = event
+                else:
+                    yield event
+            elif part.get("type") == "values" and completion_event is not None:
+                result = part["data"]
+                if on_completed is not None:
+                    on_completed(
+                        CompetitiveAnalysisResult(
+                            company_name=result["company_name"],
+                            sector=result["sector"],
+                            report=result["report"],
+                            evidence=result["retrieved_evidence"],
+                        )
+                    )
+                yield completion_event
+                return
 
     @staticmethod
     def _initial_state(
         organization_id: UUID,
         company_name: str,
+        run_id: UUID | None = None,
     ) -> CompetitiveAnalysisState:
         return CompetitiveAnalysisState(
             organization_id=str(organization_id),
-            execution_id=str(uuid4()),
+            execution_id=str(run_id or uuid4()),
             company_name=company_name,
         )
 
@@ -141,21 +170,13 @@ class CompetitiveIntelligenceWorkflow:
 
         for index, question in enumerate(questions, start=1):
             progress = {"question": question, "current": index, "total": total}
-            writer(
-                create_analysis_event("search_started", progress).model_dump(
-                    mode="json"
-                )
-            )
+            writer(create_analysis_event("search_started", progress).model_dump(mode="json"))
 
             try:
                 search_result = self._search_client.search(question)
             except SearchProviderError:
                 failed_searches += 1
-                writer(
-                    create_analysis_event("search_failed", progress).model_dump(
-                        mode="json"
-                    )
-                )
+                writer(create_analysis_event("search_failed", progress).model_dump(mode="json"))
                 continue
 
             writer(
@@ -226,6 +247,7 @@ class CompetitiveIntelligenceWorkflow:
 
         return CompetitiveAnalysisState(
             context=retrieval_result.context,
+            retrieved_evidence=retrieval_result.evidence,
         )
 
     def _generate_report(
