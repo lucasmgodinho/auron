@@ -6,16 +6,18 @@ from uuid import UUID, uuid4
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import StreamWriter
 
+from .document_processing import deduplicate_documents
 from .errors import (
     InvalidCompanyError,
     NoSearchResultsError,
     SearchProviderError,
 )
+from .evidence import SourceDocument
 from .question_generation import OpenAIQuestionGenerator
 from .report_generation import OpenAIReportGenerator
 from .schemas import AnalysisEvent, create_analysis_event
 from .search import TavilySearchClient
-from .vector_store import RETRIEVAL_LIMIT, ChromaContextStore
+from .vector_store import RETRIEVAL_LIMIT, ChromaEvidenceStore
 
 
 class CompetitiveAnalysisState(TypedDict, total=False):
@@ -24,7 +26,9 @@ class CompetitiveAnalysisState(TypedDict, total=False):
     company_name: str
     sector: str
     questions: list[str]
-    search_documents: list[dict[str, str]]
+    search_documents: list[SourceDocument]
+    documents_selected: int
+    searches_executed: int
     context: str
     report: str
 
@@ -42,7 +46,7 @@ class CompetitiveIntelligenceWorkflow:
         *,
         question_generator: OpenAIQuestionGenerator,
         search_client: TavilySearchClient,
-        context_store: ChromaContextStore,
+        context_store: ChromaEvidenceStore,
         report_generator: OpenAIReportGenerator,
     ) -> None:
         self._question_generator = question_generator
@@ -116,7 +120,7 @@ class CompetitiveIntelligenceWorkflow:
         writer(
             create_analysis_event(
                 "questions_generated",
-                {"sector": plan.sector, "questions": plan.questions},
+                {"sector": plan.sector, "questions": plan.questions, "count": len(plan.questions)},
             ).model_dump(mode="json")
         )
 
@@ -130,7 +134,7 @@ class CompetitiveIntelligenceWorkflow:
         state: CompetitiveAnalysisState,
         writer: StreamWriter,
     ) -> CompetitiveAnalysisState:
-        documents: list[dict[str, str]] = []
+        documents: list[SourceDocument] = []
         questions = state["questions"]
         total = len(questions)
         failed_searches = 0
@@ -154,7 +158,6 @@ class CompetitiveIntelligenceWorkflow:
                 )
                 continue
 
-            answer_indexed = search_result.answer is not None
             writer(
                 create_analysis_event(
                     "search_completed",
@@ -164,22 +167,23 @@ class CompetitiveIntelligenceWorkflow:
                             {"title": source.title, "url": source.url}
                             for source in search_result.sources
                         ],
-                        "answer_indexed": answer_indexed,
+                        "documents_selected": len(search_result.documents),
                     },
                 ).model_dump(mode="json")
             )
 
-            if answer_indexed:
-                documents.append(
-                    {"question": question, "answer": search_result.answer}
-                )
+            documents.extend(search_result.documents)
 
         if total > 0 and failed_searches == total:
             raise SearchProviderError("All Tavily searches failed")
         if not documents:
-            raise NoSearchResultsError("Tavily returned no valid answers")
+            raise NoSearchResultsError("Tavily returned no valid source documents")
 
-        return CompetitiveAnalysisState(search_documents=documents)
+        return CompetitiveAnalysisState(
+            search_documents=deduplicate_documents(documents),
+            documents_selected=len(documents),
+            searches_executed=total,
+        )
 
     def _retrieve_context(
         self,
@@ -189,7 +193,7 @@ class CompetitiveIntelligenceWorkflow:
         retrieval_result = self._context_store.index_and_retrieve(
             organization_id=UUID(state["organization_id"]),
             execution_id=UUID(state["execution_id"]),
-            company_name=state["company_name"],
+            questions=state["questions"],
             documents=state["search_documents"],
         )
 
@@ -200,6 +204,11 @@ class CompetitiveIntelligenceWorkflow:
                     "documents": retrieval_result.documents_indexed,
                     "embedding_units": retrieval_result.embedding_units_indexed,
                     "temporary": True,
+                    "searches_executed": state["searches_executed"],
+                    "documents_selected": state["documents_selected"],
+                    "unique_sources": len(state["search_documents"]),
+                    "chunks_generated": retrieval_result.embedding_units_indexed,
+                    "chunks_indexed": retrieval_result.embedding_units_indexed,
                 },
             ).model_dump(mode="json")
         )
@@ -208,7 +217,9 @@ class CompetitiveIntelligenceWorkflow:
                 "rag_retrieved",
                 {
                     "retrieved_units": retrieval_result.embedding_units_retrieved,
-                    "retrieval_limit": RETRIEVAL_LIMIT,
+                    "retrieval_limit": RETRIEVAL_LIMIT * len(state["questions"]),
+                    "top_k_per_query": RETRIEVAL_LIMIT,
+                    "evidence_retrieved": retrieval_result.embedding_units_retrieved,
                 },
             ).model_dump(mode="json")
         )

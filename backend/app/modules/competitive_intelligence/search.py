@@ -27,7 +27,6 @@ class SearchSource:
 
 @dataclass(frozen=True, slots=True)
 class SearchResult:
-    answer: str | None
     sources: tuple[SearchSource, ...]
     documents: tuple[SourceDocument, ...] = ()
 
@@ -46,7 +45,7 @@ class TavilySearchClient:
                     "query": question,
                     "search_depth": "advanced",
                     "max_results": SEARCH_CANDIDATES,
-                    "include_answer": True,
+                    "include_answer": False,
                     "include_raw_content": True,
                     "include_published_date": True,
                 },
@@ -60,18 +59,11 @@ class TavilySearchClient:
         if not isinstance(payload, dict):
             raise SearchProviderError("Tavily returned an invalid response")
 
-        raw_answer = payload.get("answer")
         raw_results = payload.get("results")
-
-        if raw_answer is not None and not isinstance(raw_answer, str):
-            raise SearchProviderError("Tavily returned an invalid response")
 
         if not isinstance(raw_results, list):
             raise SearchProviderError("Tavily returned an invalid response")
 
-        answer = raw_answer.strip() if raw_answer and raw_answer.strip() else None
-
-        sources: list[SearchSource] = []
         source_documents: list[SourceDocument] = []
 
         for provider_rank, raw_result in enumerate(
@@ -92,13 +84,6 @@ class TavilySearchClient:
 
             source_documents.append(document)
 
-            sources.append(
-                SearchSource(
-                    title=document.title,
-                    url=str(document.url),
-                )
-            )
-
         selected_documents = self._select_documents(source_documents)
 
         selected_sources = [
@@ -110,7 +95,6 @@ class TavilySearchClient:
         ]
 
         return SearchResult(
-            answer=answer,
             sources=tuple(selected_sources),
             documents=tuple(selected_documents),
         )
@@ -382,7 +366,10 @@ def _parse_published_date(value: Any) -> datetime | None:
     try:
         parsed = parsedate_to_datetime(value)
     except TypeError, ValueError:
-        return None
+        try:
+            parsed = datetime.fromisoformat(value.strip())
+        except ValueError:
+            return None
 
     if parsed.tzinfo is None:
         parsed = parsed.replace(tzinfo=UTC)

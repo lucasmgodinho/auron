@@ -78,10 +78,20 @@ automatic module bypass. PlatformAdmin remains outside tenant access unless sepa
 
 Competitive Intelligence is the first production business module. Its HTTP boundary receives the
 server-validated Organization context and enforces the module entitlement plus
-`competitive_intelligence.analysis.run`. The V1 workflow generates research questions, searches
-Tavily, embeds retrieved documents in a per-execution ephemeral Chroma collection, retrieves scoped
-context, and generates a report. It stores no analysis history or module-owned database rows and
-removes the temporary collection after each execution. It does not expose an AnalyticsProvider.
+`competitive_intelligence.analysis.run`. The production V2 workflow validates the company and
+generates questions in one LLM call, acquires Tavily `SourceDocument` content without synthesized
+answers, deduplicates by normalized URL and processed-content hash while preserving discovery
+provenance, normalizes/chunks documents, and batches embeddings into a per-tenant, per-execution
+ephemeral Chroma collection. Cosine retrieval returns `RetrievedEvidence` for each question;
+unique retrieved chunks and their source metadata form the grounded context for one final report
+call with evidence citations. The collection is removed after retrieval even on failure. It stores
+no analysis history or module-owned database rows and does not expose an AnalyticsProvider.
+
+Production reuses the V2 document processing, embeddings, vector-store, context, and grounded
+report implementations exercised by the benchmark. Evaluation remains separate under
+`app/scripts/competitive_intelligence_benchmark`: frozen fixtures, human ground truth, captured
+rankings and reports, retrieval metrics, and optional LLM judges are evaluation artifacts, not
+runtime inputs or persisted production analysis runs.
 
 The same LangGraph workflow supports the existing synchronous endpoint and an NDJSON streaming
 endpoint used by the UI. Custom workflow events describe transient progress from question

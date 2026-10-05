@@ -183,7 +183,8 @@ def capture_evaluation(
     ]
     collection_name = f"ci_v2_{case_id}_{uuid4().hex}"
     embeddings = get_embeddings()
-    observed_dimension = len(embeddings.embed_query(case.research_question))
+    query_embedding = embeddings.embed_query(case.research_question)
+    observed_dimension = len(query_embedding)
     vector_store = create_vector_store(collection_name=collection_name)
     try:
         index_chunks(vector_store, evidence_chunks)
@@ -191,6 +192,7 @@ def capture_evaluation(
             vector_store,
             case.research_question,
             top_k=TOP_K,
+            query_embedding=query_embedding,
         )
         if len(retrieved) != min(TOP_K, len(evidence_chunks)):
             raise RuntimeError("Retrieval did not return the expected number of chunks.")

@@ -1,3 +1,4 @@
+import re
 from functools import lru_cache
 
 from langchain_openai import ChatOpenAI
@@ -53,6 +54,8 @@ def get_report_model() -> ChatOpenAI:
 def generate_grounded_report(
     research_question: str,
     context: str,
+    *,
+    model: ChatOpenAI | None = None,
 ) -> str:
     if not research_question.strip():
         raise ValueError("research_question cannot be empty")
@@ -60,7 +63,7 @@ def generate_grounded_report(
     if not context.strip():
         raise ValueError("context cannot be empty")
 
-    model = get_report_model()
+    model = model if model is not None else get_report_model()
 
     user_prompt = f"""
 Research question:
@@ -108,11 +111,16 @@ Every factual section must contain citations to the evidence that supports it.
     if not isinstance(response.content, str) or not response.content.strip():
         raise ModelProviderError("Report generation returned an invalid result")
 
-    return response.content.strip()
+    report = response.content.strip()
+    available_ids = set(re.findall(r'<EVIDENCE id="(E\d+)">', context))
+    cited_ids = set(re.findall(r"\[(E\d+)\]", report))
+    if cited_ids - available_ids:
+        raise ModelProviderError("Report cites unknown evidence")
+    return report
 
 
 class OpenAIReportGenerator:
-    """Production adapter kept compatible with the existing workflow."""
+    """Configured production adapter for the shared V2 grounded report call."""
 
     def __init__(
         self,
@@ -136,30 +144,4 @@ class OpenAIReportGenerator:
         if not context.strip():
             raise ModelProviderError("Report generation context cannot be empty")
 
-        user_prompt = f"""
-Research question:
-
-{research_question}
-
-Evidence:
-
-{context}
-
-Generate a concise competitive intelligence report that directly answers
-the research question. Return Markdown and use only the supplied evidence.
-""".strip()
-
-        try:
-            response = self._model.invoke(
-                [
-                    ("system", SYSTEM_PROMPT),
-                    ("human", user_prompt),
-                ]
-            )
-        except Exception as error:
-            raise ModelProviderError("Report generation failed") from error
-
-        if not isinstance(response.content, str) or not response.content.strip():
-            raise ModelProviderError("Report generation returned an invalid result")
-
-        return response.content.strip()
+        return generate_grounded_report(research_question, context, model=self._model)

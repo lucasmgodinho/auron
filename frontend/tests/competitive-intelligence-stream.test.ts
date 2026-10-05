@@ -93,7 +93,7 @@ test('rejects an invalid payload for every event type', () => {
     {
       type: 'search_completed',
       data: {
-        question: 'Q', current: 1, total: 1, sources: [], answer_indexed: 'yes',
+        question: 'Q', current: 1, total: 1, sources: [], documents_selected: 'yes',
       },
     },
     { type: 'search_failed', data: { question: 'Q', current: 1, total: 0 } },
@@ -118,6 +118,30 @@ test('rejects an invalid payload for every event type', () => {
   })
 })
 
+test('streams V2 document and evidence progress without legacy answer flags', async () => {
+  const search: AnalysisEvent = {
+    type: 'search_completed', occurred_at: occurredAt,
+    data: {
+      question: 'Q', current: 1, total: 1,
+      sources: [{ title: 'Source', url: 'https://example.com/source' }],
+      documents_selected: 2,
+    },
+  }
+  const indexed: AnalysisEvent = {
+    type: 'documents_indexed', occurred_at: occurredAt,
+    data: { documents: 1, embedding_units: 3, temporary: true },
+  }
+  const retrieved: AnalysisEvent = {
+    type: 'rag_retrieved', occurred_at: occurredAt,
+    data: { retrieved_units: 2, retrieval_limit: 5 },
+  }
+  const events = await collectStream([
+    [started, search, indexed, retrieved, completed].map(encode).join('\n') + '\n',
+  ])
+  assert.deepEqual(events, [started, search, indexed, retrieved, completed])
+  assert.equal('answer_indexed' in events[1].data, false)
+})
+
 test('rejects unknown events, invalid timestamps, and unsafe source URLs', () => {
   assert.throws(
     () => parseAnalysisEvent(encode({ type: 'unknown', occurred_at: occurredAt, data: {} })),
@@ -136,7 +160,7 @@ test('rejects unknown events, invalid timestamps, and unsafe source URLs', () =>
         current: 1,
         total: 1,
         sources: [{ title: 'Unsafe', url: 'javascript:alert(1)' }],
-        answer_indexed: true,
+        documents_selected: 1,
       },
     })),
     CompetitiveIntelligenceStreamError,

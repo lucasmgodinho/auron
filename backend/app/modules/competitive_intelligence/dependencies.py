@@ -7,7 +7,7 @@ from app.config import Settings, get_settings
 from .question_generation import OpenAIQuestionGenerator
 from .report_generation import OpenAIReportGenerator
 from .search import TavilySearchClient
-from .vector_store import ChromaContextStore
+from .vector_store import ChromaEvidenceStore
 from .workflow import CompetitiveIntelligenceWorkflow
 
 
@@ -30,7 +30,7 @@ def get_competitive_intelligence_workflow(
         search_client=TavilySearchClient(
             api_key=settings.tavily_api_key.get_secret_value()
         ),
-        context_store=ChromaContextStore(
+        context_store=ChromaEvidenceStore(
             api_key=openai_api_key,
             base_url=base_url,
         ),

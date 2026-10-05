@@ -17,6 +17,7 @@ from app.modules.competitive_intelligence.retrieval_evaluation import (
 from app.modules.competitive_intelligence.search import SearchResult
 from app.scripts.competitive_intelligence_benchmark import benchmark_io
 from app.scripts.competitive_intelligence_benchmark.benchmark_models import (
+    BenchmarkEvaluationFixture,
     BenchmarkSearchFixture,
     GroundTruthLabel,
     RetrievalCandidate,
@@ -140,6 +141,31 @@ def test_microsoft_golden_retrieval_baseline() -> None:
     assert strict_at_5.precision == 0.4
     assert strict_at_5.recall == pytest.approx(2 / 14)
     assert strict.reciprocal_rank == 1.0
+
+
+@pytest.mark.parametrize("case", benchmark_io.CASES, ids=lambda case: case.case_id)
+def test_frozen_v2_fixtures_remain_valid(case) -> None:
+    search = benchmark_io.load_json_model(
+        benchmark_io.search_fixture_path(case.case_id), BenchmarkSearchFixture,
+    )
+    candidates = benchmark_io.load_json_model(
+        benchmark_io.candidates_path(case.case_id), RetrievalCandidatesFixture,
+    )
+    rebuilt = benchmark_io.build_candidates_fixture(search)
+    assert rebuilt.candidates == candidates.candidates
+    assert rebuilt.candidate_set_sha256 == candidates.candidate_set_sha256
+    ground_truth = benchmark_io.load_json_model(
+        benchmark_io.ground_truth_path(case.case_id), RetrievalGroundTruthFixture,
+    )
+    evaluation = benchmark_io.load_json_model(
+        benchmark_io.evaluation_fixture_path(case.case_id), BenchmarkEvaluationFixture,
+    )
+    benchmark_io.validate_ground_truth(ground_truth, candidates, require_complete=True)
+    benchmark_io.validate_evaluation_fixture(evaluation, candidates, ground_truth)
+
+
+def test_frozen_benchmark_checksums_remain_valid() -> None:
+    benchmark_io.verify_checksums()
 
 
 def test_reciprocal_rank_uses_the_requested_threshold() -> None:
@@ -297,7 +323,7 @@ def test_capture_search_uses_mocked_tavily_and_persists_normalized_documents(
     class FakeClient:
         def search(self, question: str) -> SearchResult:
             assert question == MICROSOFT_QUESTION
-            return SearchResult(answer=None, sources=(), documents=(_source(),))
+            return SearchResult(sources=(), documents=(_source(),))
 
     monkeypatch.setattr(
         "app.scripts.competitive_intelligence_benchmark.prepare_benchmark_case._load_environment",
@@ -349,6 +375,7 @@ def test_capture_evaluation_uses_mocked_openai_pipeline_and_isolated_collection(
         captured_at=datetime(2026, 1, 1, tzinfo=UTC),
     )
     saved = []
+    query_calls = []
 
     def load_model(path, model_type):
         if model_type is BenchmarkSearchFixture:
@@ -359,6 +386,7 @@ def test_capture_evaluation_uses_mocked_openai_pipeline_and_isolated_collection(
 
     class FakeEmbeddings:
         def embed_query(self, query: str) -> list[float]:
+            query_calls.append(query)
             return [0.1, 0.2, 0.3]
 
     class FakeStore:
@@ -382,9 +410,12 @@ def test_capture_evaluation_uses_mocked_openai_pipeline_and_isolated_collection(
     monkeypatch.setattr(f"{module}.get_embeddings", lambda: FakeEmbeddings())
     monkeypatch.setattr(f"{module}.create_vector_store", lambda collection_name: store)
     monkeypatch.setattr(f"{module}.index_chunks", lambda vector_store, chunks: None)
-    monkeypatch.setattr(
-        f"{module}.retrieve_evidence", lambda vector_store, query, top_k: [retrieved]
-    )
+    def retrieve(vector_store, query, top_k, query_embedding):
+        assert query_embedding == [0.1, 0.2, 0.3]
+        assert query == MICROSOFT_QUESTION
+        return [retrieved]
+
+    monkeypatch.setattr(f"{module}.retrieve_evidence", retrieve)
     monkeypatch.setattr(f"{module}.build_research_context", lambda retrieved, sources: "context")
     monkeypatch.setattr(
         f"{module}.generate_grounded_report", lambda question, context: "Claim [E1]"
@@ -412,6 +443,7 @@ def test_capture_evaluation_uses_mocked_openai_pipeline_and_isolated_collection(
         draft=False,
     )
     assert store.deleted is True
+    assert query_calls == [MICROSOFT_QUESTION]
     assert saved[0].isolated_collection_name.startswith("ci_v2_microsoft_competitors_")
     assert saved[0].observed_embedding_dimension == 3
     assert saved[0].ground_truth_status == "validated"
