@@ -3,18 +3,24 @@ from functools import lru_cache
 from langchain_openai import OpenAIEmbeddings
 
 from .evidence import EvidenceChunk
+from .telemetry import EmbeddingClientTelemetry
 
 EMBEDDING_MODEL_NAME = "text-embedding-3-small"
 
+
 @lru_cache(maxsize=1)
 def get_embeddings(
-    *, api_key: str | None = None, base_url: str | None = None,
+    *,
+    api_key: str | None = None,
+    base_url: str | None = None,
 ) -> OpenAIEmbeddings:
-    return OpenAIEmbeddings(
+    embeddings = OpenAIEmbeddings(
         model=EMBEDDING_MODEL_NAME,
         api_key=api_key,
         base_url=base_url,
     )
+    embeddings.client = EmbeddingClientTelemetry(embeddings.client, embeddings.model)
+    return embeddings
 
 
 def embed_chunk(chunk: EvidenceChunk) -> list[float]:

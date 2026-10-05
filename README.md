@@ -240,13 +240,19 @@ Under `/organizations/{organization_id}/modules/competitive-intelligence/analyse
   `X-Analysis-Run-ID` response header. Synchronous execution errors also return that header.
 - `GET /` lists recent run summaries, newest first, with `limit` (default 25, maximum 100),
   `offset`, and a total count.
-- `GET /{run_id}` returns the run, report, sources, and evidence; foreign-tenant IDs return 404.
+- `GET /{run_id}` returns the run, report, sources, evidence, and sanitized technical `telemetry`;
+  foreign-tenant IDs return 404. Historical or unavailable snapshots return null.
 
 All endpoints require current Organization membership, module entitlement, and the existing
 `competitive_intelligence.analysis.run` permission (owner bypass applies only after entitlement).
 History is Organization-owned and shared with authorized members; the requester is audit metadata,
 not a separate private ownership boundary. Reading history does not require provider configuration.
 Access, request-schema, and configuration rejections before admission do not create a run.
+
+Product telemetry is persisted with the run; optional OpenTelemetry traces serve operational
+export and are not the UI query layer. Stage timings, provider usage, batch/retrieval statistics and
+versioned cost estimates exclude prompts, pages and report bodies. See
+[observability configuration and schema](docs/COMPETITIVE_INTELLIGENCE_OBSERVABILITY.md).
 
 Execution remains inside the request, with no worker, resumable job, or LangGraph checkpoint.
 Handled provider/domain/unexpected errors persist `failed` before returning a terminal result.

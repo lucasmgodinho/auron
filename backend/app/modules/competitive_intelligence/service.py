@@ -30,6 +30,7 @@ from .schemas import (
     AnalysisRunSummary,
     create_analysis_event,
 )
+from .telemetry import RunRecorder
 from .workflow import CompetitiveAnalysisResult, CompetitiveIntelligenceWorkflow
 
 PIPELINE_VERSION = "2.0.0"
@@ -79,6 +80,7 @@ def get_run(session: Session, *, organization_id: UUID, run_id: UUID) -> Analysi
     return AnalysisRunDetail(
         **AnalysisRunSummary.model_validate(run).model_dump(),
         report=run.report,
+        telemetry=run.telemetry,
         sources=[
             AnalysisRunSourceResponse.model_validate(source)
             for source in repository.list_sources(
@@ -252,11 +254,15 @@ class AnalysisRunService:
             run = self._locked_run(session, organization_id, run_id)
             if run.status not in {AnalysisRunStatus.PENDING, AnalysisRunStatus.RUNNING}:
                 return
+            was_pending = run.status == AnalysisRunStatus.PENDING
             run.status = AnalysisRunStatus.CANCELLED
             run.completed_at = datetime.now(UTC)
             run.error_code = "cancelled"
             run.error_message = "Analysis execution was cancelled"
+            summary = AnalysisRunSummary.model_validate(run)
             session.commit()
+        if was_pending:
+            self._save_telemetry(summary, RunRecorder(summary), "cancelled")
 
     @staticmethod
     def _record(
@@ -288,6 +294,9 @@ class AnalysisRunService:
         started = perf_counter()
         completed = False
         iterator = None
+        recorder = RunRecorder(run)
+        outcome = "cancelled"
+        telemetry_error = None
 
         def complete(result: CompetitiveAnalysisResult) -> None:
             nonlocal completed
@@ -303,7 +312,11 @@ class AnalysisRunService:
                 run_id=run.id,
                 on_completed=complete,
             )
-            for event in iterator:
+            while True:
+                with recorder.bind():
+                    event = next(iterator, None)
+                if event is None:
+                    break
                 if event.type == "questions_generated":
                     self.update_sector(
                         organization_id=run.organization_id,
@@ -314,6 +327,8 @@ class AnalysisRunService:
                     if not completed:
                         raise ValueError("Workflow completed without a domain result")
                     self._record(run, "completed", started)
+                    outcome = "completed"
+                    self._save_telemetry(run, recorder, outcome)
                 elif event.type == "analysis_failed":
                     code = event.data.get("code", "unexpected_error")
                     raise AnalysisExecutionError(
@@ -331,14 +346,32 @@ class AnalysisRunService:
             if code == "unexpected_error":
                 logger.exception("Competitive analysis run %s failed", run.id)
             self.fail_run(organization_id=run.organization_id, run_id=run.id, code=code)
+            outcome = "failed"
+            telemetry_error = type(error).__name__
+            self._save_telemetry(run, recorder, outcome, telemetry_error)
             self._record(run, "failed", started, code)
             yield create_analysis_event("analysis_failed", {"code": code, "run_id": str(run.id)})
         finally:
             try:
                 if iterator is not None:
-                    iterator.close()
+                    with recorder.bind():
+                        iterator.close()
             finally:
                 self.cancel_if_active(organization_id=run.organization_id, run_id=run.id)
+                if outcome == "cancelled":
+                    self._save_telemetry(run, recorder, outcome, telemetry_error)
+
+    def _save_telemetry(self, run, recorder, status, error_type=None) -> None:
+        # Independent from the report transaction: telemetry cannot invalidate a result.
+        try:
+            recorder.finish(status, error_type)
+            snapshot = recorder.snapshot(status, error_type).model_dump(mode="json")
+            with self._session_factory() as session:
+                row = self._locked_run(session, run.organization_id, run.id)
+                row.telemetry = snapshot
+                session.commit()
+        except Exception:
+            logger.warning("Run telemetry persistence unavailable for %s", run.id)
 
     def execute(
         self,

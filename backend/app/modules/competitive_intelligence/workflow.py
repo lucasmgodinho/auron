@@ -17,6 +17,7 @@ from .question_generation import OpenAIQuestionGenerator
 from .report_generation import OpenAIReportGenerator
 from .schemas import AnalysisEvent, create_analysis_event
 from .search import TavilySearchClient
+from .telemetry import measure, stage, stat
 from .vector_store import RETRIEVAL_LIMIT, ChromaEvidenceStore
 
 
@@ -131,6 +132,7 @@ class CompetitiveIntelligenceWorkflow:
             company_name=company_name,
         )
 
+    @stage("question_generation")
     def _generate_questions(
         self,
         state: CompetitiveAnalysisState,
@@ -143,6 +145,7 @@ class CompetitiveIntelligenceWorkflow:
             ).model_dump(mode="json")
         )
         plan = self._question_generator.generate(state["company_name"])
+        stat(research_questions=len(plan.questions))
         if not plan.is_valid_company:
             raise InvalidCompanyError("Company could not be validated")
 
@@ -158,6 +161,7 @@ class CompetitiveIntelligenceWorkflow:
             questions=plan.questions,
         )
 
+    @stage("web_research")
     def _search_web(
         self,
         state: CompetitiveAnalysisState,
@@ -169,6 +173,7 @@ class CompetitiveIntelligenceWorkflow:
         failed_searches = 0
 
         for index, question in enumerate(questions, start=1):
+            stat(add=True, searches_executed=1)
             progress = {"question": question, "current": index, "total": total}
             writer(create_analysis_event("search_started", progress).model_dump(mode="json"))
 
@@ -176,6 +181,7 @@ class CompetitiveIntelligenceWorkflow:
                 search_result = self._search_client.search(question)
             except SearchProviderError:
                 failed_searches += 1
+                stat(add=True, search_failures=1)
                 writer(create_analysis_event("search_failed", progress).model_dump(mode="json"))
                 continue
 
@@ -194,14 +200,19 @@ class CompetitiveIntelligenceWorkflow:
             )
 
             documents.extend(search_result.documents)
+            stat(add=True, documents_selected=len(search_result.documents))
 
         if total > 0 and failed_searches == total:
             raise SearchProviderError("All Tavily searches failed")
         if not documents:
             raise NoSearchResultsError("Tavily returned no valid source documents")
 
+        stat(sources_before_deduplication=len(documents))
+        with measure("deduplication"):
+            unique_documents = deduplicate_documents(documents)
+        stat(unique_sources=len(unique_documents))
         return CompetitiveAnalysisState(
-            search_documents=deduplicate_documents(documents),
+            search_documents=unique_documents,
             documents_selected=len(documents),
             searches_executed=total,
         )
@@ -250,6 +261,7 @@ class CompetitiveIntelligenceWorkflow:
             retrieved_evidence=retrieval_result.evidence,
         )
 
+    @stage("report_generation")
     def _generate_report(
         self,
         state: CompetitiveAnalysisState,

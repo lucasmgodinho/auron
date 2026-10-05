@@ -74,6 +74,7 @@ class CompetitiveAnalysisRun(Base):
     report: Mapped[str | None] = mapped_column(Text)
     error_code: Mapped[str | None] = mapped_column(String(100))
     error_message: Mapped[str | None] = mapped_column(String(500))
+    telemetry: Mapped[dict | None] = mapped_column(JSONB)
 
 
 class AnalysisRunSource(Base):

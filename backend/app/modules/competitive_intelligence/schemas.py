@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
 from .evidence import SourceProvenance
 from .model import AnalysisRunStatus
+from .telemetry_schemas import RunTelemetry
 
 CompanyName = Annotated[
     str,
@@ -77,6 +78,7 @@ class AnalysisRunEvidenceResponse(BaseModel):
 
 class AnalysisRunDetail(AnalysisRunSummary):
     report: str | None
+    telemetry: RunTelemetry | None = None
     sources: list[AnalysisRunSourceResponse] = Field(default_factory=list)
     evidence: list[AnalysisRunEvidenceResponse] = Field(default_factory=list)
 

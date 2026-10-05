@@ -15,6 +15,9 @@ Live production analyses now persist tenant-owned runs, reports, source metadata
 evidence excerpts in PostgreSQL through the module service. Benchmark scripts continue to operate
 on their existing versioned files and do not create `CompetitiveAnalysisRun` rows or persist graph
 state. Neither stored benchmark artifacts nor benchmark metrics are production run history.
+Production's compact Run Telemetry snapshots and optional OpenTelemetry traces describe execution,
+usage and retrieval statistics, not benchmark quality or groundedness. See
+[`docs/COMPETITIVE_INTELLIGENCE_OBSERVABILITY.md`](../../docs/COMPETITIVE_INTELLIGENCE_OBSERVABILITY.md).
 
 Frozen V2 data records the historical capture configuration (including `include_answer: true`),
 even though current live Tavily acquisition disables answer generation. The captured content,

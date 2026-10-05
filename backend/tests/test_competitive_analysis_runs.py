@@ -322,6 +322,8 @@ def test_stream_closure_cancels_pending_or_running_run(client, setup, monkeypatc
     anyio.run(consume_then_disconnect)
     detail = client.get(path(run.organization_id) + f"/{run.id}").json()
     assert detail["status"] == "cancelled"
+    assert detail["telemetry"]["status"] == "cancelled"
+    assert detail["telemetry"]["analysis_run_id"] == str(run.id)
     assert detail["completed_at"]
     assert bool(detail["started_at"]) == started
     assert detail["report"] is None

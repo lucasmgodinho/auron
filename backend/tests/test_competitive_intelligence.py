@@ -326,6 +326,7 @@ def test_tavily_search_returns_source_documents_and_disables_answers(
         "include_answer": False,
         "include_raw_content": True,
         "include_published_date": True,
+        "include_usage": True,
     }
 
 

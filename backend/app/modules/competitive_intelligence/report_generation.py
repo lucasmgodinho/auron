@@ -4,6 +4,7 @@ from functools import lru_cache
 from langchain_openai import ChatOpenAI
 
 from .errors import ModelProviderError
+from .telemetry import invoke_llm
 
 REPORT_MODEL_NAME = "gpt-4o-mini"
 
@@ -99,11 +100,11 @@ Every factual section must contain citations to the evidence that supports it.
 """.strip()
 
     try:
-        response = model.invoke(
-            [
-                ("system", SYSTEM_PROMPT),
-                ("human", user_prompt),
-            ]
+        response = invoke_llm(
+            model,
+            [("system", SYSTEM_PROMPT), ("human", user_prompt)],
+            "report_generation",
+            model_name=getattr(model, "model_name", REPORT_MODEL_NAME),
         )
     except Exception as error:
         raise ModelProviderError("Report generation failed") from error

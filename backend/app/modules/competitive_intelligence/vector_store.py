@@ -11,6 +11,7 @@ from .document_processing import chunk_document
 from .embeddings import get_embeddings
 from .errors import NoSearchResultsError, VectorStoreError
 from .evidence import EvidenceChunk, RetrievedEvidence, SourceDocument
+from .telemetry import embedding_operation, evidence_statistics, measure, stage, stat
 
 RETRIEVAL_LIMIT = 5
 INDEX_BATCH_SIZE = 1000
@@ -18,7 +19,9 @@ COLLECTION_NAME_PREFIX = "competitive_intelligence"
 
 
 def create_vector_store(
-    *, collection_name: str | None = None, embeddings: OpenAIEmbeddings | None = None,
+    *,
+    collection_name: str | None = None,
+    embeddings: OpenAIEmbeddings | None = None,
 ) -> Chroma:
     """Create a disposable Chroma collection isolated from every other run."""
 
@@ -61,10 +64,13 @@ def index_chunks(
         ids.append(chunk.chunk_id)
 
     for start in range(0, len(documents), INDEX_BATCH_SIZE):
-        vector_store.add_documents(
-            documents=documents[start : start + INDEX_BATCH_SIZE],
-            ids=ids[start : start + INDEX_BATCH_SIZE],
-        )
+        stat(add=True, embedding_index_batches=1)
+        with embedding_operation("document_embedding"):
+            vector_store.add_documents(
+                documents=documents[start : start + INDEX_BATCH_SIZE],
+                ids=ids[start : start + INDEX_BATCH_SIZE],
+            )
+        stat(add=True, chunks_indexed=len(documents[start : start + INDEX_BATCH_SIZE]))
 
 
 def retrieve_evidence(
@@ -76,10 +82,12 @@ def retrieve_evidence(
     sources: list[SourceDocument] | None = None,
 ) -> list[RetrievedEvidence]:
     if query_embedding is None:
-        results = vector_store.similarity_search_with_score(query=query, k=top_k)
+        with embedding_operation("query_embedding"):
+            results = vector_store.similarity_search_with_score(query=query, k=top_k)
     else:
         results = vector_store.similarity_search_by_vector_with_relevance_scores(
-            embedding=query_embedding, k=top_k,
+            embedding=query_embedding,
+            k=top_k,
         )
     source_by_id = {source.source_id: source for source in sources or []}
 
@@ -119,6 +127,7 @@ class ChromaEvidenceStore:
     def __init__(self, *, api_key: str, base_url: str | None) -> None:
         self._embeddings = get_embeddings(api_key=api_key, base_url=base_url)
 
+    @stage("source_processing")
     def index_and_retrieve(
         self,
         *,
@@ -127,7 +136,9 @@ class ChromaEvidenceStore:
         questions: list[str],
         documents: list[SourceDocument],
     ) -> ContextRetrievalResult:
-        chunks = [chunk for document in documents for chunk in chunk_document(document)]
+        with measure("chunking"):
+            chunks = [chunk for document in documents for chunk in chunk_document(document)]
+        stat(chunks_generated=len(chunks), top_k=RETRIEVAL_LIMIT)
         if not chunks:
             raise NoSearchResultsError("No valid source chunks were produced")
 
@@ -137,20 +148,35 @@ class ChromaEvidenceStore:
                 collection_name=f"ci_{organization_id.hex}_{execution_id.hex}",
                 embeddings=self._embeddings,
             )
-            index_chunks(vector_store, chunks)
+            with measure("embeddings"):
+                index_chunks(vector_store, chunks)
             retrieved: list[RetrievedEvidence] = []
             seen_chunks: set[str] = set()
             for question in questions:
-                for evidence in retrieve_evidence(
-                    vector_store, question, top_k=RETRIEVAL_LIMIT, sources=documents,
-                ):
+                stat(add=True, retrieval_queries=1)
+                with measure("retrieval"):
+                    question_evidence = retrieve_evidence(
+                        vector_store,
+                        question,
+                        top_k=RETRIEVAL_LIMIT,
+                        sources=documents,
+                    )
+                for evidence in question_evidence:
                     if evidence.chunk_id not in seen_chunks:
                         seen_chunks.add(evidence.chunk_id)
                         retrieved.append(evidence)
             if not retrieved:
                 raise NoSearchResultsError("No source evidence was retrieved")
+            stat(
+                evidence_retrieved=len(retrieved),
+                distinct_evidence_sources=len({item.source_id for item in retrieved}),
+            )
+            evidence_statistics(retrieved)
+            with measure("context_building"):
+                context = build_research_context(retrieved, documents)
+            stat(context_characters=len(context))
             return ContextRetrievalResult(
-                context=build_research_context(retrieved, documents),
+                context=context,
                 documents_indexed=len({chunk.source_id for chunk in chunks}),
                 embedding_units_indexed=len(chunks),
                 embedding_units_retrieved=len(retrieved),

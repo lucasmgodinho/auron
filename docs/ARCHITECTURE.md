@@ -113,6 +113,17 @@ report implementations exercised by the benchmark. Evaluation remains separate u
 rankings and reports, retrieval metrics, and optional LLM judges are evaluation artifacts, not
 runtime inputs or persisted production analysis runs.
 
+Each run also owns a compact versioned `telemetry` JSONB snapshot for technical product inspection,
+containing sanitized stage/provider summaries, usage/cost estimates, retrieval statistics and
+evidence references. The existing tenant-authorized detail API returns it. Snapshot persistence
+is separate from atomic report completion so observability failure cannot invalidate a result.
+Official OpenTelemetry API/SDK manual spans provide a separate operational trace, optionally
+exported over OTLP/gRPC; OpenTelemetry is never the product's storage/query layer. No prompts,
+provider responses, page content or secrets are recorded in this telemetry. See
+[Competitive Intelligence observability](COMPETITIVE_INTELLIGENCE_OBSERVABILITY.md) for hierarchy,
+schema, failure boundaries, versioned pricing and configuration. Offline benchmark quality metrics
+remain separate from these production execution statistics.
+
 The same LangGraph workflow supports the existing synchronous endpoint and an NDJSON streaming
 endpoint used by the UI. Custom workflow events describe transient progress from question
 generation through Tavily, ephemeral Chroma retrieval, and report generation; the module service

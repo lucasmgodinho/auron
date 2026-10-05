@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from decimal import Decimal
 from email.utils import parsedate_to_datetime
 from typing import Any
 from urllib.parse import urlparse
@@ -9,6 +10,7 @@ import httpx
 
 from .errors import SearchProviderError
 from .evidence import SourceDocument
+from .telemetry import provider_call, safe_url, stage, stat
 
 TAVILY_SEARCH_URL = "https://api.tavily.com/search"
 TAVILY_EXTRACT_URL = "https://api.tavily.com/extract"
@@ -37,32 +39,29 @@ class TavilySearchClient:
         self._timeout_seconds = timeout_seconds
 
     def search(self, question: str) -> SearchResult:
-        try:
-            response = httpx.post(
+        with provider_call(
+            "tavily",
+            "search",
+            search_depth="advanced",
+            search_mode="general",
+            query_count=1,
+            retry_count=0,
+        ) as call:
+            raw_results = self._request(
                 TAVILY_SEARCH_URL,
-                headers={"Authorization": f"Bearer {self._api_key}"},
-                json={
+                {
                     "query": question,
                     "search_depth": "advanced",
                     "max_results": SEARCH_CANDIDATES,
                     "include_answer": False,
                     "include_raw_content": True,
                     "include_published_date": True,
+                    "include_usage": True,
                 },
-                timeout=self._timeout_seconds,
+                call,
             )
-            response.raise_for_status()
-            payload: Any = response.json()
-        except (httpx.HTTPError, TypeError, ValueError) as error:
-            raise SearchProviderError("Tavily search failed") from error
-
-        if not isinstance(payload, dict):
-            raise SearchProviderError("Tavily returned an invalid response")
-
-        raw_results = payload.get("results")
-
-        if not isinstance(raw_results, list):
-            raise SearchProviderError("Tavily returned an invalid response")
+            call.candidates = len(raw_results)
+            stat(add=True, source_candidates=len(raw_results))
 
         source_documents: list[SourceDocument] = []
 
@@ -85,6 +84,7 @@ class TavilySearchClient:
             source_documents.append(document)
 
         selected_documents = self._select_documents(source_documents)
+        call.documents_selected = len(selected_documents)
 
         selected_sources = [
             SearchSource(
@@ -99,6 +99,30 @@ class TavilySearchClient:
             documents=tuple(selected_documents),
         )
 
+    def _request(self, url, body, call) -> list:
+        try:
+            response = httpx.post(
+                url,
+                headers={"Authorization": f"Bearer {self._api_key}"},
+                json=body,
+                timeout=self._timeout_seconds,
+            )
+            response.raise_for_status()
+            payload: Any = response.json()
+        except (httpx.HTTPError, TypeError, ValueError) as error:
+            raise SearchProviderError(f"Tavily {call.operation} failed") from error
+        if not isinstance(payload, dict) or not isinstance(payload.get("results"), list):
+            raise SearchProviderError("Tavily returned an invalid response")
+        usage = payload.get("usage")
+        if isinstance(usage, dict):
+            credits = usage.get("credits")
+            # Provider usage is optional; malformed usage must not invalidate sources.
+            if isinstance(credits, (int, float)) and not isinstance(credits, bool):
+                value = Decimal(str(credits))
+                if value.is_finite() and value >= 0:
+                    call.usage_credits = value
+        return payload["results"]
+
     def _extract_raw_content(
         self,
         documents: list[SourceDocument],
@@ -110,68 +134,59 @@ class TavilySearchClient:
 
         extracted_by_url: dict[str, str] = {}
 
-        for _ in range(EXTRACT_RETRY_ATTEMPTS + 1):
+        for attempt in range(EXTRACT_RETRY_ATTEMPTS + 1):
             if not pending_urls:
                 break
 
-            try:
-                response = httpx.post(
+            with provider_call(
+                "tavily",
+                "extract",
+                extract_depth="advanced",
+                retry_count=attempt,
+                extraction_urls=[safe_url(url) for url in pending_urls],
+            ) as call:
+                raw_results = self._request(
                     TAVILY_EXTRACT_URL,
-                    headers={
-                        "Authorization": f"Bearer {self._api_key}",
-                    },
-                    json={
+                    {
                         "urls": pending_urls,
                         "extract_depth": "advanced",
                         "format": "markdown",
+                        "include_usage": True,
                     },
-                    timeout=self._timeout_seconds,
+                    call,
                 )
-                response.raise_for_status()
-                payload: Any = response.json()
-            except (
-                httpx.HTTPError,
-                TypeError,
-                ValueError,
-            ) as error:
-                raise SearchProviderError("Tavily extract failed") from error
 
-            if not isinstance(payload, dict):
-                raise SearchProviderError("Tavily returned an invalid extract response")
+                successful_urls: set[str] = set()
 
-            raw_results = payload.get("results")
+                for raw_result in raw_results:
+                    if not isinstance(raw_result, dict):
+                        continue
 
-            if not isinstance(raw_results, list):
-                raise SearchProviderError("Tavily returned an invalid extract response")
+                    raw_url = raw_result.get("url")
+                    raw_content = raw_result.get("raw_content")
 
-            successful_urls: set[str] = set()
+                    if not isinstance(raw_url, str):
+                        continue
 
-            for raw_result in raw_results:
-                if not isinstance(raw_result, dict):
-                    continue
+                    if not isinstance(raw_content, str):
+                        continue
 
-                raw_url = raw_result.get("url")
-                raw_content = raw_result.get("raw_content")
+                    url = raw_url.strip()
+                    content = raw_content.strip()
 
-                if not isinstance(raw_url, str):
-                    continue
+                    if not url or not content or url not in pending_urls:
+                        continue
 
-                if not isinstance(raw_content, str):
-                    continue
+                    extracted_by_url[url] = content
+                    successful_urls.add(url)
 
-                url = raw_url.strip()
-                content = raw_content.strip()
-
-                if not url or not content:
-                    continue
-
-                extracted_by_url[url] = content
-                successful_urls.add(url)
-
-            pending_urls = [url for url in pending_urls if url not in successful_urls]
+                pending_urls = [url for url in pending_urls if url not in successful_urls]
+                call.successful_extractions = len(successful_urls)
+                call.failed_extractions = len(pending_urls)
 
         return extracted_by_url
 
+    @stage("source_acquisition")
     def _acquire_raw_content(
         self,
         documents: list[SourceDocument],

@@ -8,6 +8,9 @@ httpx==0.28.1
 itsdangerous==2.2.0
 joserfc==1.7.4
 langchain-openai==1.6.0
+opentelemetry-api==1.44.0
+opentelemetry-sdk==1.44.0
+opentelemetry-exporter-otlp-proto-grpc==1.44.0
 langgraph==1.2.11
 pydantic-settings==2.15.0
 sqlalchemy==2.0.51
