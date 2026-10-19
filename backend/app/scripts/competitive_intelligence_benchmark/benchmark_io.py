@@ -15,7 +15,7 @@ from app.modules.competitive_intelligence.document_processing import (
     DEFAULT_CHUNK_OVERLAP,
     DEFAULT_CHUNK_SIZE,
     EMBEDDING_MODEL,
-    TOKENIZER,
+    TOKENIZER_NAME,
     chunk_document,
 )
 from app.modules.competitive_intelligence.evaluation import (
@@ -118,7 +118,7 @@ def chunking_configuration() -> dict[str, Any]:
         "normalization_version": NORMALIZATION_VERSION,
         "chunk_size_tokens": DEFAULT_CHUNK_SIZE,
         "chunk_overlap_tokens": DEFAULT_CHUNK_OVERLAP,
-        "resolved_tokenizer": TOKENIZER.name,
+        "resolved_tokenizer": TOKENIZER_NAME,
     }
 
 
@@ -263,7 +263,7 @@ def build_candidates_fixture(
         normalization_version=NORMALIZATION_VERSION,
         chunk_size_tokens=DEFAULT_CHUNK_SIZE,
         chunk_overlap_tokens=DEFAULT_CHUNK_OVERLAP,
-        resolved_tokenizer=TOKENIZER.name,
+        resolved_tokenizer=TOKENIZER_NAME,
         chunking_configuration_sha256=chunking_configuration_sha256(),
         candidate_set_sha256=candidate_set_sha256(candidates),
         candidates=candidates,
@@ -430,7 +430,7 @@ def build_manifest(*, existing: BenchmarkManifest | None = None) -> BenchmarkMan
         normalization_version=NORMALIZATION_VERSION,
         chunk_size_tokens=DEFAULT_CHUNK_SIZE,
         chunk_overlap_tokens=DEFAULT_CHUNK_OVERLAP,
-        resolved_tokenizer=TOKENIZER.name,
+        resolved_tokenizer=TOKENIZER_NAME,
         embedding_configuration={
             "provider": "openai",
             "model": EMBEDDING_MODEL,

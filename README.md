@@ -1,5 +1,9 @@
 # Auron
 
+For supervised development with native Codex, see
+[the AI-first workflow](docs/AI_FIRST_WORKFLOW.md), including repository Skills,
+subagent roles, acceptance criteria and `scripts/verify.ps1 -Mode fast`.
+
 Auron is a modular B2B SaaS platform. The FastAPI backend and React frontend run directly on the host; Docker Compose runs PostgreSQL only.
 
 ## Prerequisites

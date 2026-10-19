@@ -1,4 +1,5 @@
 import re
+from functools import lru_cache
 from hashlib import sha256
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
@@ -11,7 +12,13 @@ EMBEDDING_MODEL = "text-embedding-3-small"
 DEFAULT_CHUNK_SIZE = 512
 DEFAULT_CHUNK_OVERLAP = 64
 
-TOKENIZER = tiktoken.encoding_for_model(EMBEDDING_MODEL)
+TOKENIZER_NAME = tiktoken.encoding_name_for_model(EMBEDDING_MODEL)
+
+
+@lru_cache(maxsize=1)
+def get_tokenizer() -> tiktoken.Encoding:
+    """Load the production tokenizer on first use, never during application import."""
+    return tiktoken.encoding_for_model(EMBEDDING_MODEL)
 
 
 def normalize_source_url(url: str) -> str:
@@ -122,7 +129,8 @@ def chunk_document(
 
     original_text = get_document_text(document)
     normalized_text = normalize_document_text(original_text)
-    normalized_tokens = TOKENIZER.encode(normalized_text)
+    tokenizer = get_tokenizer()
+    normalized_tokens = tokenizer.encode(normalized_text)
 
     chunks: list[EvidenceChunk] = []
 
@@ -136,7 +144,7 @@ def chunk_document(
         )
 
         chunk_tokens = normalized_tokens[start:end]
-        chunk_text = TOKENIZER.decode(chunk_tokens)
+        chunk_text = tokenizer.decode(chunk_tokens)
 
         chunks.append(
             EvidenceChunk(
