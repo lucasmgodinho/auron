@@ -11,8 +11,10 @@ Set-StrictMode -Version Latest
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $backend = Join-Path $repositoryRoot 'backend'
 $frontend = Join-Path $repositoryRoot 'frontend'
+$onWindows = $env:OS -eq 'Windows_NT'
 if (-not $Python) {
-    $Python = Join-Path $backend '.venv\Scripts\python.exe'
+    $pythonRelativePath = if ($onWindows) { '.venv/Scripts/python.exe' } else { '.venv/bin/python' }
+    $Python = Join-Path $backend $pythonRelativePath
 }
 
 function Invoke-Check {
@@ -31,9 +33,10 @@ function Invoke-Check {
 
 try {
     $Python = (Get-Command $Python -ErrorAction Stop).Source
-    $npm = (Get-Command npm.cmd -ErrorAction Stop).Source
+    $npmCommand = if ($onWindows) { 'npm.cmd' } else { 'npm' }
+    $npm = (Get-Command $npmCommand -ErrorAction Stop).Source
     $node = (Get-Command node -ErrorAction Stop).Source
-    $tsc = Join-Path $frontend 'node_modules\typescript\bin\tsc'
+    $tsc = Join-Path $frontend 'node_modules/typescript/bin/tsc'
     if (-not (Test-Path -LiteralPath $tsc -PathType Leaf)) {
         throw 'Frontend dependencies missing. Provision them explicitly; verification installs nothing.'
     }
@@ -96,11 +99,11 @@ os.environ['DATABASE_URL'] = 'postgresql+psycopg://auron_verify:unused@127.0.0.1
 import pytest
 raise SystemExit(pytest.main(['-q', '-p', 'no:cacheprovider', '--basetemp', sys.argv[1]]))
 '@
-        $fullTemp = Join-Path $repositoryRoot ('.pytest_cache\verify-full-' + [guid]::NewGuid().ToString('N'))
+        $fullTemp = Join-Path $tempParent ('verify-full-' + [guid]::NewGuid().ToString('N'))
         if (Test-Path -LiteralPath $fullTemp) { throw 'Refusing to reuse an existing pytest temp directory.' }
         Invoke-Check 'Full backend suite (disposable DB)' $backend $Python @('-c', $fullSuite, $fullTemp)
         # Type checks above cover all projects; Vite emits this checkout's production bundle.
-        $vite = Join-Path $frontend 'node_modules\vite\bin\vite.js'
+        $vite = Join-Path $frontend 'node_modules/vite/bin/vite.js'
         Invoke-Check 'Production frontend bundle' $frontend $node @($vite, 'build')
     }
     Write-Host "`nVerification $Mode passed. See docs/AI_FIRST_WORKFLOW.md for scope and exclusions."

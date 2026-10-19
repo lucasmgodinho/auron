@@ -1,0 +1,2 @@
+# Frozen V2 checksums were recorded from CRLF checkout bytes. Preserve them on every OS.
+backend/evaluation/benchmarks/v2/** text eol=crlf

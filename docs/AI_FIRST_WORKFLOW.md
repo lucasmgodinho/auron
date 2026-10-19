@@ -78,6 +78,8 @@ tests, backend collection, selected non-DB tests, module validation, Alembic hea
 and immutable fixture checksums. It installs nothing and starts no services.
 Pass `-Python <venv-python>` when reusing an existing backend environment in a
 worktree. Frontend dependencies must already be installed for this checkout.
+The runner supports PowerShell 7 on Windows and Linux. Its default Python path
+uses this checkout's backend virtualenv; `-Python python` uses a prepared PATH.
 
 `-Mode full -DisposableTestDatabase` adds the full backend suite and production frontend build. It must
 fail when its dedicated test database or real tokenizer prerequisites are absent.
@@ -111,9 +113,31 @@ For this first increment, accept only if:
 - Existing dirty files and frozen benchmark bytes remain unchanged; the delta has
   an independent review and exact executed evidence.
 
-CI and real-browser E2E remain separate follow-ups. DOM tests do not establish
-browser cookies, rendering or live streaming. Do not label full acceptance while
-required DB/browser/provider checks remain unexecuted.
+## Continuous integration
+
+`.github/workflows/ci.yml` runs on pull requests, pushes to develop/main and manual
+dispatch. It uses Ubuntu 24.04, Python 3.14, Node 24 and an ephemeral PostgreSQL 17
+service with a dynamically assigned host port. It receives no application secrets
+or production database URL. Checkout credentials are not persisted; token access
+is limited to reading repository contents.
+
+Setup installs declared dependencies with pip/npm ci, explicitly provisions the
+tokenizer, and applies migrations plus `alembic check` only to that job's disposable
+test DB. The final step calls the same `verify.ps1 -Mode full` used locally. Setup
+and migration commands remain outside the verification script. Results belong to
+the exact committed checkout; local dirty/untracked files are not part of CI.
+The narrow `.gitattributes` rule for frozen V2 artifacts preserves their recorded
+CRLF checkout bytes on Linux too. Their data, checksum inventory and Git blobs are
+unchanged; never regenerate the benchmark to accommodate platform line endings.
+
+After an authorized push, inspect the GitHub Actions job logs. A workflow file or
+local fast pass does not establish a green remote run. Do not dispatch/push merely
+to obtain evidence unless already authorized. PostgreSQL-backed full validation
+still needs a prepared disposable DB locally when Docker is unavailable.
+
+Real-browser E2E remains a follow-up. DOM tests do not establish browser cookies,
+rendering or live streaming. Do not label full acceptance while required
+DB/browser/provider checks remain unexecuted.
 
 ## Official format references
 
