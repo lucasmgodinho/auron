@@ -54,11 +54,11 @@ Check Actions policies and permission to
 create PRs. No PAT/App is required by design. PR CI may need Approve workflows to run;
 verify its actual integration SHA. Account changes/publishing require authorization.
 
-The pilot explicitly selects gpt-6-luna with low reasoning effort for every role.
+The workflow explicitly selects gpt-6-sol with high reasoning effort for every role.
 The Codex step allows five minutes for audit and 20 minutes for other roles.
 No automatic switch to a larger model is configured. Keep the first audit focused
 on AGENTS.md, .github/agents.md and this guide, then inspect actual API usage.
-These settings reduce cost exposure; there is no hard per-run token or dollar cap.
+High effort prioritizes analysis; there is no hard per-run token or dollar cap.
 Model access and a real agent run remain to be verified with the selected key.
 
 ## Boundaries and evidence
