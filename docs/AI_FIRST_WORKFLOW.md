@@ -44,9 +44,11 @@ or develop, default: default branch), and finally AURON_AGENT_ENABLED=true. Miss
 false disables new requests; cancel running workflows separately. One operation at
 a time, with one pending slot in GitHub; this is not a durable queue.
 
-Store a dedicated OpenAI project API key as secret OPENAI_API_KEY. Never paste it
-into chat/source/.env/logs. Check API model access/billing and GitHub minutes/storage
-separately. Timeouts are not a dollar cap. Check Actions policies and permission to
+Store the university key as secret OPENAI_API_KEY_GL. The workflow uses only this
+secret. Keep OPENAI_API_KEY_LUCAS for an explicit manual switch of openai-api-key
+in .github/workflows/agents.yml; there is no automatic fallback. Never paste either
+key into chat/source/.env/logs. Check Responses API/model access, billing and GitHub
+minutes/storage separately. Timeouts are not a dollar cap. Check Actions permission to
 create PRs. No PAT/App is required by design. PR CI may need Approve workflows to run;
 verify its actual integration SHA. Account changes/publishing require authorization.
 
