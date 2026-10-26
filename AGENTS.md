@@ -10,9 +10,10 @@ deploy, shared DB changes or costly installs without explicit authorization.
 GitHub stages require the configured human's separate manual dispatch; only their
 trusted publisher may perform the publishing authorized for that stage.
 
-Run `scripts/verify.ps1 -Mode fast` and focused checks. Full requires an explicitly
-prepared disposable DB/tokenizer; `scripts/verify-disposable.ps1` owns optional
-local setup/cleanup. Missing prerequisites and skipped checks are not passes.
+Follow the selected role's validation requirements in `.github/agents.md`.
+Full requires an explicitly prepared disposable DB/tokenizer. The optional
+`scripts/verify-disposable.ps1` helper owns local setup/cleanup. Missing
+prerequisites and skipped checks are not passes.
 See `docs/AI_FIRST_WORKFLOW.md` for operation and commands.
 
 ## Code Review Rules

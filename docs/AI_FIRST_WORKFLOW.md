@@ -89,19 +89,35 @@ inspect raw artifacts in that case. No permanent business harness/auth bypass is
 
 ## Local commands
 
-Provision PowerShell 7, Python 3.14, Node 24 and project dependencies explicitly:
+Choose validation by the selected role; the commands below are not a checklist
+for every stage. `.github/agents.md` defines the role requirements.
+
+| Role | Validation |
+|---|---|
+| audit / plan | Relevant read-only checks only; generated outputs stay in evidence. Do not run fast or full. |
+| implement | Focused checks and fast; full only with explicitly prepared disposable prerequisites. |
+| review | Checks for every approved AC and inspection of the separate full-job log; browser evidence when required. |
+
+Provision PowerShell 7, Python 3.14, Node 24 and project dependencies explicitly
+before stages that need them:
 
 ```powershell
+# Implementation: focused checks when changing workflow controls
 ./backend/.venv/Scripts/python.exe -m unittest discover -s .github/scripts -p test_agents.py -v
+# Implementation: required fast gate
 ./scripts/verify.ps1 -Mode fast
-# Healthy Docker + postgres:17-alpine; only owned disposable resources:
+# Optional local full: explicitly authorized disposable setup, never audit/plan
+# Requires healthy Docker + postgres:17-alpine; owns setup and cleanup
 ./scripts/verify-disposable.ps1 -ProvisionTokenizer
+# Separately authorized module work
 python scripts/create_module.py --key example --name Example --dry-run
 python scripts/validate_module.py competitive_intelligence
 ```
 
 Use -Python <absolute-python> to reuse a provisioned environment in a worktree.
-Fast installs nothing/starts no services. Full adds all backend tests and frontend
+Fast installs nothing/starts no services, but creates checkout-local temporary
+files under `.pytest_cache/`, so it is unsuitable for read-only audit/plan stages.
+Full adds all backend tests and frontend
 build, with distinct disposable TEST_DATABASE_URL and real tokenizer assets. The
 helper never uses normal Compose volumes. Do not delete normal volumes/reset Docker
 to recover. Worktrees share Docker, ports, databases and credentials.
