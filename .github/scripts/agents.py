@@ -241,12 +241,22 @@ def schema():
     def obj(**fields):
         return {"type": "object", "additionalProperties": False, "required": list(fields), "properties": fields}
     string = {"type": "string"}
+    artifact = {"type": "string", "pattern": r"^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*$",
+                "description": "Relative path to an existing nonempty file inside the assigned evidence folder, "
+                               "such as logs/git-state.log. Never observations, stdout text, source citations, "
+                               "absolute paths, traversal, or result.json."}
     def arr(item):
         return {"type": "array", "items": item}
-    return obj(status={"type": "string", "enum": ["completed", "passed", "failed", "inconclusive"]}, summary=string,
+    return obj(status={"type": "string", "enum": ["completed", "passed", "failed", "inconclusive"]},
+               summary={**string, "description": "Markdown findings and observations; put source/line citations here, "
+                                                  "not in artifact path fields."},
                criteria=arr(string),
-               checks=arr(obj(criterion=string, command=string, exit_code={"type": ["integer", "null"]}, evidence=arr(string))),
-               generated_tests=arr(string), cleanup_completed={"type": "boolean"},
+               checks=arr(obj(criterion=string, command={**string, "description": "Exact command actually executed; "
+                   "capture stdout/stderr in the retained log."}, exit_code={"type": ["integer", "null"]},
+                   evidence={**arr(artifact), "minItems": 1, "description": "Only retained artifact file paths. "
+                       "Include at least one nonempty .log with this command output; never prose observations."})),
+               generated_tests={**arr(artifact), "description": "Relative paths of retained executable test scripts. "
+                   "Use [] when no additional tests were generated; never explanatory text."}, cleanup_completed={"type": "boolean"},
                proposals=arr(obj(title=string, body=string)))
 
 
@@ -327,8 +337,14 @@ def check_result(req, root):
     if req["stage"] == "implement":
         require(value["checks"], "Implementation needs retained checks")
     suffixes = set()
-    for item in value["checks"]:
-        files = [evidence(root, n) for n in item["evidence"]]
+    for check_index, item in enumerate(value["checks"]):
+        files = []
+        for evidence_index, name in enumerate(item["evidence"]):
+            try:
+                files.append(evidence(root, name))
+            except (ValueError, OSError) as error:
+                raise ValueError(f"checks[{check_index}].evidence[{evidence_index}] must be a relative path "
+                                 "to a retained evidence file; put observations in summary/proposals") from error
         require(item["criterion"] and item["command"] and any(p.suffix == ".log" for p in files), "Missing check/log")
         suffixes.update(p.suffix for p in files)
         if value["status"] in {"completed", "passed"}:
