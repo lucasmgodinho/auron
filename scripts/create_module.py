@@ -25,7 +25,7 @@ class PlannedFile:
     content: str
 
 
-def _skill_repository_root() -> Path:
+def _repository_root() -> Path:
     current = Path(__file__).resolve()
     for parent in current.parents:
         if (parent / "AGENTS.md").is_file() and (parent / "backend").is_dir():
@@ -40,7 +40,7 @@ def _add_backend_to_path(root: Path) -> None:
 
 
 def _validate_key(key: str) -> None:
-    _add_backend_to_path(_skill_repository_root())
+    _add_backend_to_path(_repository_root())
     from app.core.module_registry.registry import (
         InvalidModuleDefinitionError,
         validate_identifier,
@@ -214,7 +214,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--root",
         type=Path,
-        default=_skill_repository_root(),
+        default=_repository_root(),
         help=argparse.SUPPRESS,
     )
     return parser

@@ -38,7 +38,7 @@ export type AnalysisEvent =
       current: number
       total: number
       sources: Array<{ title: string; url: string }>
-      answer_indexed: boolean
+      documents_selected: number
     }
   >
   | AnalysisEventBase<
@@ -191,16 +191,13 @@ export function parseAnalysisEvent(line: string): AnalysisEvent {
         }
         return { title, url }
       })
-      if (typeof data.answer_indexed !== "boolean") {
-        throw new CompetitiveIntelligenceStreamError("invalid_stream_event")
-      }
       return {
         type: value.type,
         occurred_at,
         data: {
           ...requiredProgress(data),
           sources: validatedSources,
-          answer_indexed: data.answer_indexed,
+          documents_selected: requiredInteger(data, "documents_selected", 0),
         },
       }
     }

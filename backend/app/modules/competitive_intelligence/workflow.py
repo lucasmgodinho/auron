@@ -1,4 +1,4 @@
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from typing import TypedDict
 from uuid import UUID, uuid4
@@ -6,16 +6,19 @@ from uuid import UUID, uuid4
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import StreamWriter
 
+from .document_processing import deduplicate_documents
 from .errors import (
     InvalidCompanyError,
     NoSearchResultsError,
     SearchProviderError,
 )
+from .evidence import RetrievedEvidence, SourceDocument
 from .question_generation import OpenAIQuestionGenerator
 from .report_generation import OpenAIReportGenerator
 from .schemas import AnalysisEvent, create_analysis_event
 from .search import TavilySearchClient
-from .vector_store import RETRIEVAL_LIMIT, ChromaContextStore
+from .telemetry import measure, stage, stat
+from .vector_store import RETRIEVAL_LIMIT, ChromaEvidenceStore
 
 
 class CompetitiveAnalysisState(TypedDict, total=False):
@@ -24,8 +27,11 @@ class CompetitiveAnalysisState(TypedDict, total=False):
     company_name: str
     sector: str
     questions: list[str]
-    search_documents: list[dict[str, str]]
+    search_documents: list[SourceDocument]
+    documents_selected: int
+    searches_executed: int
     context: str
+    retrieved_evidence: tuple[RetrievedEvidence, ...]
     report: str
 
 
@@ -34,6 +40,7 @@ class CompetitiveAnalysisResult:
     company_name: str
     sector: str
     report: str
+    evidence: tuple[RetrievedEvidence, ...] = ()
 
 
 class CompetitiveIntelligenceWorkflow:
@@ -42,7 +49,7 @@ class CompetitiveIntelligenceWorkflow:
         *,
         question_generator: OpenAIQuestionGenerator,
         search_client: TavilySearchClient,
-        context_store: ChromaContextStore,
+        context_store: ChromaEvidenceStore,
         report_generator: OpenAIReportGenerator,
     ) -> None:
         self._question_generator = question_generator
@@ -63,13 +70,18 @@ class CompetitiveIntelligenceWorkflow:
         self._graph = graph.compile()
 
     def analyze(
-        self, *, organization_id: UUID, company_name: str
+        self,
+        *,
+        organization_id: UUID,
+        company_name: str,
+        run_id: UUID | None = None,
     ) -> CompetitiveAnalysisResult:
-        result = self._graph.invoke(self._initial_state(organization_id, company_name))
+        result = self._graph.invoke(self._initial_state(organization_id, company_name, run_id))
         return CompetitiveAnalysisResult(
             company_name=result["company_name"],
             sector=result["sector"],
             report=result["report"],
+            evidence=result["retrieved_evidence"],
         )
 
     def stream_analysis(
@@ -77,27 +89,50 @@ class CompetitiveIntelligenceWorkflow:
         *,
         organization_id: UUID,
         company_name: str,
+        run_id: UUID | None = None,
+        on_completed: Callable[[CompetitiveAnalysisResult], None] | None = None,
     ) -> Iterator[AnalysisEvent]:
+        completion_event = None
         for part in self._graph.stream(
-            self._initial_state(organization_id, company_name),
-            stream_mode="custom",
+            self._initial_state(organization_id, company_name, run_id),
+            stream_mode=["custom", "values"],
             version="v2",
         ):
-            if not isinstance(part, dict) or part.get("type") != "custom":
+            if not isinstance(part, dict):
                 continue
-            yield AnalysisEvent.model_validate(part.get("data"))
+            if part.get("type") == "custom":
+                event = AnalysisEvent.model_validate(part.get("data"))
+                if event.type == "analysis_completed":
+                    completion_event = event
+                else:
+                    yield event
+            elif part.get("type") == "values" and completion_event is not None:
+                result = part["data"]
+                if on_completed is not None:
+                    on_completed(
+                        CompetitiveAnalysisResult(
+                            company_name=result["company_name"],
+                            sector=result["sector"],
+                            report=result["report"],
+                            evidence=result["retrieved_evidence"],
+                        )
+                    )
+                yield completion_event
+                return
 
     @staticmethod
     def _initial_state(
         organization_id: UUID,
         company_name: str,
+        run_id: UUID | None = None,
     ) -> CompetitiveAnalysisState:
         return CompetitiveAnalysisState(
             organization_id=str(organization_id),
-            execution_id=str(uuid4()),
+            execution_id=str(run_id or uuid4()),
             company_name=company_name,
         )
 
+    @stage("question_generation")
     def _generate_questions(
         self,
         state: CompetitiveAnalysisState,
@@ -110,13 +145,14 @@ class CompetitiveIntelligenceWorkflow:
             ).model_dump(mode="json")
         )
         plan = self._question_generator.generate(state["company_name"])
+        stat(research_questions=len(plan.questions))
         if not plan.is_valid_company:
             raise InvalidCompanyError("Company could not be validated")
 
         writer(
             create_analysis_event(
                 "questions_generated",
-                {"sector": plan.sector, "questions": plan.questions},
+                {"sector": plan.sector, "questions": plan.questions, "count": len(plan.questions)},
             ).model_dump(mode="json")
         )
 
@@ -125,36 +161,30 @@ class CompetitiveIntelligenceWorkflow:
             questions=plan.questions,
         )
 
+    @stage("web_research")
     def _search_web(
         self,
         state: CompetitiveAnalysisState,
         writer: StreamWriter,
     ) -> CompetitiveAnalysisState:
-        documents: list[dict[str, str]] = []
+        documents: list[SourceDocument] = []
         questions = state["questions"]
         total = len(questions)
         failed_searches = 0
 
         for index, question in enumerate(questions, start=1):
+            stat(add=True, searches_executed=1)
             progress = {"question": question, "current": index, "total": total}
-            writer(
-                create_analysis_event("search_started", progress).model_dump(
-                    mode="json"
-                )
-            )
+            writer(create_analysis_event("search_started", progress).model_dump(mode="json"))
 
             try:
                 search_result = self._search_client.search(question)
             except SearchProviderError:
                 failed_searches += 1
-                writer(
-                    create_analysis_event("search_failed", progress).model_dump(
-                        mode="json"
-                    )
-                )
+                stat(add=True, search_failures=1)
+                writer(create_analysis_event("search_failed", progress).model_dump(mode="json"))
                 continue
 
-            answer_indexed = search_result.answer is not None
             writer(
                 create_analysis_event(
                     "search_completed",
@@ -164,22 +194,28 @@ class CompetitiveIntelligenceWorkflow:
                             {"title": source.title, "url": source.url}
                             for source in search_result.sources
                         ],
-                        "answer_indexed": answer_indexed,
+                        "documents_selected": len(search_result.documents),
                     },
                 ).model_dump(mode="json")
             )
 
-            if answer_indexed:
-                documents.append(
-                    {"question": question, "answer": search_result.answer}
-                )
+            documents.extend(search_result.documents)
+            stat(add=True, documents_selected=len(search_result.documents))
 
         if total > 0 and failed_searches == total:
             raise SearchProviderError("All Tavily searches failed")
         if not documents:
-            raise NoSearchResultsError("Tavily returned no valid answers")
+            raise NoSearchResultsError("Tavily returned no valid source documents")
 
-        return CompetitiveAnalysisState(search_documents=documents)
+        stat(sources_before_deduplication=len(documents))
+        with measure("deduplication"):
+            unique_documents = deduplicate_documents(documents)
+        stat(unique_sources=len(unique_documents))
+        return CompetitiveAnalysisState(
+            search_documents=unique_documents,
+            documents_selected=len(documents),
+            searches_executed=total,
+        )
 
     def _retrieve_context(
         self,
@@ -189,7 +225,7 @@ class CompetitiveIntelligenceWorkflow:
         retrieval_result = self._context_store.index_and_retrieve(
             organization_id=UUID(state["organization_id"]),
             execution_id=UUID(state["execution_id"]),
-            company_name=state["company_name"],
+            questions=state["questions"],
             documents=state["search_documents"],
         )
 
@@ -200,6 +236,11 @@ class CompetitiveIntelligenceWorkflow:
                     "documents": retrieval_result.documents_indexed,
                     "embedding_units": retrieval_result.embedding_units_indexed,
                     "temporary": True,
+                    "searches_executed": state["searches_executed"],
+                    "documents_selected": state["documents_selected"],
+                    "unique_sources": len(state["search_documents"]),
+                    "chunks_generated": retrieval_result.embedding_units_indexed,
+                    "chunks_indexed": retrieval_result.embedding_units_indexed,
                 },
             ).model_dump(mode="json")
         )
@@ -208,15 +249,19 @@ class CompetitiveIntelligenceWorkflow:
                 "rag_retrieved",
                 {
                     "retrieved_units": retrieval_result.embedding_units_retrieved,
-                    "retrieval_limit": RETRIEVAL_LIMIT,
+                    "retrieval_limit": RETRIEVAL_LIMIT * len(state["questions"]),
+                    "top_k_per_query": RETRIEVAL_LIMIT,
+                    "evidence_retrieved": retrieval_result.embedding_units_retrieved,
                 },
             ).model_dump(mode="json")
         )
 
         return CompetitiveAnalysisState(
             context=retrieval_result.context,
+            retrieved_evidence=retrieval_result.evidence,
         )
 
+    @stage("report_generation")
     def _generate_report(
         self,
         state: CompetitiveAnalysisState,

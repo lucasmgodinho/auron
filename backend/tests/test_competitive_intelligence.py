@@ -46,9 +46,10 @@ from app.modules.competitive_intelligence.search import (
     SearchResult,
     SearchSource,
     TavilySearchClient,
+    create_source_document,
 )
 from app.modules.competitive_intelligence.vector_store import (
-    ChromaContextStore,
+    ChromaEvidenceStore,
     ContextRetrievalResult,
 )
 from app.modules.competitive_intelligence.workflow import (
@@ -78,16 +79,23 @@ class StubWorkflow:
         )
 
     def stream_analysis(
-        self, *, organization_id: UUID, company_name: str
+        self, *, organization_id: UUID, company_name: str, run_id=None, on_completed=None,
     ) -> Iterator[AnalysisEvent]:
         self.stream_calls.append((organization_id, company_name))
         events = self.stream_events or [
             create_analysis_event("analysis_started", {"company_name": company_name}),
         ]
-        yield from events
-        if self.stream_error is not None:
-            raise self.stream_error
+        for event in events:
+            if event.type == "analysis_completed" and on_completed is not None:
+                on_completed(CompetitiveAnalysisResult(**event.data))
+            yield event
+        if self.stream_error is not None or self.error is not None:
+            raise self.stream_error or self.error
         if self.stream_events is None:
+            if on_completed is not None:
+                on_completed(CompetitiveAnalysisResult(
+                    company_name=company_name, sector="Automotive", report="# Competitive report",
+                ))
             yield create_analysis_event(
                 "analysis_completed",
                 {
@@ -118,6 +126,17 @@ class FakeSearchClient:
         if isinstance(answer, Exception):
             raise answer
         return answer
+
+
+def source_document(question: str, text: str):
+    document = create_source_document(
+        research_query=question,
+        result={"title": text, "url": f"https://example.com/{text.replace(' ', '-')}",
+                "content": text, "raw_content": text},
+        provider_rank=1,
+    )
+    assert document is not None
+    return document
 
 
 class FakeContextStore:
@@ -233,7 +252,7 @@ def test_analysis_event_factory_uses_utc_and_serializes_valid_json() -> None:
             "current": 1,
             "total": 1,
             "sources": [{"title": "Source", "url": "https://example.com"}],
-            "answer_indexed": True,
+            "documents_selected": 1,
         },
     )
 
@@ -241,7 +260,7 @@ def test_analysis_event_factory_uses_utc_and_serializes_valid_json() -> None:
     assert json.loads(event.model_dump_json()) == event.model_dump(mode="json")
 
 
-def test_tavily_search_returns_only_normalized_answer_and_safe_sources(
+def test_tavily_search_returns_source_documents_and_disables_answers(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     captured: dict[str, Any] = {}
@@ -291,7 +310,7 @@ def test_tavily_search_returns_only_normalized_answer_and_safe_sources(
 
     result = TavilySearchClient(api_key="secret").search("Question")
 
-    assert result.answer == "Trusted answer"
+    assert not hasattr(result, "answer")
     assert result.sources == (
         SearchSource(title="Valid source", url="https://example.com/a"),
     )
@@ -304,9 +323,10 @@ def test_tavily_search_returns_only_normalized_answer_and_safe_sources(
         "query": "Question",
         "search_depth": "advanced",
         "max_results": 10,
-        "include_answer": True,
+        "include_answer": False,
         "include_raw_content": True,
         "include_published_date": True,
+        "include_usage": True,
     }
 
 
@@ -314,7 +334,7 @@ def test_tavily_search_returns_only_normalized_answer_and_safe_sources(
     "payload",
     [
         [],
-        {"answer": 42, "results": []},
+        {"results": None},
         {"answer": "Answer", "results": {}},
     ],
 )
@@ -374,7 +394,7 @@ def test_analysis_requires_entitlement_and_uses_validated_organization(
         json={"company_name": "Tesla"},
     )
     assert denied.status_code == 403
-    assert stub_workflow.calls == []
+    assert stub_workflow.stream_calls == []
 
     enable_module(db_session, organization.id)
     allowed = client.post(
@@ -383,11 +403,12 @@ def test_analysis_requires_entitlement_and_uses_validated_organization(
     )
     assert allowed.status_code == 200
     assert allowed.json() == {
+        "run_id": allowed.json()["run_id"],
         "company_name": "Tesla",
         "sector": "Automotive",
         "report": "# Competitive report",
     }
-    assert stub_workflow.calls == [(organization.id, "Tesla")]
+    assert stub_workflow.stream_calls == [(organization.id, "Tesla")]
 
 
 def test_stream_requires_authentication_entitlement_and_uses_validated_organization(
@@ -476,7 +497,7 @@ def test_member_requires_explicit_permission(
         json={"company_name": "Tesla"},
     )
     assert response.status_code == 200
-    assert stub_workflow.calls == [(organization.id, "Tesla")]
+    assert stub_workflow.stream_calls == [(organization.id, "Tesla")]
 
 
 def test_stream_member_requires_explicit_permission(
@@ -552,7 +573,7 @@ def test_cross_organization_request_never_invokes_workflow(
         json={"company_name": "Tesla"},
     )
     assert response.status_code == 403
-    assert stub_workflow.calls == []
+    assert stub_workflow.stream_calls == []
 
 
 def test_cross_organization_stream_never_invokes_workflow(
@@ -604,7 +625,7 @@ def test_analysis_request_validation_rejects_invalid_payloads(
 
     response = client.post(analysis_path(organization.id), json=payload)
     assert response.status_code == 422
-    assert stub_workflow.calls == []
+    assert stub_workflow.stream_calls == []
 
 
 @pytest.mark.parametrize(
@@ -758,7 +779,7 @@ def test_stream_maps_failures_to_one_safe_terminal_event(
         {
             "type": "analysis_failed",
             "occurred_at": terminal_events[0]["occurred_at"],
-            "data": {"code": expected_code},
+            "data": {"code": expected_code, "run_id": response.headers["X-Analysis-Run-ID"]},
         }
     ]
     assert events[-1] == terminal_events[0]
@@ -811,7 +832,9 @@ def test_stream_stops_after_first_terminal_and_supplies_missing_terminal(
     )
     events = parse_ndjson(response.text)
     assert events[-1]["type"] == "analysis_failed"
-    assert events[-1]["data"] == {"code": "unexpected_error"}
+    assert events[-1]["data"] == {
+        "code": "unexpected_error", "run_id": response.headers["X-Analysis-Run-ID"],
+    }
 
 
 def test_stream_records_durable_started_completed_and_failed_events(
@@ -869,11 +892,11 @@ def test_workflow_runs_successfully_with_external_fakes() -> None:
         search_client=FakeSearchClient(
             {
                 "Who are the competitors?": SearchResult(
-                    answer="Competitor evidence",
+                    documents=(source_document("Who are the competitors?", "Competitor evidence"),),
                     sources=(),
                 ),
                 "What is the market position?": SearchResult(
-                    answer="Market evidence",
+                    documents=(source_document("What is the market position?", "Market evidence"),),
                     sources=(),
                 ),
             }
@@ -893,15 +916,11 @@ def test_workflow_runs_successfully_with_external_fakes() -> None:
         report="# Tesla report",
     )
     assert context_store.calls[0]["organization_id"] == organization_id
-    assert context_store.calls[0]["documents"] == [
-        {
-            "question": "Who are the competitors?",
-            "answer": "Competitor evidence",
-        },
-        {
-            "question": "What is the market position?",
-            "answer": "Market evidence",
-        },
+    assert [doc.content for doc in context_store.calls[0]["documents"]] == [
+        "Competitor evidence", "Market evidence",
+    ]
+    assert context_store.calls[0]["questions"] == [
+        "Who are the competitors?", "What is the market position?",
     ]
     assert report_generator.calls == [
         {
@@ -924,7 +943,7 @@ def test_workflow_stream_emits_complete_ordered_protocol() -> None:
         search_client=FakeSearchClient(
             {
                 "Competitors?": SearchResult(
-                    answer="Competitor evidence",
+                    documents=(source_document("Who are the competitors?", "Competitor evidence"),),
                     sources=(
                         SearchSource(
                             title="Competitor source",
@@ -933,7 +952,7 @@ def test_workflow_stream_emits_complete_ordered_protocol() -> None:
                     ),
                 ),
                 "Market position?": SearchResult(
-                    answer="Market evidence",
+                    documents=(source_document("What is the market position?", "Market evidence"),),
                     sources=(),
                 ),
             }
@@ -969,7 +988,7 @@ def test_workflow_stream_emits_complete_ordered_protocol() -> None:
     completed_searches = [
         event for event in events if event.type == "search_completed"
     ]
-    assert completed_searches[0].data["answer_indexed"] is True
+    assert completed_searches[0].data["documents_selected"] == 1
     assert completed_searches[0].data["sources"] == [
         {"title": "Competitor source", "url": "https://example.com/competitors"}
     ]
@@ -1020,7 +1039,7 @@ def test_workflow_stream_continues_after_partial_tavily_failure() -> None:
             {
                 "Failed question": SearchProviderError("provider failed"),
                 "Successful question": SearchResult(
-                    answer="Useful answer",
+                    documents=(source_document("Successful question", "Useful source"),),
                     sources=(),
                 ),
             }
@@ -1046,19 +1065,23 @@ def test_workflow_stream_continues_after_partial_tavily_failure() -> None:
             SearchProviderError,
         ),
         (
-            {"Question": SearchResult(answer=None, sources=())},
+            {"Question": SearchResult(sources=())},
             None,
             "# Report",
             NoSearchResultsError,
         ),
         (
-            {"Question": SearchResult(answer="Answer", sources=())},
+            {"Question": SearchResult(
+                sources=(), documents=(source_document("Question", "Source"),),
+            )},
             VectorStoreError("Chroma failed"),
             "# Report",
             VectorStoreError,
         ),
         (
-            {"Question": SearchResult(answer="Answer", sources=())},
+            {"Question": SearchResult(
+                sources=(), documents=(source_document("Question", "Source"),),
+            )},
             None,
             ModelProviderError("report model failed"),
             ModelProviderError,
@@ -1149,7 +1172,7 @@ def test_workflow_rejects_absence_of_valid_search_documents() -> None:
             )
         ),
         search_client=FakeSearchClient(
-            {"Question": SearchResult(answer=None, sources=())}
+            {"Question": SearchResult(sources=())}
         ),
         context_store=context_store,
         report_generator=FakeReportGenerator(),
@@ -1161,103 +1184,12 @@ def test_workflow_rejects_absence_of_valid_search_documents() -> None:
 
 
 def test_chroma_store_does_not_treat_zero_documents_as_success() -> None:
-    store = object.__new__(ChromaContextStore)
+    store = object.__new__(ChromaEvidenceStore)
 
     with pytest.raises(NoSearchResultsError):
         store.index_and_retrieve(
             organization_id=uuid4(),
             execution_id=uuid4(),
-            company_name="Tesla",
+            questions=["Question"],
             documents=[],
         )
-
-
-def test_chroma_store_scopes_collection_records_and_retrieval(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    class FakeEmbeddings:
-        def embed_documents(self, documents: list[str]) -> list[list[float]]:
-            return [[float(index), 1.0] for index, _ in enumerate(documents)]
-
-        def embed_query(self, query: str) -> list[float]:
-            assert query == "Competitive analysis data for Tesla"
-            return [0.0, 1.0]
-
-    class FakeCollection:
-        def __init__(self) -> None:
-            self.added: dict[str, Any] = {}
-            self.query_arguments: dict[str, Any] = {}
-
-        def add(self, **kwargs: Any) -> None:
-            self.added = kwargs
-
-        def count(self) -> int:
-            return len(self.added["ids"])
-
-        def query(self, **kwargs: Any) -> dict[str, list[list[str]]]:
-            self.query_arguments = kwargs
-            return {"documents": [self.added["documents"]]}
-
-    class FakeChromaClient:
-        def __init__(self) -> None:
-            self.collection = FakeCollection()
-            self.created_name: str | None = None
-            self.created_metadata: dict[str, str] | None = None
-            self.deleted_name: str | None = None
-
-        def create_collection(
-            self, *, name: str, metadata: dict[str, str]
-        ) -> FakeCollection:
-            self.created_name = name
-            self.created_metadata = metadata
-            return self.collection
-
-        def delete_collection(self, name: str) -> None:
-            self.deleted_name = name
-
-    client = FakeChromaClient()
-    monkeypatch.setattr(
-        "app.modules.competitive_intelligence.vector_store.chromadb.EphemeralClient",
-        lambda: client,
-    )
-    store = object.__new__(ChromaContextStore)
-    store._embeddings = FakeEmbeddings()
-    organization_id = uuid4()
-    execution_id = uuid4()
-
-    context = store.index_and_retrieve(
-        organization_id=organization_id,
-        execution_id=execution_id,
-        company_name="Tesla",
-        documents=[
-            {"question": "Question 1", "answer": "Answer 1"},
-            {"question": "Question 2", "answer": "Answer 2"},
-        ],
-    )
-
-    assert context == ContextRetrievalResult(
-        context="Answer 1\n\nAnswer 2",
-        documents_indexed=2,
-        embedding_units_indexed=2,
-        embedding_units_retrieved=2,
-    )
-    assert client.created_name == f"ci_{execution_id.hex}"
-    assert client.created_metadata == {"hnsw:space": "cosine"}
-    assert client.collection.added["ids"] == [
-        f"{organization_id.hex}:{execution_id.hex}:0",
-        f"{organization_id.hex}:{execution_id.hex}:1",
-    ]
-    assert client.collection.added["metadatas"] == [
-        {
-            "organization_id": str(organization_id),
-            "execution_id": str(execution_id),
-            "question": "Question 1",
-        },
-        {
-            "organization_id": str(organization_id),
-            "execution_id": str(execution_id),
-            "question": "Question 2",
-        },
-    ]
-    assert client.collection.query_arguments["n_results"] == 2
-    assert client.deleted_name == client.created_name

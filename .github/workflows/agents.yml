@@ -1,0 +1,367 @@
+name: Auron agents
+
+on:
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: 'One human-authorized stage'
+        type: choice
+        options: [audit, plan, implement, review]
+        required: true
+      target:
+        description: 'Issue number (plan/implement) or PR number (review)'
+        type: string
+      approved_run:
+        description: 'Plan run ID for implementation; delivery run ID for review/correction'
+        type: string
+      paths:
+        description: 'Implementation only: approved comma-separated files or directories ending /'
+        type: string
+      scope:
+        description: 'Audit only: bounded investigation scope'
+        type: string
+      browser:
+        description: 'Review requires actual Chromium evidence'
+        type: boolean
+        default: true
+
+permissions: {}
+
+# One operation at a time, with at most one pending run (not a durable queue).
+concurrency:
+  group: auron-agents-${{ github.actor == vars.AURON_APPROVER && github.triggering_actor == vars.AURON_APPROVER && 'human' || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  request:
+    if: vars.AURON_AGENT_ENABLED == 'true' && github.actor == vars.AURON_APPROVER && github.triggering_actor == vars.AURON_APPROVER
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+      actions: read
+    outputs:
+      stage: ${{ steps.request.outputs.stage }}
+      head: ${{ steps.request.outputs.head }}
+      base: ${{ steps.request.outputs.base }}
+      hash: ${{ steps.request.outputs.hash }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          path: control
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.14'
+      - name: Authorize selected stage and exact approved revision
+        id: request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          AURON_APPROVER: ${{ vars.AURON_APPROVER }}
+          AURON_BASE_BRANCH: ${{ vars.AURON_BASE_BRANCH }}
+          AURON_AGENT_ENABLED: ${{ vars.AURON_AGENT_ENABLED }}
+        run: python control/.github/scripts/agents.py request --request "$RUNNER_TEMP/request/request.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: request-${{ github.run_id }}
+          path: ${{ runner.temp }}/request/request.json
+          retention-days: 7
+          if-no-files-found: error
+
+  full:
+    needs: request
+    if: needs.request.outputs.stage == 'review'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: auron_test
+          POSTGRES_PASSWORD: auron_test
+          POSTGRES_DB: auron_agent_test
+        ports: [5432/tcp]
+        options: >-
+          --health-cmd "pg_isready -U auron_test -d auron_agent_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://unused:unused@127.0.0.1:1/no_application_db?connect_timeout=1
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.request.outputs.head }}
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.14'
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Prepare only this job's database and dependencies
+        env:
+          POSTGRES_PORT: ${{ job.services.postgres.ports['5432'] }}
+        run: |
+          python -m pip install --disable-pip-version-check -r backend/requirements-dev.txt
+          python -m pip check
+          npm --prefix frontend ci --no-audit --no-fund
+          echo "TEST_DATABASE_URL=postgresql+psycopg://auron_test:auron_test@127.0.0.1:$POSTGRES_PORT/auron_agent_test?connect_timeout=5" >> "$GITHUB_ENV"
+          echo "TIKTOKEN_CACHE_DIR=$RUNNER_TEMP/tokenizer" >> "$GITHUB_ENV"
+          (cd backend && TIKTOKEN_CACHE_DIR="$RUNNER_TEMP/tokenizer" python -m app.scripts.provision_tokenizer)
+          (cd backend && DATABASE_URL="postgresql+psycopg://auron_test:auron_test@127.0.0.1:$POSTGRES_PORT/auron_agent_test?connect_timeout=5" python -m alembic upgrade head)
+          (cd backend && DATABASE_URL="postgresql+psycopg://auron_test:auron_test@127.0.0.1:$POSTGRES_PORT/auron_agent_test?connect_timeout=5" python -m alembic check)
+      - name: Full on delivery head, without model/API key
+        run: |
+          mkdir -p "$RUNNER_TEMP/gate"
+          set -o pipefail
+          pwsh -NoProfile -File scripts/verify.ps1 -Mode full -Python python -DisposableTestDatabase 2>&1 | tee "$RUNNER_TEMP/gate/full.log"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: full-${{ github.run_id }}
+          path: ${{ runner.temp }}/gate/
+          retention-days: 7
+          if-no-files-found: error
+
+  agent:
+    needs: [request, full]
+    if: always() && !cancelled() && needs.request.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    services:
+      postgres:
+        image: ${{ needs.request.outputs.stage == 'review' && 'postgres:17-alpine' || '' }}
+        env:
+          POSTGRES_USER: auron_test
+          POSTGRES_PASSWORD: auron_test
+          POSTGRES_DB: auron_agent_test
+        ports: [5432/tcp]
+        options: >-
+          --health-cmd "pg_isready -U auron_test -d auron_agent_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      REQUEST_HASH: ${{ needs.request.outputs.hash }}
+      PYTHONDONTWRITEBYTECODE: '1'
+      DATABASE_URL: postgresql+psycopg://unused:unused@127.0.0.1:1/no_application_db?connect_timeout=1
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          path: control
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.request.outputs.head }}
+          path: candidate
+          fetch-depth: 0
+          persist-credentials: false
+      # Paid jobs never restore caches written by candidate code.
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.14'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - uses: actions/download-artifact@v4
+        with:
+          name: request-${{ github.run_id }}
+          path: ${{ runner.temp }}/request
+      - uses: actions/download-artifact@v4
+        if: needs.request.outputs.stage == 'review'
+        continue-on-error: true
+        with:
+          name: full-${{ github.run_id }}
+          path: ${{ runner.temp }}/gate
+      - name: Provision tools using trusted control code only
+        if: needs.request.outputs.stage == 'implement' || needs.request.outputs.stage == 'review'
+        run: |
+          python -m pip install --disable-pip-version-check -r control/backend/requirements-dev.txt
+          python -m pip check
+          npm --prefix control/frontend ci --no-audit --no-fund
+          cp -a control/frontend/node_modules candidate/frontend/node_modules
+          echo "TIKTOKEN_CACHE_DIR=$RUNNER_TEMP/tokenizer" >> "$GITHUB_ENV"
+          (cd control/backend && TIKTOKEN_CACHE_DIR="$RUNNER_TEMP/tokenizer" python -m app.scripts.provision_tokenizer)
+      - name: Prepare only the validator's disposable schema
+        if: needs.request.outputs.stage == 'review'
+        env:
+          POSTGRES_PORT: ${{ job.services.postgres.ports['5432'] }}
+        run: |
+          echo "TEST_DATABASE_URL=postgresql+psycopg://auron_test:auron_test@127.0.0.1:$POSTGRES_PORT/auron_agent_test?connect_timeout=5" >> "$GITHUB_ENV"
+          (cd control/backend && DATABASE_URL="postgresql+psycopg://auron_test:auron_test@127.0.0.1:$POSTGRES_PORT/auron_agent_test?connect_timeout=5" python -m alembic upgrade head)
+      - name: Provision temporary Chromium when approved
+        if: needs.request.outputs.stage == 'review' && inputs.browser
+        run: |
+          echo "AURON_BROWSER_TOOLS=$RUNNER_TEMP/browser-tools" >> "$GITHUB_ENV"
+          echo "PLAYWRIGHT_BROWSERS_PATH=$RUNNER_TEMP/chromium" >> "$GITHUB_ENV"
+          npm install --prefix "$RUNNER_TEMP/browser-tools" --no-audit --no-fund playwright@1.64.1
+          PLAYWRIGHT_BROWSERS_PATH="$RUNNER_TEMP/chromium" node "$RUNNER_TEMP/browser-tools/node_modules/playwright/cli.js" install --with-deps chromium
+      - name: Prepare single-source role and restricted profile
+        run: >-
+          python control/.github/scripts/agents.py setup --request "$RUNNER_TEMP/request/request.json"
+          --target "$GITHUB_WORKSPACE/candidate" --evidence "$RUNNER_TEMP/evidence"
+      - name: Run selected Codex role
+        timeout-minutes: 20
+        uses: openai/codex-action@bdf19a4a223ec2549a3e2274a0cf61556bc07675 # v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          codex-version: '0.163.0'
+          codex-home: ${{ runner.temp }}/auron-home
+          working-directory: ${{ github.workspace }}/candidate
+          permission-profile: auron
+          safety-strategy: drop-sudo
+          codex-args: '["--ephemeral"]'
+          prompt-file: ${{ runner.temp }}/auron-home/prompt.md
+          output-schema-file: ${{ runner.temp }}/auron-home/schema.json
+          output-file: ${{ runner.temp }}/evidence/result.json
+      - name: Collect text changes with trusted code after the model
+        if: needs.request.outputs.stage == 'implement'
+        run: >-
+          python control/.github/scripts/agents.py collect --request "$RUNNER_TEMP/request/request.json"
+          --target "$GITHUB_WORKSPACE/candidate" --evidence "$RUNNER_TEMP/changes"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: evidence-${{ github.run_id }}
+          path: ${{ runner.temp }}/evidence/
+          retention-days: 7
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always() && needs.request.outputs.stage == 'implement'
+        with:
+          name: changes-${{ github.run_id }}
+          path: ${{ runner.temp }}/changes/
+          retention-days: 7
+          if-no-files-found: error
+
+  fast:
+    needs: [request, agent]
+    if: needs.request.outputs.stage == 'implement'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    env:
+      REQUEST_HASH: ${{ needs.request.outputs.hash }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          path: control
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.request.outputs.head }}
+          path: candidate
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.14'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: '*-${{ github.run_id }}'
+          path: ${{ runner.temp }}/inputs
+      - name: Apply bounded text files and check in a fresh job without API key
+        run: |
+          python -m pip install --disable-pip-version-check -r control/backend/requirements-dev.txt
+          python control/.github/scripts/agents.py materialize --request "$RUNNER_TEMP/inputs/request-$GITHUB_RUN_ID/request.json" --target "$GITHUB_WORKSPACE/candidate" --changes "$RUNNER_TEMP/inputs/changes-$GITHUB_RUN_ID/changes.json"
+          npm --prefix candidate/frontend ci --no-audit --no-fund
+          mkdir -p "$RUNNER_TEMP/gate"
+          set -o pipefail
+          pwsh -NoProfile -File candidate/scripts/verify.ps1 -Mode fast -Python python 2>&1 | tee "$RUNNER_TEMP/gate/fast.log"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fast-${{ github.run_id }}
+          path: ${{ runner.temp }}/gate/
+          retention-days: 7
+          if-no-files-found: error
+
+  publish-report:
+    needs: [request, agent, full]
+    if: always() && !cancelled() && needs.agent.result == 'success' && needs.request.outputs.stage != 'implement'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
+    env:
+      REQUEST_HASH: ${{ needs.request.outputs.hash }}
+      GATE_RESULT: ${{ needs.full.result }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          path: control
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.14'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: '*-${{ github.run_id }}'
+          path: ${{ runner.temp }}/inputs
+      - name: Validate evidence and publish only the authorized report/proposals
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python control/.github/scripts/agents.py publish --request "$RUNNER_TEMP/inputs/request-$GITHUB_RUN_ID/request.json"
+          --evidence "$RUNNER_TEMP/inputs/evidence-$GITHUB_RUN_ID"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: handoff-${{ github.run_id }}
+          path: ${{ runner.temp }}/handoff/handoff.json
+          retention-days: 30
+          if-no-files-found: error
+
+  publish-code:
+    needs: [request, agent, fast]
+    if: needs.request.outputs.stage == 'implement'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    env:
+      REQUEST_HASH: ${{ needs.request.outputs.hash }}
+      GATE_RESULT: ${{ needs.fast.result }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          path: control
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.14'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: '*-${{ github.run_id }}'
+          path: ${{ runner.temp }}/inputs
+      - name: Publish verified text via API; never execute candidate code here
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python control/.github/scripts/agents.py publish --request "$RUNNER_TEMP/inputs/request-$GITHUB_RUN_ID/request.json"
+          --evidence "$RUNNER_TEMP/inputs/evidence-$GITHUB_RUN_ID"
+          --changes "$RUNNER_TEMP/inputs/changes-$GITHUB_RUN_ID/changes.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: handoff-${{ github.run_id }}
+          path: ${{ runner.temp }}/handoff/handoff.json
+          retention-days: 30
+          if-no-files-found: error

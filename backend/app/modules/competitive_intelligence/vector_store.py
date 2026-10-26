@@ -1,4 +1,3 @@
-from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from uuid import UUID, uuid4
 
@@ -7,16 +6,23 @@ from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain_openai import OpenAIEmbeddings
 
+from .context_builder import build_research_context
+from .document_processing import chunk_document
 from .embeddings import get_embeddings
 from .errors import NoSearchResultsError, VectorStoreError
-from .evidence import EvidenceChunk, RetrievedEvidence
+from .evidence import EvidenceChunk, RetrievedEvidence, SourceDocument
+from .telemetry import embedding_operation, evidence_statistics, measure, stage, stat
 
-EMBEDDING_MODEL_NAME = "text-embedding-3-small"
-RETRIEVAL_LIMIT = 10
+RETRIEVAL_LIMIT = 5
+INDEX_BATCH_SIZE = 1000
 COLLECTION_NAME_PREFIX = "competitive_intelligence"
 
 
-def create_vector_store(*, collection_name: str | None = None) -> Chroma:
+def create_vector_store(
+    *,
+    collection_name: str | None = None,
+    embeddings: OpenAIEmbeddings | None = None,
+) -> Chroma:
     """Create a disposable Chroma collection isolated from every other run."""
 
     client = chromadb.EphemeralClient()
@@ -24,7 +30,7 @@ def create_vector_store(*, collection_name: str | None = None) -> Chroma:
     return Chroma(
         client=client,
         collection_name=resolved_name,
-        embedding_function=get_embeddings(),
+        embedding_function=embeddings if embeddings is not None else get_embeddings(),
         collection_configuration={
             "hnsw": {
                 "space": "cosine",
@@ -57,22 +63,33 @@ def index_chunks(
 
         ids.append(chunk.chunk_id)
 
-    vector_store.add_documents(
-        documents=documents,
-        ids=ids,
-    )
+    for start in range(0, len(documents), INDEX_BATCH_SIZE):
+        stat(add=True, embedding_index_batches=1)
+        with embedding_operation("document_embedding"):
+            vector_store.add_documents(
+                documents=documents[start : start + INDEX_BATCH_SIZE],
+                ids=ids[start : start + INDEX_BATCH_SIZE],
+            )
+        stat(add=True, chunks_indexed=len(documents[start : start + INDEX_BATCH_SIZE]))
 
 
 def retrieve_evidence(
     vector_store: Chroma,
     query: str,
     *,
-    top_k: int = 5,
+    top_k: int = RETRIEVAL_LIMIT,
+    query_embedding: list[float] | None = None,
+    sources: list[SourceDocument] | None = None,
 ) -> list[RetrievedEvidence]:
-    results = vector_store.similarity_search_with_score(
-        query=query,
-        k=top_k,
-    )
+    if query_embedding is None:
+        with embedding_operation("query_embedding"):
+            results = vector_store.similarity_search_with_score(query=query, k=top_k)
+    else:
+        results = vector_store.similarity_search_by_vector_with_relevance_scores(
+            embedding=query_embedding,
+            k=top_k,
+        )
+    source_by_id = {source.source_id: source for source in sources or []}
 
     retrieved: list[RetrievedEvidence] = []
 
@@ -88,6 +105,7 @@ def retrieve_evidence(
                 query=query,
                 distance=distance,
                 rank=rank,
+                source=source_by_id.get(document.metadata["source_id"]),
             )
         )
 
@@ -100,96 +118,77 @@ class ContextRetrievalResult:
     documents_indexed: int
     embedding_units_indexed: int
     embedding_units_retrieved: int
+    evidence: tuple[RetrievedEvidence, ...] = ()
 
 
-class ChromaContextStore:
-    def __init__(
-        self,
-        *,
-        api_key: str,
-        base_url: str | None,
-        embedding_model: str = EMBEDDING_MODEL_NAME,
-    ) -> None:
-        self._embeddings = OpenAIEmbeddings(
-            model=embedding_model,
-            api_key=api_key,
-            base_url=base_url,
-        )
+class ChromaEvidenceStore:
+    """Production lifecycle around the same V2 functions used by the benchmark."""
 
+    def __init__(self, *, api_key: str, base_url: str | None) -> None:
+        self._embeddings = get_embeddings(api_key=api_key, base_url=base_url)
+
+    @stage("source_processing")
     def index_and_retrieve(
         self,
         *,
         organization_id: UUID,
         execution_id: UUID,
-        company_name: str,
-        documents: Sequence[Mapping[str, str]],
+        questions: list[str],
+        documents: list[SourceDocument],
     ) -> ContextRetrievalResult:
-        valid_documents = [document for document in documents if document.get("answer", "").strip()]
-        if not valid_documents:
-            raise NoSearchResultsError("No valid search documents were produced")
+        with measure("chunking"):
+            chunks = [chunk for document in documents for chunk in chunk_document(document)]
+        stat(chunks_generated=len(chunks), top_k=RETRIEVAL_LIMIT)
+        if not chunks:
+            raise NoSearchResultsError("No valid source chunks were produced")
 
-        client = chromadb.EphemeralClient()
-        collection_name = f"ci_{execution_id.hex}"
-        collection_created = False
+        vector_store = None
         try:
-            collection = client.create_collection(
-                name=collection_name,
-                metadata={"hnsw:space": "cosine"},
+            vector_store = create_vector_store(
+                collection_name=f"ci_{organization_id.hex}_{execution_id.hex}",
+                embeddings=self._embeddings,
             )
-            collection_created = True
-            answers = [document["answer"].strip() for document in valid_documents]
-            embeddings = self._embeddings.embed_documents(answers)
-            collection.add(
-                ids=[
-                    f"{organization_id.hex}:{execution_id.hex}:{index}"
-                    for index in range(len(answers))
-                ],
-                embeddings=embeddings,
-                documents=answers,
-                metadatas=[
-                    {
-                        "organization_id": str(organization_id),
-                        "execution_id": str(execution_id),
-                        "question": document["question"],
-                    }
-                    for document in valid_documents
-                ],
-            )
-            if collection.count() == 0:
-                raise NoSearchResultsError("No search documents were indexed")
-
-            query_embedding = self._embeddings.embed_query(
-                f"Competitive analysis data for {company_name}"
-            )
-            results = collection.query(
-                query_embeddings=[query_embedding],
-                n_results=min(RETRIEVAL_LIMIT, len(answers)),
-                include=["documents"],
-            )
-            result_batches = results.get("documents") or []
-            retrieved = [
-                document.strip()
-                for batch in result_batches
-                for document in batch
-                if isinstance(document, str) and document.strip()
-            ]
+            with measure("embeddings"):
+                index_chunks(vector_store, chunks)
+            retrieved: list[RetrievedEvidence] = []
+            seen_chunks: set[str] = set()
+            for question in questions:
+                stat(add=True, retrieval_queries=1)
+                with measure("retrieval"):
+                    question_evidence = retrieve_evidence(
+                        vector_store,
+                        question,
+                        top_k=RETRIEVAL_LIMIT,
+                        sources=documents,
+                    )
+                for evidence in question_evidence:
+                    if evidence.chunk_id not in seen_chunks:
+                        seen_chunks.add(evidence.chunk_id)
+                        retrieved.append(evidence)
             if not retrieved:
-                raise NoSearchResultsError("No search documents were retrieved")
-
-            return ContextRetrievalResult(
-                context="\n\n".join(retrieved),
-                documents_indexed=len(valid_documents),
-                embedding_units_indexed=len(answers),
-                embedding_units_retrieved=len(retrieved),
+                raise NoSearchResultsError("No source evidence was retrieved")
+            stat(
+                evidence_retrieved=len(retrieved),
+                distinct_evidence_sources=len({item.source_id for item in retrieved}),
             )
-
+            evidence_statistics(retrieved)
+            with measure("context_building"):
+                context = build_research_context(retrieved, documents)
+            stat(context_characters=len(context))
+            return ContextRetrievalResult(
+                context=context,
+                documents_indexed=len({chunk.source_id for chunk in chunks}),
+                embedding_units_indexed=len(chunks),
+                embedding_units_retrieved=len(retrieved),
+                evidence=tuple(retrieved),
+            )
         except NoSearchResultsError:
             raise
         except Exception as error:
             raise VectorStoreError("Chroma indexing or retrieval failed") from error
         finally:
-            if collection_created:
+            if vector_store is not None:
                 try:
-                    client.delete_collection(collection_name)
+                    vector_store.delete_collection()
                 except Exception:
                     pass

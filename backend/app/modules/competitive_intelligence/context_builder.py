@@ -13,16 +13,13 @@ def build_research_context(
         retrieved,
         start=1,
     ):
-        
-        source = source_by_id.get(
-            evidence.source_id
-        )
+        source = source_by_id.get(evidence.source_id)
 
         if source is None:
             raise ValueError(
-            "SourceDocument not found for "
-            f"source_id={evidence.source_id}"
-        )
+                "SourceDocument not found for "
+                f"source_id={evidence.source_id}"
+            )
 
         evidence_id = f"E{index}"
 

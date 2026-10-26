@@ -78,15 +78,57 @@ automatic module bypass. PlatformAdmin remains outside tenant access unless sepa
 
 Competitive Intelligence is the first production business module. Its HTTP boundary receives the
 server-validated Organization context and enforces the module entitlement plus
-`competitive_intelligence.analysis.run`. The V1 workflow generates research questions, searches
-Tavily, embeds retrieved documents in a per-execution ephemeral Chroma collection, retrieves scoped
-context, and generates a report. It stores no analysis history or module-owned database rows and
-removes the temporary collection after each execution. It does not expose an AnalyticsProvider.
+`competitive_intelligence.analysis.run`. The production V2 workflow validates the company and
+generates questions in one LLM call, acquires Tavily `SourceDocument` content without synthesized
+answers, deduplicates by normalized URL and processed-content hash while preserving discovery
+provenance, normalizes/chunks documents, and batches embeddings into a per-tenant, per-execution
+ephemeral Chroma collection. Cosine retrieval returns `RetrievedEvidence` for each question;
+unique retrieved chunks and their source metadata form the grounded context for one final report
+call with evidence citations. The collection is removed after retrieval even on failure.
+The module does not expose an AnalyticsProvider.
+
+Competitive Intelligence owns `CompetitiveAnalysisRun`, `AnalysisRunSource`, and
+`AnalysisRunEvidence`. Each includes `organization_id`; composite foreign keys prevent a source or
+evidence row from attaching to a different Organization or run. The requesting User remains a
+global identity, referenced by `requested_by_user_id`. Run history is shared with Organization
+members holding the existing analysis-run permission, after entitlement enforcement.
+
+The module service owns durable `pending`, `running`, `completed`, `failed`, and `cancelled`
+transitions using scoped row locks and short independent transactions. Provider work happens
+outside those transactions. Completion commits report, source metadata/discovery provenance, and
+unique retrieved evidence excerpts atomically. Citation IDs map to those evidence rows, with a
+separate `cited` flag; source pages and embeddings are not persisted. Repository queries always use
+the server-validated Organization ID. The workflow produces a structured completion result without
+knowing about database models or sessions; the domain run ID supplies the execution identity but
+is independent from LangGraph state. No checkpoints or persisted graph state are introduced.
+
+Synchronous and streamed POSTs create stable run IDs. Organization-scoped GETs retrieve one run or
+list recent summaries. Stream cleanup records cancellation for active executions, and caught
+errors record failure before publishing a terminal event. Abrupt process termination or a database
+outage may prevent finalization; automatic recovery/restart of orphaned executions is deferred.
+
+Production reuses the V2 document processing, embeddings, vector-store, context, and grounded
+report implementations exercised by the benchmark. Evaluation remains separate under
+`app/scripts/competitive_intelligence_benchmark`: frozen fixtures, human ground truth, captured
+rankings and reports, retrieval metrics, and optional LLM judges are evaluation artifacts, not
+runtime inputs or persisted production analysis runs.
+
+Each run also owns a compact versioned `telemetry` JSONB snapshot for technical product inspection,
+containing sanitized stage/provider summaries, usage/cost estimates, retrieval statistics and
+evidence references. The existing tenant-authorized detail API returns it. Snapshot persistence
+is separate from atomic report completion so observability failure cannot invalidate a result.
+Official OpenTelemetry API/SDK manual spans provide a separate operational trace, optionally
+exported over OTLP/gRPC; OpenTelemetry is never the product's storage/query layer. No prompts,
+provider responses, page content or secrets are recorded in this telemetry. See
+[Competitive Intelligence observability](COMPETITIVE_INTELLIGENCE_OBSERVABILITY.md) for hierarchy,
+schema, failure boundaries, versioned pricing and configuration. Offline benchmark quality metrics
+remain separate from these production execution statistics.
 
 The same LangGraph workflow supports the existing synchronous endpoint and an NDJSON streaming
 endpoint used by the UI. Custom workflow events describe transient progress from question
-generation through Tavily, ephemeral Chroma retrieval, and report generation; the router maps every
-execution to exactly one public terminal event without exposing provider details. These UI events
+generation through Tavily, ephemeral Chroma retrieval, and report generation; the module service
+maps execution to one public terminal event after persisting its outcome, without exposing private
+provider error details. These UI events
 are neither persisted nor mixed with the durable start, completion, and failure application events.
 
 Implemented business modules may optionally expose a code-defined `AnalyticsProvider`. Analytics

@@ -1,18 +1,18 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel, Field, HttpUrl
 
 
-class SourceDocument(BaseModel):
+class SourceProvenance(BaseModel):
+    """Metadata of each discovery, including aliases collapsed by deduplication."""
+
     source_id: str
     provider_result_id: str | None = None
     research_query: str
     title: str
     url: HttpUrl
     domain: str
-    content: str
-    raw_content: str | None = None
     provider_score: float | None = None
     provider_rank: int | None = None
 
@@ -27,6 +27,12 @@ class SourceDocument(BaseModel):
 
     published_date: datetime | None = None
     retrieved_at: datetime
+
+
+class SourceDocument(SourceProvenance):
+    content: str
+    raw_content: str | None = None
+    provenance: list[SourceProvenance] = Field(default_factory=list)
 
 
 class EvidenceChunk(BaseModel):
@@ -48,3 +54,4 @@ class RetrievedEvidence(BaseModel):
 
     distance: float
     rank: int
+    source: SourceDocument | None = None

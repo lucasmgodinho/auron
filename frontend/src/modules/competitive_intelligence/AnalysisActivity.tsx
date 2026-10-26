@@ -110,9 +110,9 @@ function AnalysisEventContent({ event }: { event: AnalysisEvent }) {
           })}</summary>
           <p className="analysis-activity-detail">{event.data.question}</p>
           <p className="analysis-activity-detail">
-            {t(event.data.answer_indexed
-              ? "competitive_intelligence.activity.answerIndexed"
-              : "competitive_intelligence.activity.answerNotIndexed")}
+            {t(event.data.documents_selected > 0
+              ? "competitive_intelligence.activity.documentsSelected"
+              : "competitive_intelligence.activity.noDocumentsSelected")}
           </p>
           {safeSources.length > 0 ? (
             <ul className="analysis-source-list">

@@ -3,6 +3,7 @@ from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, ConfigDict, Field
 
 from .errors import ModelProviderError
+from .telemetry import invoke_llm
 
 MODEL_NAME = "gpt-4o-mini"
 MAX_QUESTIONS = 40
@@ -32,6 +33,7 @@ class OpenAIQuestionGenerator:
         max_questions: int = MAX_QUESTIONS,
     ) -> None:
         self._max_questions = max_questions
+        self._model_name = model
         self._model = ChatOpenAI(
             model=model,
             temperature=0,
@@ -41,7 +43,8 @@ class OpenAIQuestionGenerator:
 
     def generate(self, company_name: str) -> QuestionPlan:
         try:
-            suggestion = self._model.invoke(
+            suggestion = invoke_llm(
+                self._model,
                 [
                     SystemMessage(
                         content=(
@@ -61,7 +64,9 @@ class OpenAIQuestionGenerator:
                             f"Generate no more than {self._max_questions} questions."
                         )
                     ),
-                ]
+                ],
+                "question_generation",
+                model_name=getattr(self, "_model_name", MODEL_NAME),
             )
         except Exception as error:
             raise ModelProviderError("Question generation failed") from error

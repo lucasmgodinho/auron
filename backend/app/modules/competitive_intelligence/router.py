@@ -1,265 +1,167 @@
-import logging
-from collections.abc import Iterator
-from time import perf_counter
+from collections.abc import AsyncIterator, Iterator
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from anyio import CancelScope
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
+from sqlalchemy.orm import Session
+from starlette.concurrency import iterate_in_threadpool, run_in_threadpool
+from starlette.types import Receive, Scope, Send
 
-from app.core.access_control.dependencies import (
-    ModuleAccessContext,
-    require_module_permission,
-)
-from app.core.application_events.service import record_event
+from app.core.access_control.dependencies import ModuleAccessContext, require_module_permission
+from app.database import get_session
 
+from . import service
 from .definition import MODULE_KEY, RUN_ANALYSIS_PERMISSION
-from .dependencies import get_competitive_intelligence_workflow
-from .errors import (
-    InvalidCompanyError,
-    ModelProviderError,
-    NoSearchResultsError,
-    SearchProviderError,
-    VectorStoreError,
-)
+from .dependencies import get_analysis_run_service, get_competitive_intelligence_workflow
 from .schemas import (
+    AnalysisEvent,
+    AnalysisRunDetail,
+    AnalysisRunPage,
+    AnalysisRunSummary,
     CompetitiveAnalysisRequest,
     CompetitiveAnalysisResponse,
-    create_analysis_event,
 )
+from .service import AnalysisRunService
 from .workflow import CompetitiveIntelligenceWorkflow
 
 router = APIRouter(tags=["competitive intelligence"])
-logger = logging.getLogger(__name__)
 require_analysis_access = require_module_permission(
     module_key=MODULE_KEY,
     permission_key=RUN_ANALYSIS_PERMISSION,
 )
+AnalysisAccess = Annotated[ModuleAccessContext, Depends(require_analysis_access)]
+RunService = Annotated[AnalysisRunService, Depends(get_analysis_run_service)]
+Workflow = Annotated[
+    CompetitiveIntelligenceWorkflow, Depends(get_competitive_intelligence_workflow)
+]
+SessionDependency = Annotated[Session, Depends(get_session)]
+BASE_PATH = "/organizations/{organization_id}/modules/competitive-intelligence/analyses"
 
-@router.post(
-    "/organizations/{organization_id}/modules/"
-    "competitive-intelligence/analyses/stream"
-)
-def stream_competitive_analysis(
-    payload: CompetitiveAnalysisRequest,
-    access: Annotated[
-        ModuleAccessContext,
-        Depends(require_analysis_access),
-    ],
-    workflow: Annotated[
-        CompetitiveIntelligenceWorkflow,
-        Depends(get_competitive_intelligence_workflow),
-    ],
-) -> StreamingResponse:
-    started_at = perf_counter()
-    organization_id = access.organization_context.organization.id
-    record_event(
-        level="info",
-        event="competitive_intelligence.analysis.started",
-        category="business",
-        module=MODULE_KEY,
-        organization_id=organization_id,
-        status="started",
-    )
 
-    def generate_lines() -> Iterator[str]:
+async def _stream_lines(
+    iterator: Iterator[AnalysisEvent],
+) -> AsyncIterator[str]:
+    try:
+        async for event in iterate_in_threadpool(iterator):
+            yield event.model_dump_json() + "\n"
+    finally:
+        # Streaming disconnect cancellation must not interrupt the status transaction.
+        with CancelScope(shield=True):
+            await run_in_threadpool(iterator.close)
+
+
+class AnalysisRunStreamingResponse(StreamingResponse):
+    """Close the execution even when sending headers fails before iteration begins."""
+
+    def __init__(
+        self,
+        run_service: AnalysisRunService,
+        run: AnalysisRunSummary,
+        workflow: CompetitiveIntelligenceWorkflow,
+    ):
+        self._run_service = run_service
+        self._run = run
+        super().__init__(
+            _stream_lines(run_service.stream_run(run, workflow)),
+            media_type="application/x-ndjson",
+            headers={"Cache-Control": "no-store", "X-Analysis-Run-ID": str(run.id)},
+        )
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         try:
-            for event in workflow.stream_analysis(
-                organization_id=organization_id,
-                company_name=payload.company_name,
-            ):
-                if event.type == "analysis_completed":
-                    _record_analysis_completion(organization_id, started_at)
-                elif event.type == "analysis_failed":
-                    code = event.data.get("code")
-                    safe_code = code if isinstance(code, str) else "unexpected_error"
-                    _record_analysis_failure(
-                        organization_id,
-                        started_at,
-                        safe_code,
-                        "Competitive analysis stream failed",
+            await super().__call__(scope, receive, send)
+        finally:
+            with CancelScope(shield=True):
+                try:
+                    await self.body_iterator.aclose()
+                finally:
+                    await run_in_threadpool(
+                        self._run_service.cancel_if_active,
+                        organization_id=self._run.organization_id,
+                        run_id=self._run.id,
                     )
 
-                yield event.model_dump_json() + "\n"
-                if event.type in {"analysis_completed", "analysis_failed"}:
-                    return
-        except Exception as error:
-            error_code, error_message = _stream_failure_details(error)
-            if error_code == "unexpected_error":
-                logger.exception("Competitive analysis stream failed unexpectedly")
-            _record_analysis_failure(
-                organization_id,
-                started_at,
-                error_code,
-                error_message,
-            )
-            yield create_analysis_event(
-                "analysis_failed",
-                {"code": error_code},
-            ).model_dump_json() + "\n"
-            return
 
-        logger.error("Competitive analysis stream ended without a terminal event")
-        _record_analysis_failure(
-            organization_id,
-            started_at,
-            "unexpected_error",
-            "Competitive analysis stream ended unexpectedly",
-        )
-        yield create_analysis_event(
-            "analysis_failed",
-            {"code": "unexpected_error"},
-        ).model_dump_json() + "\n"
-
-    return StreamingResponse(
-        generate_lines(),
-        media_type="application/x-ndjson",
-        headers={
-            "Cache-Control": "no-store",
-        },
+@router.post(BASE_PATH + "/stream")
+def stream_competitive_analysis(
+    payload: CompetitiveAnalysisRequest,
+    access: AnalysisAccess,
+    workflow: Workflow,
+    run_service: RunService,
+) -> StreamingResponse:
+    context = access.organization_context
+    run = run_service.create_run(
+        organization_id=context.organization.id,
+        requested_by_user_id=context.user.id,
+        company_name=payload.company_name,
     )
+    return AnalysisRunStreamingResponse(run_service, run, workflow)
 
 
-def _stream_failure_details(error: Exception) -> tuple[str, str]:
-    if isinstance(error, InvalidCompanyError):
-        return "invalid_company", "Company could not be validated"
-    if isinstance(error, NoSearchResultsError):
-        return "no_search_results", "No valid search results were found"
-    if isinstance(error, SearchProviderError):
-        return "search_provider_failed", "Competitive search provider failed"
-    if isinstance(error, ModelProviderError):
-        return "model_provider_failed", "Competitive analysis model failed"
-    if isinstance(error, VectorStoreError):
-        return "vector_store_failed", "Competitive analysis context could not be prepared"
-    return "unexpected_error", "Competitive analysis failed unexpectedly"
-
-
-@router.post(
-    "/organizations/{organization_id}/modules/competitive-intelligence/analyses",
-    response_model=CompetitiveAnalysisResponse,
-)
+@router.post(BASE_PATH, response_model=CompetitiveAnalysisResponse)
 def run_competitive_analysis(
     payload: CompetitiveAnalysisRequest,
-    access: Annotated[ModuleAccessContext, Depends(require_analysis_access)],
-    workflow: Annotated[
-        CompetitiveIntelligenceWorkflow,
-        Depends(get_competitive_intelligence_workflow),
-    ],
+    access: AnalysisAccess,
+    workflow: Workflow,
+    run_service: RunService,
 ) -> CompetitiveAnalysisResponse:
-    started_at = perf_counter()
-    organization_id = access.organization_context.organization.id
-    record_event(
-        level="info",
-        event="competitive_intelligence.analysis.started",
-        category="business",
-        module=MODULE_KEY,
-        organization_id=organization_id,
-        status="started",
+    context = access.organization_context
+    run = run_service.create_run(
+        organization_id=context.organization.id,
+        requested_by_user_id=context.user.id,
+        company_name=payload.company_name,
     )
     try:
-        result = workflow.analyze(
-            organization_id=organization_id,
-            company_name=payload.company_name,
-        )
-    except InvalidCompanyError as error:
-        _record_analysis_failure(
-            organization_id,
-            started_at,
-            "invalid_company",
-            "Company could not be validated",
+        result = run_service.execute(run, workflow)
+    except service.AnalysisExecutionError as error:
+        status_code = (
+            422
+            if error.code in {"invalid_company", "no_search_results"}
+            else 500
+            if error.code == "unexpected_error"
+            else 502
         )
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Company could not be validated",
+            status_code=status_code,
+            detail=str(error),
+            headers={"X-Analysis-Run-ID": str(run.id)},
         ) from error
-    except NoSearchResultsError as error:
-        _record_analysis_failure(
-            organization_id,
-            started_at,
-            "no_search_results",
-            "No valid search results were found",
-        )
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="No valid search results were found",
-        ) from error
-    except SearchProviderError as error:
-        _record_analysis_failure(
-            organization_id,
-            started_at,
-            "search_provider_failed",
-            "Competitive search provider failed",
-        )
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="Competitive search provider failed",
-        ) from error
-    except ModelProviderError as error:
-        _record_analysis_failure(
-            organization_id,
-            started_at,
-            "model_provider_failed",
-            "Competitive analysis model failed",
-        )
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="Competitive analysis model failed",
-        ) from error
-    except VectorStoreError as error:
-        _record_analysis_failure(
-            organization_id,
-            started_at,
-            "vector_store_failed",
-            "Competitive analysis context could not be prepared",
-        )
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="Competitive analysis context could not be prepared",
-        ) from error
-    except Exception:
-        _record_analysis_failure(
-            organization_id,
-            started_at,
-            "unexpected_error",
-            "Competitive analysis failed unexpectedly",
-        )
-        raise
-
-    _record_analysis_completion(organization_id, started_at)
-
     return CompetitiveAnalysisResponse(
+        run_id=run.id,
         company_name=result.company_name,
         sector=result.sector,
         report=result.report,
     )
 
 
-def _record_analysis_completion(organization_id: UUID, started_at: float) -> None:
-    record_event(
-        level="info",
-        event="competitive_intelligence.analysis.completed",
-        category="business",
-        module=MODULE_KEY,
-        organization_id=organization_id,
-        status="succeeded",
-        duration_ms=round((perf_counter() - started_at) * 1000),
+@router.get(BASE_PATH, response_model=AnalysisRunPage)
+def list_competitive_analysis_runs(
+    session: SessionDependency,
+    access: AnalysisAccess,
+    limit: Annotated[int, Query(ge=1, le=100)] = 25,
+    offset: Annotated[int, Query(ge=0)] = 0,
+) -> AnalysisRunPage:
+    return service.list_runs(
+        session,
+        organization_id=access.organization_context.organization.id,
+        limit=limit,
+        offset=offset,
     )
 
 
-def _record_analysis_failure(
-    organization_id: UUID,
-    started_at: float,
-    error_code: str,
-    error_message: str,
-) -> None:
-    record_event(
-        level="error",
-        event="competitive_intelligence.analysis.failed",
-        category="business",
-        module=MODULE_KEY,
-        organization_id=organization_id,
-        status="failed",
-        duration_ms=round((perf_counter() - started_at) * 1000),
-        error_code=error_code,
-        error_message=error_message,
-    )
+@router.get(BASE_PATH + "/{run_id}", response_model=AnalysisRunDetail)
+def get_competitive_analysis_run(
+    run_id: UUID,
+    session: SessionDependency,
+    access: AnalysisAccess,
+) -> AnalysisRunDetail:
+    try:
+        return service.get_run(
+            session,
+            organization_id=access.organization_context.organization.id,
+            run_id=run_id,
+        )
+    except service.AnalysisRunNotFoundError as error:
+        raise HTTPException(status_code=404, detail="Analysis run not found") from error

@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     openai_api_key: SecretStr | None = Field(default=None, min_length=1)
     openai_base_url: AnyHttpUrl | None = None
     tavily_api_key: SecretStr | None = Field(default=None, min_length=1)
+    ci_pricing_file: Path | None = None
 
     model_config = SettingsConfigDict(env_file=ENV_FILE, extra="ignore")
 

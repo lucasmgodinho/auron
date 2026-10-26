@@ -1,5 +1,9 @@
 # Auron
 
+For supervised development with native Codex, see
+[the AI-first workflow](docs/AI_FIRST_WORKFLOW.md), including repository Skills,
+subagent roles, acceptance criteria and `scripts/verify.ps1 -Mode fast`.
+
 Auron is a modular B2B SaaS platform. The FastAPI backend and React frontend run directly on the host; Docker Compose runs PostgreSQL only.
 
 ## Prerequisites
@@ -209,13 +213,64 @@ optional. The synchronous analysis endpoint remains available, while the UI uses
 stream is NDJSON: its progress events are transient UI updates and exactly one terminal event
 reports completion or failure.
 
-Each valid Tavily answer is one embedding unit; the pipeline does not perform chunking. Displayed
-source links are the sources returned by Tavily and do not imply that each source page was indexed.
-Chroma uses a new ephemeral collection for every execution and removes it afterward. Search
-answers, events, and reports are not persisted. Durable application events for analysis start,
-completion, and failure remain separate from the transient stream stages. The frontend route is
+Production uses the V2 evidence pipeline: one LLM call validates the company and generates
+questions, Tavily acquires source documents without generating answers, and normalized URLs plus
+processed-content hashes deduplicate selected documents across questions. Every discovery retains
+its question and source metadata. Documents are normalized and chunked at 512 tokens with 64-token
+overlap; chunk embeddings are batched with `text-embedding-3-small`. An isolated ephemeral Chroma
+collection uses cosine retrieval with up to five chunks per research question and one query
+embedding per question. Repeated retrieved chunks appear once in the grounded context. One final
+LLM call produces a report using that context and `[E1]` evidence citations; unknown evidence IDs
+are rejected. Progress events retain their stage names, with source/document/chunk/evidence counts;
+`search_completed.documents_selected` replaces the legacy `answer_indexed` flag.
+
+Chroma removes the collection after retrieval, including failures. Every admitted analysis now
+creates a tenant-owned `CompetitiveAnalysisRun`, independently of LangGraph state, with its
+requesting User, company/sector, pipeline version, timestamps, report, and safe failure details.
+The lifecycle is `pending -> running -> completed | failed | cancelled`. Each transition commits
+in a short database transaction; provider calls do not hold a run transaction. Completion stores
+the report, source metadata/provenance, and the unique evidence excerpts supplied to the report
+atomically. Evidence retains `[E1]` IDs, source associations, retrieval query/distance/rank, context
+order, and whether the report actually cited it. Full pages, search summaries, embeddings, and
+transient UI events are not stored. Durable application events for analysis start, completion,
+and failure link to the run and remain separate from the transient stream stages. The frontend route is
 `/app/organizations/:organizationId/modules/competitive-intelligence`. Tests replace external
 providers with deterministic fakes and do not call OpenAI or Tavily.
+
+Under `/organizations/{organization_id}/modules/competitive-intelligence/analyses`:
+
+- `POST /` runs synchronously and returns `run_id` with the existing report fields.
+- `POST /stream` preserves NDJSON stages and adds `run_id` to every event plus an
+  `X-Analysis-Run-ID` response header. Synchronous execution errors also return that header.
+- `GET /` lists recent run summaries, newest first, with `limit` (default 25, maximum 100),
+  `offset`, and a total count.
+- `GET /{run_id}` returns the run, report, sources, evidence, and sanitized technical `telemetry`;
+  foreign-tenant IDs return 404. Historical or unavailable snapshots return null.
+
+All endpoints require current Organization membership, module entitlement, and the existing
+`competitive_intelligence.analysis.run` permission (owner bypass applies only after entitlement).
+History is Organization-owned and shared with authorized members; the requester is audit metadata,
+not a separate private ownership boundary. Reading history does not require provider configuration.
+Access, request-schema, and configuration rejections before admission do not create a run.
+
+Product telemetry is persisted with the run; optional OpenTelemetry traces serve operational
+export and are not the UI query layer. Stage timings, provider usage, batch/retrieval statistics and
+versioned cost estimates exclude prompts, pages and report bodies. See
+[observability configuration and schema](docs/COMPETITIVE_INTELLIGENCE_OBSERVABILITY.md).
+
+Execution remains inside the request, with no worker, resumable job, or LangGraph checkpoint.
+Handled provider/domain/unexpected errors persist `failed` before returning a terminal result.
+Closing the streaming response cancels an active run, including disconnects before the first event;
+completed/failed runs are never overwritten. Cancellation is cooperative while a synchronous
+provider call is in flight. Hard process termination or database unavailability can prevent the
+final transaction; automatic orphan-run recovery remains deferred, and such runs need operational
+reconciliation. Deploy the new Alembic migration before starting this backend version.
+
+Benchmark/evaluation tooling is separate from production execution. It reuses the same document
+processing, vector-store retrieval, context builder, and grounded report functions with frozen
+single-question cases, human labels, and persisted metrics under `backend/evaluation/benchmarks/v2`.
+Production neither reads benchmark fixtures nor runs LLM judges. Frozen data and historical
+configuration remain unchanged; see `backend/evaluation/README.md`.
 
 ## Module development workflow
 
@@ -223,7 +278,7 @@ Create a minimal registered module package with:
 
 ```powershell
 .\backend\.venv\Scripts\python.exe `
-  .agents\skills\auron-module\scripts\create_module.py `
+  scripts\create_module.py `
   --key <module_key> `
   --name "<Name>"
 ```
@@ -233,20 +288,20 @@ Add `--analytics` only when the module will implement the existing AnalyticsProv
 
 ```powershell
 .\backend\.venv\Scripts\python.exe `
-  .agents\skills\auron-module\scripts\validate_module.py <module_key>
+  scripts\validate_module.py <module_key>
 ```
 
-The canonical architecture remains in `AGENTS.md`, `docs/ARCHITECTURE.md`, and
-`docs/MODULE_CONTRACT.md`. When an explicit cross-AI project snapshot is needed, invoke the
-`auron-handoff` Skill; it generates the ignored `.ai/AURON_HANDOFF.md` from current repository
-evidence. Normal module work does not generate this snapshot.
+Architecture rules live in `docs/ENGINEERING_RULES.md`, `docs/ARCHITECTURE.md`, and
+`docs/MODULE_CONTRACT.md`. Agent roles share `.github/agents.md`; see
+`docs/AI_FIRST_WORKFLOW.md` for manual GitHub stages and approvals.
 
-The explicitly invoked handoff Skill collects deterministic repository context from the repository
-root with:
+For an explicitly requested handoff, collect repository facts with the command below.
+It writes no snapshot; retain any exported report outside the checkout or in ignored
+artifacts. Its read-only database probe needs an explicitly authorized environment.
 
 ```powershell
 .\backend\.venv\Scripts\python.exe `
-  .agents\skills\auron-handoff\scripts\collect_context.py
+  scripts\collect_context.py
 ```
 
 Reissue an expired, unaccepted invitation from `backend/` with:

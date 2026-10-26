@@ -1,15 +1,73 @@
 import re
+from functools import lru_cache
+from hashlib import sha256
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import tiktoken
 
-from .evidence import EvidenceChunk, SourceDocument
+from .evidence import EvidenceChunk, SourceDocument, SourceProvenance
 
 EMBEDDING_MODEL = "text-embedding-3-small"
 
 DEFAULT_CHUNK_SIZE = 512
 DEFAULT_CHUNK_OVERLAP = 64
 
-TOKENIZER = tiktoken.encoding_for_model(EMBEDDING_MODEL)
+TOKENIZER_NAME = tiktoken.encoding_name_for_model(EMBEDDING_MODEL)
+
+
+@lru_cache(maxsize=1)
+def get_tokenizer() -> tiktoken.Encoding:
+    """Load the production tokenizer on first use, never during application import."""
+    return tiktoken.encoding_for_model(EMBEDDING_MODEL)
+
+
+def normalize_source_url(url: str) -> str:
+    """Ignore fragments and tracking parameters; retain meaningful query parameters."""
+    parts = urlsplit(url)
+    query = sorted(
+        (key, value)
+        for key, value in parse_qsl(parts.query, keep_blank_values=True)
+        if not key.lower().startswith("utm_") and key.lower() not in {"gclid", "fbclid"}
+    )
+    return urlunsplit(
+        (parts.scheme.lower(), parts.netloc.lower(), parts.path or "/", urlencode(query), "")
+    )
+
+
+def deduplicate_documents(documents: list[SourceDocument]) -> list[SourceDocument]:
+    """Collapse URL/content duplicates before chunking, preserving discovery metadata."""
+    # Resolve URLs first so content hashes describe the selected full document,
+    # never a discarded summary from an earlier discovery of the same URL.
+    for identity in ("url", "content"):
+        unique: list[SourceDocument] = []
+        by_identity: dict[str, int] = {}
+        for document in documents:
+            text = normalize_document_text(get_document_text(document))
+            key = (
+                normalize_source_url(str(document.url))
+                if identity == "url"
+                else sha256(text.encode("utf-8")).hexdigest() if text else document.source_id
+            )
+            discoveries = document.provenance or [
+                SourceProvenance.model_validate(document.model_dump())
+            ]
+            index = by_identity.get(key)
+            if index is None:
+                by_identity[key] = len(unique)
+                unique.append(document.model_copy(update={"provenance": list(discoveries)}))
+                continue
+            existing = unique[index]
+            provenance = list(existing.provenance)
+            for discovery in discoveries:
+                if discovery not in provenance:
+                    provenance.append(discovery)
+            if not existing.raw_content and document.raw_content:
+                document = document.model_copy(update={"source_id": existing.source_id})
+            else:
+                document = existing
+            unique[index] = document.model_copy(update={"provenance": provenance})
+        documents = unique
+    return documents
 
 
 def get_document_text(document: SourceDocument) -> str:
@@ -71,7 +129,8 @@ def chunk_document(
 
     original_text = get_document_text(document)
     normalized_text = normalize_document_text(original_text)
-    normalized_tokens = TOKENIZER.encode(normalized_text)
+    tokenizer = get_tokenizer()
+    normalized_tokens = tokenizer.encode(normalized_text)
 
     chunks: list[EvidenceChunk] = []
 
@@ -85,7 +144,7 @@ def chunk_document(
         )
 
         chunk_tokens = normalized_tokens[start:end]
-        chunk_text = TOKENIZER.decode(chunk_tokens)
+        chunk_text = tokenizer.decode(chunk_tokens)
 
         chunks.append(
             EvidenceChunk(
