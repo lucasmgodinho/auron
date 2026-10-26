@@ -31,6 +31,11 @@ session and server-side tenant authorization. Network-enabled stages have no
 technical external egress filter: application requests must stay on loopback.
 Do not inspect/use the action's protected model proxy or GitHub runner command files.
 
+Validation is role-specific. Audit and plan may run only relevant checks that
+keep the candidate read-only, with all generated outputs in the assigned evidence
+folder. Do not run fast or full in these roles: those commands write files in the
+candidate checkout. Implement and review follow their validation requirements below.
+
 Keep existing regressions. Derive new exploratory tests from approved behavior,
 not just the implementation, and create them only in the assigned evidence folder.
 Retain every generated executable script, fixture, exact command, exit and log.
