@@ -279,7 +279,7 @@ class EvidenceTests(unittest.TestCase):
         matches = list(re.finditer(r"^  ([a-z][a-z-]+):$", workflow, re.MULTILINE))
         jobs = {m[1]: workflow[m.start():matches[i + 1].start() if i + 1 < len(matches) else len(workflow)]
                 for i, m in enumerate(matches)}
-        self.assertEqual({n for n, body in jobs.items() if "secrets.OPENAI_API_KEY_GL" in body}, {"agent"})
+        self.assertEqual({n for n, body in jobs.items() if "secrets.OPENAI_API_KEY_LUCAS" in body}, {"agent"})
         before = jobs["agent"].split("uses: openai/codex-action", 1)[0]
         self.assertNotIn("cache:", before)
         self.assertIsNone(re.search(r"working-directory: candidate|\(cd candidate|npm --prefix candidate|python candidate/", before))

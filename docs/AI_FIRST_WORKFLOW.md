@@ -44,13 +44,22 @@ or develop, default: default branch), and finally AURON_AGENT_ENABLED=true. Miss
 false disables new requests; cancel running workflows separately. One operation at
 a time, with one pending slot in GitHub; this is not a durable queue.
 
-Store the university key as secret OPENAI_API_KEY_GL. The workflow uses only this
-secret. Keep OPENAI_API_KEY_LUCAS for an explicit manual switch of openai-api-key
-in .github/workflows/agents.yml; there is no automatic fallback. Never paste either
-key into chat/source/.env/logs. Check Responses API/model access, billing and GitHub
-minutes/storage separately. Timeouts are not a dollar cap. Check Actions permission to
+Store a dedicated personal OpenAI project key as secret OPENAI_API_KEY_LUCAS.
+The workflow uses only this secret with the standard OpenAI endpoint, without
+automatic fallback. OPENAI_API_KEY_GL is an institutional gateway credential
+and is not used here; using that gateway requires a separate compatibility review.
+Never paste keys into chat/source/.env/logs. Check Responses API/model access,
+billing and GitHub minutes/storage separately. Timeouts are not a dollar cap.
+Check Actions policies and permission to
 create PRs. No PAT/App is required by design. PR CI may need Approve workflows to run;
 verify its actual integration SHA. Account changes/publishing require authorization.
+
+The pilot explicitly selects gpt-6-luna with low reasoning effort for every role.
+The Codex step allows five minutes for audit and 20 minutes for other roles.
+No automatic switch to a larger model is configured. Keep the first audit focused
+on AGENTS.md, .github/agents.md and this guide, then inspect actual API usage.
+These settings reduce cost exposure; there is no hard per-run token or dollar cap.
+Model access and a real agent run remain to be verified with the selected key.
 
 ## Boundaries and evidence
 
