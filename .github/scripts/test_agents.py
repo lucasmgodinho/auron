@@ -273,6 +273,25 @@ class EvidenceTests(unittest.TestCase):
             (root / "result.json").write_text(json.dumps(value))
             self.assertEqual(agents.check_result(req, root)["status"], "passed")
 
+    def test_audit_requires_retained_log_paths_not_prose_or_source_citations(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            value = {"status": "completed", "summary": "Synthetic audit contract fixture", "criteria": [],
+                     "generated_tests": [], "cleanup_completed": True, "proposals": [],
+                     "checks": [{"criterion": "Read-only inspection", "command": "fixture inspection",
+                                 "exit_code": 0, "evidence": []}]}
+            for invalid in ("Git root: /home/runner/work/auron/auron/candidate",
+                            "Candidate AGENTS.md lines 13-15 directs fast checks",
+                            "AGENTS.md:13", "missing.log", "../outside.log"):
+                value["checks"][0]["evidence"] = [invalid]
+                (root / "result.json").write_text(json.dumps(value))
+                with self.subTest(invalid=invalid), self.assertRaisesRegex(ValueError, r"checks\[0\].evidence\[0\]"):
+                    agents.check_result({"stage": "audit"}, root)
+            (root / "inspection.log").write_text("Synthetic fixture output, not real audit proof")
+            value["checks"][0]["evidence"] = ["inspection.log"]
+            (root / "result.json").write_text(json.dumps(value))
+            self.assertEqual(agents.check_result({"stage": "audit"}, root)["status"], "completed")
+
     def test_workflow_pays_only_after_trusted_setup_and_separates_write_tokens(self):
         import re
         workflow = (agents.CONTROL / ".github/workflows/agents.yml").read_text()

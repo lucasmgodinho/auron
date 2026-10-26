@@ -40,8 +40,17 @@ Missing prerequisites, skipped coverage, ambiguous assertions or incomplete clea
 are inconclusive. A schema or file count does not prove an assertion meaningful.
 
 Return JSON matching the supplied schema. `summary` is the human-readable Markdown
-report. Evidence paths are relative to the assigned evidence folder; do not write
-the final `result.json` yourself. Never declare a command successful without running it.
+report. `checks[].evidence` and `generated_tests` contain ONLY relative paths to
+files you actually created inside the assigned evidence folder, using ASCII
+letters/digits, dots, underscores, hyphens and / separators. For example, use
+`"evidence": ["logs/git-state.log"]`; never put command output, observations,
+`file:line` citations or source checkout paths in these fields. Put observations
+and source citations in `summary` or proposal bodies.
+Before returning, execute each check command and capture its stdout/stderr in a
+nonempty .log file under evidence, including for static audits/read-only commands.
+Record the exact command and actual exit code; each check needs its retained log.
+Use `generated_tests: []` when no tests were generated. Do not write the final
+`result.json` yourself. Never declare a command successful without running it.
 
 ## audit
 
