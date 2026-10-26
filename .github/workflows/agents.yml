@@ -210,11 +210,13 @@ jobs:
           python control/.github/scripts/agents.py setup --request "$RUNNER_TEMP/request/request.json"
           --target "$GITHUB_WORKSPACE/candidate" --evidence "$RUNNER_TEMP/evidence"
       - name: Run selected Codex role
-        timeout-minutes: 20
+        timeout-minutes: ${{ inputs.stage == 'audit' && 5 || 20 }}
         uses: openai/codex-action@bdf19a4a223ec2549a3e2274a0cf61556bc07675 # v1
         with:
-          openai-api-key: ${{ secrets.OPENAI_API_KEY_GL }}
+          openai-api-key: ${{ secrets.OPENAI_API_KEY_LUCAS }}
           codex-version: '0.163.0'
+          model: 'gpt-6-luna'
+          effort: 'low'
           codex-home: ${{ runner.temp }}/auron-home
           working-directory: ${{ github.workspace }}/candidate
           permission-profile: auron
