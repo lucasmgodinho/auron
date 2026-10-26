@@ -215,8 +215,8 @@ jobs:
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY_LUCAS }}
           codex-version: '0.163.0'
-          model: 'gpt-6-luna'
-          effort: 'low'
+          model: 'gpt-6-sol'
+          effort: 'high'
           codex-home: ${{ runner.temp }}/auron-home
           working-directory: ${{ github.workspace }}/candidate
           permission-profile: auron
