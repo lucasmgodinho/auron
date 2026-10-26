@@ -82,3 +82,19 @@ never authorization.
 Every module must cover tenant isolation, enabled and disabled entitlement, allowed and denied
 permission, owner bypass with entitlement, and cross-tenant access attempts using PostgreSQL-backed
 tests where persistence behavior matters.
+
+## Engineering tools
+
+With the provisioned backend Python, from the repository root:
+
+```powershell
+python scripts/create_module.py --key <key> --name <name> --dry-run
+python scripts/create_module.py --key <key> --name <name>
+python scripts/validate_module.py <key>
+```
+
+The scaffold updates the explicit production registry. Add only real domain code;
+define stable permissions before protected endpoints. `--analytics` scaffolds the
+provider declaration; implement concrete metrics/queries before use. Do not add
+placeholder modules or frontend navigation. Keep routers thin and run focused tests
+plus the shared verification gates after module validation.

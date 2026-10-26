@@ -278,7 +278,7 @@ Create a minimal registered module package with:
 
 ```powershell
 .\backend\.venv\Scripts\python.exe `
-  .agents\skills\auron-module\scripts\create_module.py `
+  scripts\create_module.py `
   --key <module_key> `
   --name "<Name>"
 ```
@@ -288,20 +288,20 @@ Add `--analytics` only when the module will implement the existing AnalyticsProv
 
 ```powershell
 .\backend\.venv\Scripts\python.exe `
-  .agents\skills\auron-module\scripts\validate_module.py <module_key>
+  scripts\validate_module.py <module_key>
 ```
 
-The canonical architecture remains in `AGENTS.md`, `docs/ARCHITECTURE.md`, and
-`docs/MODULE_CONTRACT.md`. When an explicit cross-AI project snapshot is needed, invoke the
-`auron-handoff` Skill; it generates the ignored `.ai/AURON_HANDOFF.md` from current repository
-evidence. Normal module work does not generate this snapshot.
+Architecture rules live in `docs/ENGINEERING_RULES.md`, `docs/ARCHITECTURE.md`, and
+`docs/MODULE_CONTRACT.md`. Agent roles share `.github/agents.md`; see
+`docs/AI_FIRST_WORKFLOW.md` for manual GitHub stages and approvals.
 
-The explicitly invoked handoff Skill collects deterministic repository context from the repository
-root with:
+For an explicitly requested handoff, collect repository facts with the command below.
+It writes no snapshot; retain any exported report outside the checkout or in ignored
+artifacts. Its read-only database probe needs an explicitly authorized environment.
 
 ```powershell
 .\backend\.venv\Scripts\python.exe `
-  .agents\skills\auron-handoff\scripts\collect_context.py
+  scripts\collect_context.py
 ```
 
 Reissue an expired, unaccepted invitation from `backend/` with:

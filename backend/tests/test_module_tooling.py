@@ -13,8 +13,7 @@ import pytest
 from app.core.module_registry.registry import production_module_registry
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
-MODULE_SKILL = REPOSITORY_ROOT / ".agents" / "skills" / "auron-module"
-HANDOFF_SKILL = REPOSITORY_ROOT / ".agents" / "skills" / "auron-handoff"
+SCRIPTS = REPOSITORY_ROOT / "scripts"
 
 
 def load_script(name: str, path: Path) -> ModuleType:
@@ -31,7 +30,7 @@ def load_script(name: str, path: Path) -> ModuleType:
 def create_module_script() -> ModuleType:
     return load_script(
         "auron_create_module_test",
-        MODULE_SKILL / "scripts" / "create_module.py",
+        SCRIPTS / "create_module.py",
     )
 
 
@@ -39,7 +38,7 @@ def create_module_script() -> ModuleType:
 def validate_module_script() -> ModuleType:
     return load_script(
         "auron_validate_module_test",
-        MODULE_SKILL / "scripts" / "validate_module.py",
+        SCRIPTS / "validate_module.py",
     )
 
 
@@ -47,7 +46,7 @@ def validate_module_script() -> ModuleType:
 def collect_context_script() -> ModuleType:
     return load_script(
         "auron_collect_context_test",
-        HANDOFF_SKILL / "scripts" / "collect_context.py",
+        SCRIPTS / "collect_context.py",
     )
 
 
@@ -266,7 +265,7 @@ def test_validator_cli_returns_nonzero_on_failure(tmp_path: Path) -> None:
     result = subprocess.run(
         [
             sys.executable,
-            str(MODULE_SKILL / "scripts" / "validate_module.py"),
+            str(SCRIPTS / "validate_module.py"),
             "missing_test",
             "--root",
             str(root),
@@ -341,7 +340,7 @@ def test_handoff_context_excludes_environment_secrets_and_registry_state(
     secret = "must-never-appear-in-handoff-context"
     monkeypatch.setenv("HANDOFF_TEST_SECRET", secret)
     before = production_module_registry.list()
-    handoff_path = REPOSITORY_ROOT / ".ai" / "AURON_HANDOFF.md"
+    handoff_path = REPOSITORY_ROOT / "artifacts" / "handoff" / "AURON_HANDOFF.md"
     handoff_before = handoff_path.read_bytes() if handoff_path.exists() else None
 
     def runner(command: tuple[str, ...], cwd: Path) -> str | None:

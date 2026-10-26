@@ -9,12 +9,12 @@ __pycache__/
 
 node_modules/
 dist/
+/artifacts/
 
 .vscode/
 .idea/
 .DS_Store
 
-/.ai/AURON_HANDOFF.md
 Estudo.txt
 backend/app/modules/competitive_intelligence/notes/AURON_AI_ENGINEERING_STUDY_NOTES.txt
 backend/app/modules/competitive_intelligence/notes/AURON_AI_ENGINEERING_STUDY_NOTES_V2.txt

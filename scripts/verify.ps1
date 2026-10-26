@@ -48,6 +48,9 @@ try {
         $databaseCheck = @'
 from app.config import get_settings
 from sqlalchemy.engine import make_url
+import os
+if any(key.startswith('PG') for key in os.environ):
+    raise SystemExit('Full rejects ambient PG* connection settings; remove them or use verify-disposable.ps1.')
 s = get_settings()
 def target(value):
     u = make_url(value)
@@ -55,6 +58,11 @@ def target(value):
     return ('localhost' if host in {'localhost', '127.0.0.1', '::1'} else host, u.port or 5432, u.database)
 if not s.test_database_url:
     raise SystemExit('TEST_DATABASE_URL is required; no database was provisioned.')
+test_url = make_url(s.test_database_url)
+timeout = test_url.query.get('connect_timeout', '5')
+if (set(test_url.query) - {'connect_timeout'} or not isinstance(timeout, str)
+        or not timeout.isdigit() or not 1 <= int(timeout) <= 10):
+    raise SystemExit('TEST_DATABASE_URL only permits connect_timeout=1..10; connection overrides are forbidden.')
 if target(s.test_database_url) == target(s.database_url):
     raise SystemExit('The test database must differ from the application database.')
 print('Dedicated test DB configured; no connection/migration performed by preflight.')
@@ -79,7 +87,7 @@ print('Dedicated test DB configured; no connection/migration performed by prefli
         'tests/test_competitive_intelligence_benchmark.py::test_frozen_benchmark_checksums_remain_valid'
     )
     Invoke-Check 'Backend offline/pure regression scope' $backend $Python $pureTests
-    Invoke-Check 'Auron module contract' $repositoryRoot $Python @('.agents/skills/auron-module/scripts/validate_module.py', 'competitive_intelligence')
+    Invoke-Check 'Auron module contract' $repositoryRoot $Python @('scripts/validate_module.py', 'competitive_intelligence')
     Invoke-Check 'Alembic revision graph (no DB)' $backend $Python @('-m', 'alembic', 'heads')
     Invoke-Check 'Frontend lint' $frontend $npm @('run', 'lint')
     foreach ($project in @('tsconfig.app.json', 'tsconfig.node.json', 'tsconfig.test.json')) {
@@ -96,8 +104,21 @@ print('Dedicated test DB configured; no connection/migration performed by prefli
 import os
 import sys
 os.environ['DATABASE_URL'] = 'postgresql+psycopg://auron_verify:unused@127.0.0.1:1/auron_verify_no_application_db?connect_timeout=1'
+from app.config import Settings
+from app.config import ENV_FILE
+from pydantic_settings.sources import DotEnvSettingsSource
+from unittest.mock import patch
+isolated_setting_names = set(Settings.model_fields) - {'database_url', 'test_database_url'}
+for name in list(os.environ):
+    if name.lower() in isolated_setting_names:
+        os.environ.pop(name)
+read_env_files = DotEnvSettingsSource._read_env_files
+def read_test_env(source):
+    # Preserve configuration metadata and explicit synthetic dotenv test fixtures.
+    return {} if source.env_file == ENV_FILE else read_env_files(source)
 import pytest
-raise SystemExit(pytest.main(['-q', '-p', 'no:cacheprovider', '--basetemp', sys.argv[1]]))
+with patch.object(DotEnvSettingsSource, '_read_env_files', read_test_env):
+    raise SystemExit(pytest.main(['-q', '-p', 'no:cacheprovider', '--basetemp', sys.argv[1]]))
 '@
         $fullTemp = Join-Path $tempParent ('verify-full-' + [guid]::NewGuid().ToString('N'))
         if (Test-Path -LiteralPath $fullTemp) { throw 'Refusing to reuse an existing pytest temp directory.' }

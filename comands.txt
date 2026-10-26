@@ -4,8 +4,8 @@ python -m app.scripts.reissue_organization_invitation `
   --email user@example.com `
   --expires-hours 168
 
-.\backend\.venv\Scripts\python.exe .agents\skills\auron-module\scripts\create_module.py --key <module_key> --name "<Name>"
-.\backend\.venv\Scripts\python.exe .agents\skills\auron-module\scripts\validate_module.py <module_key>
+.\backend\.venv\Scripts\python.exe scripts\create_module.py --key <module_key> --name "<Name>"
+.\backend\.venv\Scripts\python.exe scripts\validate_module.py <module_key>
 
 #grant platform admin
 cd C:\Auron\backend                                                                                                

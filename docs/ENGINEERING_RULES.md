@@ -86,8 +86,9 @@
 - Providers must ownership-validate domain filter IDs. Analytics queries never accept
   `organization_id`, raw SQL, table names, columns, or arbitrary expressions.
 - Analytics results are visualization-agnostic; do not add chart concepts to the Core contract.
-- Use `.agents/skills/auron-module` when creating or materially extending business modules.
-- Canonical architecture remains in `docs/`; generated Skill guidance must reference, not duplicate,
+- Use `docs/MODULE_CONTRACT.md` and `scripts/create_module.py` / `scripts/validate_module.py`
+  when creating or materially extending business modules.
+- Canonical architecture remains in `docs/`; agent instructions must reference, not duplicate,
   those contracts.
 - Run the Auron module validator before completing module work.
 
